@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: transcendence-postgres
+    environment:
+      POSTGRES_USER: transcendence
+      POSTGRES_PASSWORD: transcendence
+      POSTGRES_DB: transcendence
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transcendence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: transcendence-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - transcendence-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  game-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.game-service
+    container_name: transcendence-game-service
+    ports:
+      - "8080:8080"
+    environment:
+      QUARKUS_HTTP_PORT: 8080
+      QUARKUS_DATASOURCE_DB_KIND: postgresql
+      QUARKUS_DATASOURCE_USERNAME: transcendence
+      QUARKUS_DATASOURCE_PASSWORD: transcendence
+      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/game_db
+      QUARKUS_REDIS_HOSTS: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - transcendence-network
+    restart: unless-stopped
+
+  tournament-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.tournament-service
+    container_name: transcendence-tournament-service
+    ports:
+      - "8081:8081"
+    environment:
+      QUARKUS_HTTP_PORT: 8081
+      QUARKUS_DATASOURCE_DB_KIND: postgresql
+      QUARKUS_DATASOURCE_USERNAME: transcendence
+      QUARKUS_DATASOURCE_PASSWORD: transcendence
+      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/tournament_db
+      QUARKUS_REDIS_HOSTS: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - transcendence-network
+    restart: unless-stopped
+
+  usermanagement-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.usermanagement-service
+    container_name: transcendence-usermanagement-service
+    ports:
+      - "8082:8082"
+    environment:
+      QUARKUS_HTTP_PORT: 8082
+      QUARKUS_DATASOURCE_DB_KIND: postgresql
+      QUARKUS_DATASOURCE_USERNAME: transcendence
+      QUARKUS_DATASOURCE_PASSWORD: transcendence
+      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/usermanagement_db
+      QUARKUS_REDIS_HOSTS: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - transcendence-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  transcendence-network:
+    driver: bridge

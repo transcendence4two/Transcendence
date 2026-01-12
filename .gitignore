@@ -1,0 +1,11 @@
+.env
+target/
+**/target/
+
+.quarkus/
+**/.quarkus/
+
+*.class
+
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
