@@ -94,7 +94,7 @@ services:
       QUARKUS_DATASOURCE_DB_KIND: postgresql
       QUARKUS_DATASOURCE_USERNAME: transcendence
       QUARKUS_DATASOURCE_PASSWORD: transcendence
-      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/usermanagement_db
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/usermanagement_db
       QUARKUS_REDIS_HOSTS: redis://redis:6379
     depends_on:
       postgres:
