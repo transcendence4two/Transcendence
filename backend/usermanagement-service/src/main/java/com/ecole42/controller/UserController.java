@@ -29,6 +29,7 @@ public class UserController {
         UserRegistrationResponse response = userService.register(registrationRequest);
         return Response
             .status(Response.Status.CREATED)
+            .type(MediaType.APPLICATION_JSON)
             .entity(response)
             .build();
     }
