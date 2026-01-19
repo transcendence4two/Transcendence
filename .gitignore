@@ -9,3 +9,4 @@ target/
 
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+**/META-INF/resources/index.html
