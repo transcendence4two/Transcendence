@@ -26,6 +26,13 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
                 exception.getMessage()
             );
         }
+
+        if (exception instanceof InvalidCredentialsException) {
+            return buildResponse(
+                Response.Status.UNAUTHORIZED,
+                "Invalid email or password"
+            );
+        }
         
         if (exception instanceof ConstraintViolationException) {
             ConstraintViolationException cve = (ConstraintViolationException) exception;

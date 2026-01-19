@@ -1,6 +1,8 @@
 package com.ecole42.controller;
 
+import com.ecole42.dto.request.UserLoginRequest;
 import com.ecole42.dto.request.UserRegistrationRequest;
+import com.ecole42.dto.response.UserLoginResponse;
 import com.ecole42.dto.response.UserRegistrationResponse;
 import com.ecole42.service.UserService;
 
@@ -27,10 +29,25 @@ public class UserController {
     @Path("/register")
     public Response register(@Valid UserRegistrationRequest registrationRequest) {
         UserRegistrationResponse response = userService.register(registrationRequest);
-        return Response
+        return (Response
             .status(Response.Status.CREATED)
             .type(MediaType.APPLICATION_JSON)
             .entity(response)
-            .build();
+            .build());
+    }
+
+    @POST
+    @Path("/login")
+    public Response login(@Valid UserLoginRequest loginRequest) {
+        UserLoginResponse response = userService.login(loginRequest);
+        Response.Status status = response.twoFactorRequired()
+            ? Response.Status.ACCEPTED
+            : Response.Status.OK;
+
+        return (Response
+            .status(status)
+            .type(MediaType.APPLICATION_JSON)
+            .entity(response)
+            .build());
     }
 }

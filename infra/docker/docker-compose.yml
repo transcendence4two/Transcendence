@@ -4,12 +4,10 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: transcendence-postgres
-    environment:
-      POSTGRES_USER: transcendence
-      POSTGRES_PASSWORD: transcendence
-      POSTGRES_DB: transcendence
+    env_file:
+      - ../../.env
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
@@ -24,8 +22,10 @@ services:
   redis:
     image: redis:7-alpine
     container_name: transcendence-redis
+    env_file:
+      - ../../.env
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -41,15 +41,10 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.game-service
     container_name: transcendence-game-service
+    env_file:
+      - ../../.env
     ports:
-      - "8080:8080"
-    environment:
-      QUARKUS_HTTP_PORT: 8080
-      QUARKUS_DATASOURCE_DB_KIND: postgresql
-      QUARKUS_DATASOURCE_USERNAME: transcendence
-      QUARKUS_DATASOURCE_PASSWORD: transcendence
-      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/game_db
-      QUARKUS_REDIS_HOSTS: redis://redis:6379
+      - "${GAME_SERVICE_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,15 +59,10 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.tournament-service
     container_name: transcendence-tournament-service
+    env_file:
+      - ../../.env
     ports:
-      - "8081:8081"
-    environment:
-      QUARKUS_HTTP_PORT: 8081
-      QUARKUS_DATASOURCE_DB_KIND: postgresql
-      QUARKUS_DATASOURCE_USERNAME: transcendence
-      QUARKUS_DATASOURCE_PASSWORD: transcendence
-      QUARKUS_DATASOURCE_REACTIVE_URL: postgresql://postgres:5432/tournament_db
-      QUARKUS_REDIS_HOSTS: redis://redis:6379
+      - "${TOURNAMENT_SERVICE_PORT:-8081}:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -87,15 +77,10 @@ services:
       context: ../..
       dockerfile: infra/docker/Dockerfile.usermanagement-service
     container_name: transcendence-usermanagement-service
+    env_file:
+      - ../../.env
     ports:
-      - "8082:8082"
-    environment:
-      QUARKUS_HTTP_PORT: 8082
-      QUARKUS_DATASOURCE_DB_KIND: postgresql
-      QUARKUS_DATASOURCE_USERNAME: transcendence
-      QUARKUS_DATASOURCE_PASSWORD: transcendence
-      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/usermanagement_db
-      QUARKUS_REDIS_HOSTS: redis://redis:6379
+      - "${USERMANAGEMENT_SERVICE_PORT:-8082}:8082"
     depends_on:
       postgres:
         condition: service_healthy
