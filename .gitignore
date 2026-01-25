@@ -9,3 +9,11 @@ target/
 
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+**/.venv/
