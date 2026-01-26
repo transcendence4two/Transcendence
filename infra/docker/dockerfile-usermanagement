@@ -1,0 +1,17 @@
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY backend/usermanagement-service/pyproject.toml /tmp/pyproject.toml
+RUN deps="$(python -c "import tomllib; f=open('/tmp/pyproject.toml','rb'); print(' '.join(tomllib.load(f)['project']['dependencies']))")" \
+    && uv pip install --system --no-cache-dir ${deps}
+
+COPY backend/usermanagement-service/src /app/src
+COPY backend/usermanagement-service/main.py /app/main.py
+
+ENV PYTHONPATH=/app
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
