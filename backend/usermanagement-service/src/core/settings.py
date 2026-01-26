@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import List
+from .utils import find_root_env
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Usermanagement"
@@ -7,7 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = 'sqlite+aiosqlite:///:memory:'
 
     class Config:
-        env_file = ".env"
+        env_file = find_root_env()
         case_sensitive = True
 
 settings = Settings()
