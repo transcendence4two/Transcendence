@@ -1,6 +1,6 @@
 DOCKER_COMPOSE = docker-compose -f infra/docker/docker-compose.yml
 
-all: deps
+all:
 	@echo "Starting all services locally..."
 	cd backend/usermanagement-service && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
@@ -23,9 +23,17 @@ tests:
 	@echo "Running tests for usermanagement-service..."
 	cd backend/usermanagement-service && uv sync --extra test && uv run pytest
 
+lint:
+	@echo "Linting code with Ruff..."
+	cd backend/usermanagement-service && uv run ruff check .
+
+format:
+	@echo "Formatting code with Ruff..."
+	cd backend/usermanagement-service && uv run ruff format .
+
 clean: down
 	@echo "Removing volumes and cleaning up..."
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all deploy down logs tests clean
+.PHONY: deps all deploy down logs tests lint format clean
