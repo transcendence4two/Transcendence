@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 from src.core.settings import settings
 from src.core.exception_handlers import (
     app_exception_handler,
@@ -6,16 +7,29 @@ from src.core.exception_handlers import (
 )
 from src.domain.exceptions import AppException
 from src.controller import user as user_controller
+from src.di_config import engine
+from src.domain.models import Base
 
-app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
+# Creating tables
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
 
-# Register global exception handlers
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    lifespan=lifespan
+)
+
+# Exceptions handler
 app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Routes
 app.include_router(user_controller.router, prefix="/users", tags=["users"])
-
 
 @app.get("/health")
 async def health_check():

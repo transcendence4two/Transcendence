@@ -9,7 +9,6 @@ from src.domain.contracts import PasswordHasher, UserRegister
 from src.domain.services.password import PasswordService
 from src.domain.services.user import UserService
 
-
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 async_session_factory = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False

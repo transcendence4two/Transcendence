@@ -1,15 +1,18 @@
-from passlib.context import CryptContext
-from src.domain.contracts import PasswordHasher
+import bcrypt
+import hashlib
 
-
-class PasswordService(PasswordHasher):
-    """Service for hashing and verifying passwords"""
-
-    def __init__(self):
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+class PasswordService:
+    """Service for hashing and verifying passwords using bcrypt"""
 
     def hash_password(self, password: str) -> str:
-        return self.pwd_context.hash(password)
+        sha256_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        salt = bcrypt.gensalt(rounds=12)
+        hashed = bcrypt.hashpw(sha256_hash.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return self.pwd_context.verify(plain_password, hashed_password)
+        sha256_hash = hashlib.sha256(plain_password.encode('utf-8')).hexdigest()
+        return bcrypt.checkpw(
+            sha256_hash.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )

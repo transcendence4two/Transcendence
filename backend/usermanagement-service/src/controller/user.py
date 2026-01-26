@@ -19,4 +19,4 @@ async def register_user(
     user_service: UserService = Depends(get_user_service),
 ):
     user = await user_service.register_user(request)
-    return UserResponse.from_orm(user)
+    return UserResponse.model_validate(user)
