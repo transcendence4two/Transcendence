@@ -1,3 +1,3 @@
 """
-    core package
+core package
 """

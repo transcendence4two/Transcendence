@@ -2,8 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserRegister
 from src.domain.schemas.user import UserRegisterRequest
-from src.domain.services.password import PasswordService
 from src.domain.services.commands.register_user import RegisterUserCommand
+from src.domain.services.password import PasswordService
+
 
 class UserService(UserRegister):
     """Service for user operations"""

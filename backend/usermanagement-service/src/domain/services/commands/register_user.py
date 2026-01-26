@@ -1,19 +1,21 @@
 import logging
 from uuid import uuid4
-from sqlalchemy import select, or_
+
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.services.commands.base import Command
+from src.domain.exceptions import UserAlreadyExistsException
 from src.domain.models.user import User
 from src.domain.schemas.user import UserRegisterRequest
-from src.domain.exceptions import UserAlreadyExistsException
+from src.domain.services.commands.base import Command
 from src.domain.services.password import PasswordService
 
 logger = logging.getLogger(__name__)
 
+
 class RegisterUserCommand(Command):
     """Command to register a new user."""
-    
+
     def __init__(
         self,
         session: AsyncSession,
@@ -32,9 +34,9 @@ class RegisterUserCommand(Command):
         return user
 
     async def _create_user(self) -> User:
-        """Create and persist the user""" 
+        """Create and persist the user"""
         hashed_password = self.password_service.hash_password(self.payload.password)
-        
+
         user = User(
             id=str(uuid4()),
             username=self.payload.username,
@@ -42,17 +44,15 @@ class RegisterUserCommand(Command):
             hashed_password=hashed_password,
             enable_2fa=self.payload.enable_2fa,
         )
-        
+
         return await self._persist(user)
 
     async def _ensure_unique(self, username: str, email: str) -> None:
         """Check if username and email are unique in a single query."""
-        stmt = select(User).where(
-            or_(User.username == username, User.email == email)
-        )
+        stmt = select(User).where(or_(User.username == username, User.email == email))
         result = await self.session.execute(stmt)
         existing_user = result.scalars().first()
-        
+
         if existing_user:
             if existing_user.username == username:
                 raise UserAlreadyExistsException(

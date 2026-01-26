@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.models.user import User
 
@@ -10,33 +10,35 @@ from src.domain.models.user import User
 class TestUserRegistration:
     """Integration tests for /users/register endpoint"""
 
-    async def test_register_user_success(self, client: AsyncClient, db_session: AsyncSession):
+    async def test_register_user_success(
+        self, client: AsyncClient, db_session: AsyncSession
+    ):
         # Arrange
         payload = {
             "username": "testuser",
             "email": "test@example.com",
             "password": "securepassword123",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 201
-        
+
         data = response.json()
         assert data["username"] == payload["username"]
         assert data["email"] == payload["email"]
         assert data["enable_2fa"] == payload["enable_2fa"]
         assert "id" in data
         assert "password" not in data
-        
+
         result = await db_session.execute(
             select(User).where(User.username == payload["username"])
         )
         user = result.scalar_one_or_none()
-        
+
         assert user is not None
         assert user.username == payload["username"]
         assert user.email == payload["email"]
@@ -49,12 +51,12 @@ class TestUserRegistration:
             "username": "user_2fa",
             "email": "2fa@example.com",
             "password": "securepassword123",
-            "enable_2fa": True
+            "enable_2fa": True,
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 201
         data = response.json()
@@ -66,22 +68,22 @@ class TestUserRegistration:
             "username": "duplicateuser",
             "email": "unique1@example.com",
             "password": "password123",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act - First registration (should succeed)
         response1 = await client.post("/users/register", json=payload)
         assert response1.status_code == 201
-        
+
         # Act - Second registration with same username but different email
         payload2 = {
             "username": "duplicateuser",
             "email": "unique2@example.com",
             "password": "password456",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
         response2 = await client.post("/users/register", json=payload2)
-        
+
         # Assert
         assert response2.status_code == 409
         data = response2.json()
@@ -95,22 +97,22 @@ class TestUserRegistration:
             "username": "user1",
             "email": "duplicate@example.com",
             "password": "password123",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act - First registration (should succeed)
         response1 = await client.post("/users/register", json=payload)
         assert response1.status_code == 201
-        
+
         # Act - Second registration with different username but same email
         payload2 = {
             "username": "user2",  # Different username
             "email": "duplicate@example.com",  # Same email
             "password": "password456",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
         response2 = await client.post("/users/register", json=payload2)
-        
+
         # Assert
         assert response2.status_code == 409
         data = response2.json()
@@ -123,12 +125,12 @@ class TestUserRegistration:
             "username": "testuser",
             "email": "invalid-email-format",
             "password": "password123",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 422
         data = response.json()
@@ -140,12 +142,12 @@ class TestUserRegistration:
             "username": "testuser",
             "email": "test@example.com",
             "password": "short",  # short password
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 422
         data = response.json()
@@ -157,12 +159,12 @@ class TestUserRegistration:
             "username": "",  # Empty username
             "email": "test@example.com",
             "password": "password123",
-            "enable_2fa": False
+            "enable_2fa": False,
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 422
         data = response.json()
@@ -170,13 +172,11 @@ class TestUserRegistration:
 
     async def test_register_user_missing_required_fields(self, client: AsyncClient):
         # Arrange
-        payload = {
-            "username": "testuser"
-        }
-        
+        payload = {"username": "testuser"}
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 422
         data = response.json()
@@ -187,12 +187,12 @@ class TestUserRegistration:
         payload = {
             "username": "default2fa",
             "email": "default@example.com",
-            "password": "password123"
+            "password": "password123",
         }
-        
+
         # Act
         response = await client.post("/users/register", json=payload)
-        
+
         # Assert
         assert response.status_code == 201
         data = response.json()

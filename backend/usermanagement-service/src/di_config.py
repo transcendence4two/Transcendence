@@ -1,7 +1,7 @@
 """Dependency injection configuration."""
 
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.core.settings import settings
@@ -14,6 +14,7 @@ async_session_factory = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
 
+
 async def get_db_session() -> AsyncSession:
     """Dependency to get database session."""
     async with async_session_factory() as session:
@@ -23,6 +24,7 @@ async def get_db_session() -> AsyncSession:
 def get_password_service() -> PasswordHasher:
     """Dependency to get password service."""
     return PasswordService()
+
 
 async def get_user_service(
     session: AsyncSession = Depends(get_db_session),

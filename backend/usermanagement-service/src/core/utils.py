@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def find_root_env() -> Path:
     current = Path(__file__).resolve()
     for parent in current.parents:
