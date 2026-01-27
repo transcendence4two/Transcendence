@@ -2,10 +2,29 @@
 target/
 **/target/
 
-.quarkus/
-**/.quarkus/
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+**/.venv/
+*.egg-info/
+**/*.egg-info/
+dist/
+build/
 
-*.class
+# Coverage reports
+.coverage
+.coverage.*
+**/htmlcov/
+*.cover
+**/.pytest_cache/
 
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

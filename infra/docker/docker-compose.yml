@@ -1,0 +1,11 @@
+services:
+  usermanagement-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-usermanagement
+    env_file:
+      - ../../.env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    container_name: usermanagement-service
