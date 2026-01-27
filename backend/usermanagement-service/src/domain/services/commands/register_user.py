@@ -4,7 +4,7 @@ from uuid import uuid4
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.exceptions import UserAlreadyExistsException
+from src.domain.exceptions import UserAlreadyExistsError
 from src.domain.models.user import User
 from src.domain.schemas.user import UserRegisterRequest
 from src.domain.services.commands.base import Command
@@ -55,10 +55,6 @@ class RegisterUserCommand(Command):
 
         if existing_user:
             if existing_user.username == username:
-                raise UserAlreadyExistsException(
-                    f"Username '{username}' is already taken"
-                )
+                raise UserAlreadyExistsError(f"Username '{username}' is already taken")
             if existing_user.email == email:
-                raise UserAlreadyExistsException(
-                    f"Email '{email}' is already registered"
-                )
+                raise UserAlreadyExistsError(f"Email '{email}' is already registered")

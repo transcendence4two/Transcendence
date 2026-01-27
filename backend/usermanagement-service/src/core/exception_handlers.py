@@ -3,12 +3,12 @@ import logging
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from src.domain.exceptions import AppException
+from src.domain.exceptions import AppError
 
 logger = logging.getLogger(__name__)
 
 
-async def app_exception_handler(request: Request, exc: AppException) -> JSONResponse:
+async def app_exception_handler(request: Request, exc: AppError) -> JSONResponse:
     log_level = logging.WARNING if exc.status_code < 500 else logging.ERROR
     logger.log(log_level, f"{exc.error_type}: {exc.detail}")
 

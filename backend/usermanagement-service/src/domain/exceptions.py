@@ -1,7 +1,7 @@
 from fastapi import status
 
 
-class AppException(Exception):
+class AppError(Exception):
     """Base exception class with HTTP metadata."""
 
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -12,14 +12,14 @@ class AppException(Exception):
         super().__init__(self.detail)
 
 
-class UserAlreadyExistsException(AppException):
+class UserAlreadyExistsError(AppError):
     """Raised when a user with the same email or username already exists."""
 
     status_code = status.HTTP_409_CONFLICT
     error_type = "USER_ALREADY_EXISTS"
 
 
-class DatabaseException(AppException):
+class DatabaseError(AppError):
     """Raised when database operations fail."""
 
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
