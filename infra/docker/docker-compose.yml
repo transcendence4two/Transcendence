@@ -9,3 +9,16 @@ services:
       - "8000:8000"
     restart: unless-stopped
     container_name: usermanagement-service
+
+  emails-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-emails-service
+    env_file:
+      - ../../.env
+    ports:
+      - "4001:4001"
+    restart: unless-stopped
+    container_name: emails-service
+    depends_on:
+      - usermanagement-service

@@ -1,0 +1,18 @@
+FROM elixir:1.14-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache git build-base
+RUN mix local.hex --force && mix local.rebar --force
+
+COPY backend/emails-service/mix.exs .
+COPY backend/emails-service/mix.lock .
+
+RUN mix deps.get && mix deps.compile
+
+COPY backend/emails-service/lib ./lib
+COPY backend/emails-service/config ./config
+
+EXPOSE 4001
+
+CMD ["mix", "run", "--no-halt"]
