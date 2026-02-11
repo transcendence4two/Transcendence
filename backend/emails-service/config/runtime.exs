@@ -1,6 +1,6 @@
 import Config
 
-Dotenv.load!()
+if File.exists?(".env"), do: Dotenv.load!()
 
 config :emails_service, :smtp,
   host: System.get_env("SMTP_HOST", "localhost"),

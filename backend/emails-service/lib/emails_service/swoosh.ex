@@ -21,7 +21,12 @@ defmodule EmailsService.Swoosh do
           username: smtp_config[:username],
           password: smtp_config[:password],
           auth: :always,
-          tls: :always
+          ssl: false,
+          tls: :if_available,
+          tls_options: [
+            verify: :verify_none,
+            versions: [:"tlsv1.2"]
+          ]
         ]
     end
   end

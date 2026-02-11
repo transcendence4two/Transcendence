@@ -2,7 +2,7 @@ FROM elixir:1.14-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache git build-base
+RUN apk add --no-cache git build-base ca-certificates
 RUN mix local.hex --force && mix local.rebar --force
 
 COPY backend/emails-service/mix.exs .
