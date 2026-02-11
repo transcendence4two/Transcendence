@@ -25,7 +25,8 @@ defmodule EmailsService.MixProject do
       {:jason, "~> 1.4"},
       {:swoosh, "~> 1.8"},
       {:gen_smtp, "~> 1.2"},
-      {:dotenv, "~> 3.0"}
+      {:dotenv, "~> 3.0"},
+      {:redix, "~> 1.3"}
     ]
   end
 end

@@ -1,4 +1,16 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    container_name: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   usermanagement-service:
     build:
       context: ../..
@@ -9,6 +21,9 @@ services:
       - "8000:8000"
     restart: unless-stopped
     container_name: usermanagement-service
+    depends_on:
+      redis:
+        condition: service_healthy
 
   emails-service:
     build:
@@ -21,4 +36,5 @@ services:
     restart: unless-stopped
     container_name: emails-service
     depends_on:
-      - usermanagement-service
+      redis:
+        condition: service_healthy

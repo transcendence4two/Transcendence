@@ -4,6 +4,9 @@ from src.domain.contracts import UserRegister
 from src.domain.schemas.user import UserRegisterRequest
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.password import PasswordService
+from src.infrastructure.event_publisher import EventPublisher
+
+USER_REGISTERED_CHANNEL = "user:registered"
 
 
 class UserService(UserRegister):
@@ -13,11 +16,11 @@ class UserService(UserRegister):
         self,
         session: AsyncSession,
         password_service: PasswordService,
-        emails_service_client,
+        event_publisher: EventPublisher,
     ):
         self.session = session
         self.password_service = password_service
-        self.emails_service_client = emails_service_client
+        self.event_publisher = event_publisher
 
     async def register_user(self, payload: UserRegisterRequest):
         command = RegisterUserCommand(
@@ -26,7 +29,8 @@ class UserService(UserRegister):
             payload=payload,
         )
         user = await command.execute()
-        await self.emails_service_client.send_registration_email(
-            user.email, user.username
+        await self.event_publisher.publish(
+            USER_REGISTERED_CHANNEL,
+            {"email": user.email, "username": user.username},
         )
         return user
