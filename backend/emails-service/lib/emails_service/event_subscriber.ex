@@ -12,10 +12,14 @@ defmodule EmailsService.EventSubscriber do
   @impl true
   def init(redis_url) do
     Logger.info("EventSubscriber starting, connecting to Redis...")
-    {:ok, pubsub} = Redix.PubSub.start_link(redis_url)
-    {:ok, _ref} = Redix.PubSub.subscribe(pubsub, @channel, self())
-    Logger.info("Subscribed to channel: #{@channel}")
-    {:ok, %{pubsub: pubsub}}
+
+    case connect_to_redis(redis_url) do
+      {:ok, pubsub} ->
+        {:ok, %{pubsub: pubsub}}
+
+      {:error, reason} ->
+        {:stop, reason}
+    end
   end
 
   @impl true
@@ -25,9 +29,12 @@ defmodule EmailsService.EventSubscriber do
   end
 
   @impl true
-  def handle_info({:redix_pubsub, _pubsub, _ref, :message, %{channel: @channel, payload: payload}}, state) do
+  def handle_info(
+        {:redix_pubsub, _pubsub, _ref, :message, %{channel: @channel, payload: payload}},
+        state
+      ) do
     Logger.info("Received event on #{@channel}: #{payload}")
-    handle_user_registered(payload)
+    process_event(payload)
     {:noreply, state}
   end
 
@@ -37,17 +44,40 @@ defmodule EmailsService.EventSubscriber do
     {:noreply, state}
   end
 
-  defp handle_user_registered(payload) do
-    case Jason.decode(payload) do
-      {:ok, %{"email" => email, "username" => _username}} ->
-        Logger.info("Processing registration email for: #{email}")
-        case EmailsService.Mailer.send_email(email) do
-          {:ok, _} -> Logger.info("Email sent successfully to: #{email}")
-          {:error, reason} -> Logger.error("Failed to send email: #{inspect(reason)}")
-        end
-
-      {:error, reason} ->
-        Logger.error("Failed to decode event payload: #{inspect(reason)}")
+  defp connect_to_redis(redis_url) do
+    with {:ok, pubsub} <- Redix.PubSub.start_link(redis_url),
+         {:ok, _ref} <- Redix.PubSub.subscribe(pubsub, @channel, self()) do
+      Logger.info("Subscribed to channel: #{@channel}")
+      {:ok, pubsub}
     end
   end
+
+  defp process_event(payload) do
+    payload
+    |> decode_payload()
+    |> send_registration_email()
+  end
+
+  defp decode_payload(payload) do
+    case Jason.decode(payload) do
+      {:ok, data} -> {:ok, data}
+      {:error, reason} ->
+        Logger.error("Failed to decode event payload: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
+  defp send_registration_email({:ok, %{"email" => email} = _data}) do
+    Logger.info("Processing registration email for: #{email}")
+
+    case EmailsService.Mailer.send_email(email) do
+      {:ok, _} ->
+        Logger.info("Email sent successfully to: #{email}")
+
+      {:error, reason} ->
+        Logger.error("Failed to send email: #{inspect(reason)}")
+    end
+  end
+
+  defp send_registration_email({:error, _reason}), do: :ok
 end
