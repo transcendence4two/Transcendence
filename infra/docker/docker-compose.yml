@@ -1,11 +1,44 @@
 services:
+  nginx:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-nginx
+    ports:
+      - "443:443"
+    volumes:
+      - ../certs:/etc/nginx/certs:ro
+    depends_on:
+      - usermanagement-service
+      - frontend
+    restart: unless-stopped
+    container_name: nginx
+    networks:
+      - transcendence-network
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-frontend
+    expose:
+      - "80"
+    restart: unless-stopped
+    container_name: frontend
+    networks:
+      - transcendence-network
+
   usermanagement-service:
     build:
       context: ../..
       dockerfile: infra/docker/dockerfile-usermanagement
     env_file:
       - ../../.env
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     restart: unless-stopped
     container_name: usermanagement-service
+    networks:
+      - transcendence-network
+
+networks:
+  transcendence-network:
+    driver: bridge
