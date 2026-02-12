@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary-cyan: #22d3ee;
+  --color-primary-blue: #2563eb;
+  --color-primary-cyan-hover: #06b6d4;
+  --color-primary-blue-hover: #1d4ed8;
+
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+
+  /* Custom utilities */
+  --font-heading: theme(fontFamily.sans);
+}
+
+/* Custom component classes */
+@layer components {
+  .header-main {
+    @apply bg-transparent text-white py-6 px-8;
+  }
+
+  .footer-main {
+    @apply bg-transparent text-gray-300 py-4 text-center;
+  }
+
+  .main-bg {
+    @apply bg-gray-100;
+  }
+
+  .btn-base {
+    @apply px-8 py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all;
+  }
+
+  .btn-primary {
+    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-700;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-700 text-white hover:bg-gray-600;
+  }
+
+  .link-base {
+    @apply hover:text-white transition-colors;
+  }
+
+  .heading-1 {
+    @apply text-4xl font-bold mb-6 text-white;
+  }
+
+  .heading-2 {
+    @apply text-2xl font-semibold mb-4 text-white;
+  }
+
+  .container-main {
+    @apply min-h-screen flex flex-col bg-linear-to-br from-slate-900 via-slate-800 to-slate-900;
+  }
+
+  .content-main {
+    @apply flex-1;
+  }
+
+  .btn-hero {
+    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/50;
+  }
+
+  .card-feature {
+    @apply border border-cyan-500/30 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 w-64 hover:border-cyan-500/60 transition-all;
+  }
+}
+
+/* Light Mode Styles */
+.light .header-main {
+  @apply bg-transparent text-gray-900;
+}
+
+.light .header-main button {
+  @apply hover:bg-gray-200;
+}
+
+.light .footer-main {
+  @apply bg-transparent text-gray-700;
+}
+
+.light .container-main {
+  @apply bg-linear-to-br from-gray-50 via-white to-gray-100;
+}
+
+.light .card-feature {
+  @apply border-blue-200 bg-white/80 hover:border-blue-400 shadow-sm;
+}
+
+.light .text-gray-300 {
+  @apply text-gray-700;
+}
+
+.light .text-gray-400 {
+  @apply text-gray-600;
+}
+
+.light .btn-hero {
+  @apply shadow-xl hover:shadow-2xl;
+}
+
+.light .heading-1,
+.light .heading-2,
+.light h1,
+.light h2,
+.light h3 {
+  @apply text-gray-900;
+  filter: brightness(1);
+}
+
+.light .text-cyan-400 {
+  @apply text-cyan-600;
+}
+
+.light .bg-slate-800\/50 {
+  @apply bg-white/90;
+}
+
+.light .border-slate-700\/50 {
+  @apply border-gray-200;
+}
