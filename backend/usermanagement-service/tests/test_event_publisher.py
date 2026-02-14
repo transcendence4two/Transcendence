@@ -25,7 +25,7 @@ async def test_mock_event_publisher_publishes_event(
     mock_event_publisher: MockEventPublisher,
 ):
     """Test that the mock event publisher correctly records published events."""
-    channel = "user:registered"
+    channel = "email:welcome"
     event = {"email": "test@example.com", "username": "testuser"}
 
     await mock_event_publisher.publish(channel, event)
@@ -40,8 +40,8 @@ async def test_mock_event_publisher_multiple_events(
 ):
     """Test that multiple events are recorded correctly."""
     events = [
-        ("user:registered", {"email": "user1@example.com", "username": "user1"}),
-        ("user:registered", {"email": "user2@example.com", "username": "user2"}),
+        ("email:welcome", {"email": "user1@example.com", "username": "user1"}),
+        ("email:otp", {"email": "user2@example.com", "otp_code": "123456"}),
     ]
 
     for channel, event in events:

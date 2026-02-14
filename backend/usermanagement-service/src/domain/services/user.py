@@ -6,7 +6,8 @@ from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.password import PasswordService
 from src.infrastructure.event_publisher import EventPublisher
 
-USER_REGISTERED_CHANNEL = "user:registered"
+EMAIL_WELCOME_CHANNEL = "email:welcome"
+EMAIL_OTP_CHANNEL = "email:otp"
 
 
 class UserService(UserRegister):
@@ -30,7 +31,13 @@ class UserService(UserRegister):
         )
         user = await command.execute()
         await self.event_publisher.publish(
-            USER_REGISTERED_CHANNEL,
+            EMAIL_WELCOME_CHANNEL,
             {"email": user.email, "username": user.username},
         )
         return user
+
+    async def send_otp_email(self, email: str, otp_code: str) -> None:
+        await self.event_publisher.publish(
+            EMAIL_OTP_CHANNEL,
+            {"email": email, "otp_code": otp_code},
+        )

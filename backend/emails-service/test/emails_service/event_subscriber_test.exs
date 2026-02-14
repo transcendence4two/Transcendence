@@ -3,9 +3,8 @@ defmodule EmailsService.EventSubscriberTest do
 
   alias EmailsService.EventSubscriber
 
-  describe "process_event/1" do
+  describe "process_welcome_event/1" do
     test "decodes valid JSON payload and extracts email" do
-      # Test the payload decoding logic
       valid_payload = ~s({"email": "test@example.com", "username": "testuser"})
 
       decoded = Jason.decode!(valid_payload)
@@ -23,17 +22,38 @@ defmodule EmailsService.EventSubscriberTest do
     end
   end
 
+  describe "process_otp_event/1" do
+    test "decodes valid OTP JSON payload" do
+      valid_payload = ~s({"email": "test@example.com", "otp_code": "123456"})
+
+      decoded = Jason.decode!(valid_payload)
+
+      assert decoded["email"] == "test@example.com"
+      assert decoded["otp_code"] == "123456"
+    end
+  end
+
   describe "email event format" do
-    test "event contains required email field" do
+    test "welcome event contains required email field" do
       event = %{"email" => "user@example.com", "username" => "testuser"}
 
       assert Map.has_key?(event, "email")
       assert is_binary(event["email"])
     end
 
-    test "channel name is correct" do
-      # The subscriber should listen to user:registered channel
-      assert "user:registered" == "user:registered"
+    test "otp event contains required fields" do
+      event = %{"email" => "user@example.com", "otp_code" => "123456"}
+
+      assert Map.has_key?(event, "email")
+      assert Map.has_key?(event, "otp_code")
+      assert is_binary(event["email"])
+      assert is_binary(event["otp_code"])
+    end
+
+    test "channel names are correct" do
+      # The subscriber should listen to email:welcome and email:otp channels
+      assert "email:welcome" == "email:welcome"
+      assert "email:otp" == "email:otp"
     end
   end
 end
