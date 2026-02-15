@@ -19,3 +19,13 @@ class UserRegister(ABC):
 
     @abstractmethod
     async def register_user(self, payload: UserRegisterRequest) -> User: ...
+
+
+class TokenProvider(ABC):
+    """Port for token operations."""
+
+    @abstractmethod
+    def create_token(self, subject: str) -> str: ...
+
+    @abstractmethod
+    def validate_token(self, token: str) -> dict: ...

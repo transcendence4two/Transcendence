@@ -24,3 +24,24 @@ class DatabaseError(AppError):
 
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     error_type = "DATABASE_ERROR"
+
+
+class TokenMissingError(AppError):
+    """Raised when auth token is missing."""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    error_type = "TOKEN_MISSING"
+
+
+class TokenInvalidError(AppError):
+    """Raised when auth token is invalid."""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    error_type = "TOKEN_INVALID"
+
+
+class TokenExpiredError(AppError):
+    """Raised when auth token is expired."""
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    error_type = "TOKEN_EXPIRED"
