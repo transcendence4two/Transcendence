@@ -16,7 +16,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Usermanagement"
     VERSION: str = "1.0.0"
     DATABASE_URL: str = "sqlite+aiosqlite:///:memory:"
-    REDIS_URL: str = "redis://localhost:6379"
     JWT_SECRET: str = "secret"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRES_MINUTES: int = 60
