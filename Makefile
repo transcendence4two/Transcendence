@@ -8,7 +8,17 @@ deps:
 	@echo "Installing dependencies with UV..."
 	cd backend/usermanagement-service && uv sync
 
-deploy:
+certs:
+	@echo "Generating SSL certificates..."
+	@chmod +x infra/scripts/generate-certs.sh
+	@./infra/scripts/generate-certs.sh
+
+certs-clean:
+	@echo "Removing existing certificates..."
+	@rm -rf infra/certs
+	@echo "Certificates removed. Run 'make certs' to regenerate."
+
+deploy: certs
 	@echo "Deploying all Docker images..."
 	$(DOCKER_COMPOSE) up --build -d
 
@@ -36,4 +46,4 @@ clean: down
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all deploy down logs tests lint format clean
+.PHONY: deps all certs certs-clean deploy down logs tests lint format clean

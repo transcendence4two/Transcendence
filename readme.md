@@ -7,6 +7,7 @@ The final 42 project
 ## Requirements
 - Docker & Docker Compose
 - Make
+- MkCert
 - .env file in the project root
 
 ## Quick Start
