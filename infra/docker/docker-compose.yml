@@ -1,11 +1,70 @@
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    container_name: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  nginx:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-nginx
+    ports:
+      - "443:443"
+    volumes:
+      - ../certs:/etc/nginx/certs:ro
+    depends_on:
+      - usermanagement-service
+      - frontend
+    restart: unless-stopped
+    container_name: nginx
+    networks:
+      - transcendence-network
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-frontend
+    expose:
+      - "80"
+    restart: unless-stopped
+    container_name: frontend
+    networks:
+      - transcendence-network
+
   usermanagement-service:
     build:
       context: ../..
       dockerfile: infra/docker/dockerfile-usermanagement
     env_file:
       - ../../.env
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     restart: unless-stopped
     container_name: usermanagement-service
+    networks:
+      - transcendence-network
+
+  emails-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-emails-service
+    env_file:
+      - ../../.env
+    ports:
+      - "4001:4001"
+    restart: unless-stopped
+    container_name: emails-service
+    depends_on:
+      redis:
+        condition: service_healthy
+
+networks:
+  transcendence-network:
+    driver: bridge

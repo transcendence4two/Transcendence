@@ -1,0 +1,6 @@
+.DS_Store
+deps/
+_build/
+*.beam
+.env
+.env.local
