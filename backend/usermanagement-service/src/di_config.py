@@ -8,11 +8,14 @@ from src.core.settings import settings
 from src.domain.contracts import PasswordHasher, UserRegister
 from src.domain.services.password import PasswordService
 from src.domain.services.user import UserService
+from src.infrastructure.event_publisher import RedisEventPublisher
 
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 async_session_factory = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
+
+_event_publisher = RedisEventPublisher(settings.REDIS_URL)
 
 
 async def get_db_session() -> AsyncSession:
@@ -26,9 +29,20 @@ def get_password_service() -> PasswordHasher:
     return PasswordService()
 
 
+def get_event_publisher() -> RedisEventPublisher:
+    """Dependency to get event publisher."""
+    return _event_publisher
+
+
 async def get_user_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> UserRegister:
     """Dependency to get user service."""
     password_service = get_password_service()
-    return UserService(session=session, password_service=password_service)
+    event_publisher = get_event_publisher()
+
+    return UserService(
+        session=session,
+        password_service=password_service,
+        event_publisher=event_publisher,
+    )
