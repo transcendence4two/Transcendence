@@ -29,6 +29,12 @@ make clean   # Remove volumes and cleanup
 make tests   # Run tests locally (needs UV local requirements)
 ```
 
+# Architecture
+![Schema](./docs/architecture.png)
+
 ## Project Structure
+- `backend/emails-service` - Email sender application made in Elixir
 - `backend/usermanagement-service` - User management FastAPI service
+- `backend/game-service` - Core game logic and ws handler
+- `backend/tournament-service` - Matchmaking and tournament information persistence
 - `infra/docker` - Docker configurations
