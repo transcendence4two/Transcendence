@@ -12,6 +12,7 @@ from src.domain.exceptions import TokenExpiredError, TokenInvalidError
 
 class TokenService(TokenProvider):
     """Service for creating and validating JWT tokens."""
+
     def __init__(self, config: JWTConfig) -> None:
         self.config = config
 
