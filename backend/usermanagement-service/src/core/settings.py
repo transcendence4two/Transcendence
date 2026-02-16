@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from pydantic_settings import BaseSettings
 
 from .utils import find_root_env

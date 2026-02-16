@@ -1,8 +1,9 @@
-import jwt
 from datetime import datetime, timedelta, timezone
 
-from src.domain.services.token import TokenService
+import jwt
+
 from src.core.settings import settings
+from src.domain.services.token import TokenService
 
 
 async def test_users_protected_requires_token(client):
@@ -47,7 +48,11 @@ async def test_users_protected_with_bad_signature_returns_401(client):
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=5)).timestamp()),
     }
-    bad_token = jwt.encode(payload, "wrong-secret-0123456789abcdef0123456789abcdef", algorithm=cfg.algorithm)
+    bad_token = jwt.encode(
+        payload,
+        "wrong-secret-0123456789abcdef0123456789abcdef",
+        algorithm=cfg.algorithm,
+    )
     headers = {"Authorization": f"Bearer {bad_token}"}
     resp = await client.get("/users/protected", headers=headers)
 

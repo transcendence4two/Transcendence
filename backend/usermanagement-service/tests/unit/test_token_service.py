@@ -1,11 +1,11 @@
-import jwt
 from datetime import datetime, timedelta, timezone
 
+import jwt
 import pytest
 
 from src.core.settings import JWTConfig
-from src.domain.services.token import TokenService
 from src.domain.exceptions import TokenExpiredError, TokenInvalidError
+from src.domain.services.token import TokenService
 
 
 def make_config():
@@ -22,7 +22,9 @@ def test_create_token_contains_expected_claims():
     svc = TokenService(config)
 
     token = svc.create_token("alice")
-    payload = jwt.decode(token, config.secret, algorithms=[config.algorithm], issuer=config.issuer)
+    payload = jwt.decode(
+        token, config.secret, algorithms=[config.algorithm], issuer=config.issuer
+    )
 
     assert payload["sub"] == "alice"
     assert payload["iss"] == config.issuer
@@ -51,7 +53,9 @@ def test_validate_token_raises_expired_for_expired_token():
         "exp": int((now - timedelta(minutes=1)).timestamp()),
     }
 
-    expired_token = jwt.encode(expired_payload, config.secret, algorithm=config.algorithm)
+    expired_token = jwt.encode(
+        expired_payload, config.secret, algorithm=config.algorithm
+    )
 
     with pytest.raises(TokenExpiredError):
         svc.validate_token(expired_token)
@@ -69,7 +73,11 @@ def test_validate_token_raises_invalid_for_bad_signature():
         "exp": int((now + timedelta(minutes=5)).timestamp()),
     }
 
-    bad_token = jwt.encode(payload, "wrong-secret-0123456789abcdef0123456789abcdef", algorithm=config.algorithm)
+    bad_token = jwt.encode(
+        payload,
+        "wrong-secret-0123456789abcdef0123456789abcdef",
+        algorithm=config.algorithm,
+    )
 
     with pytest.raises(TokenInvalidError):
         svc.validate_token(bad_token)

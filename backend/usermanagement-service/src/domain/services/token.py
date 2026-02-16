@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from jwt import ExpiredSignatureError, InvalidTokenError as JwtInvalidTokenError
+from jwt import ExpiredSignatureError
+from jwt import InvalidTokenError as JwtInvalidTokenError
 
 from src.core.settings import JWTConfig
 from src.domain.contracts import TokenProvider

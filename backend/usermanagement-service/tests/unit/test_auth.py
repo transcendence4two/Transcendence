@@ -2,7 +2,7 @@ import pytest
 from fastapi.security import HTTPAuthorizationCredentials
 
 from src.core.auth import _has_token, get_token_payload
-from src.domain.exceptions import TokenMissingError, TokenInvalidError
+from src.domain.exceptions import TokenInvalidError, TokenMissingError
 
 
 def test__has_token_raises_when_no_credentials():

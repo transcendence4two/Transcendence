@@ -9,7 +9,7 @@ from src.core.exception_handlers import (
 )
 from src.core.settings import settings
 from src.di_config import engine
-from src.domain.exceptions import AppError
+from src.domain.exceptions import DomainError
 from src.domain.models import Base
 
 
@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
 
 # Exceptions handler
-app.add_exception_handler(AppError, app_exception_handler)
+app.add_exception_handler(DomainError, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Routes
