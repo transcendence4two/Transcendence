@@ -73,24 +73,18 @@ class TokenService(TokenProvider):
             raise TokenExpiredError("Token has expired") from exc
 
         except JwtInvalidTokenError as exc:
-            raise TokenInvalidError(
-                "Token is invalid or verification failed"
-            ) from exc
+            raise TokenInvalidError("Token is invalid or verification failed") from exc
 
     def _validate_required_claims(self, payload: Dict[str, Any]) -> None:
         subject = payload.get("sub")
 
         if not subject:
-            raise TokenInvalidError(
-                f"Required claim '{"sub"}' is missing or empty"
-            )
+            raise TokenInvalidError("Required claim 'sub' is missing or empty")
 
     def _extract_subject(self, payload: Dict[str, Any]) -> str:
         subject = payload.get("sub")
 
         if not subject or not isinstance(subject, str):
-            raise TokenInvalidError(
-                f"Invalid or missing '{"sub"}' claim in token"
-            )
+            raise TokenInvalidError("Invalid or missing 'sub'claim in token")
 
         return subject
