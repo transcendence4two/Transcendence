@@ -16,6 +16,7 @@ const RegisterForm = () => {
         confirmPassword: ''
     })
     const [errors, setErrors] = useState<{ [key: string]: string }>({})
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -26,18 +27,26 @@ const RegisterForm = () => {
         }
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const newErrors: { [key: string]: string } = {}
 
-        // Basic email validation
         if (!formData.email.includes('@')) {
             newErrors.email = 'Please enter a valid email address'
         }
 
-        // Password match validation
+        if (formData.username.length < 1 || formData.username.length > 255) {
+            newErrors.username = 'Username must not exceed 255 characters'
+        }
+
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Passwords do not match'
+        }
+
+        if (formData.password.length < 6) {
+            newErrors.password = 'Password must have at least 6 characters'
+        } else if (formData.password.length > 255) {
+            newErrors.password = 'Password must not exceed 255 characters'
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -45,9 +54,49 @@ const RegisterForm = () => {
             return
         }
 
-        console.log('Form submitted:', formData)
-		alert('Registration successful!')
-        window.location.href = '/'
+        setIsLoading(true)
+
+        try {
+            const response = await fetch('/api/users/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: formData.username,
+                    email: formData.email,
+                    password: formData.password,
+                    enable_2fa: true
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                if (data.detail && typeof data.detail === 'string') {
+                    if (data.detail.includes('Username')) {
+                        setErrors(prev => ({ ...prev, username: data.detail }))
+                    } else if (data.detail.includes('Email')) {
+                        setErrors(prev => ({ ...prev, email: data.detail }))
+                    } else {
+                        alert(`Registration failed: ${data.detail}`)
+                    }
+                } else {
+                    alert('Registration failed. Please try again.')
+                }
+                return
+            }
+
+            console.log('User registered:', data)
+            alert('Registration successful! You will be redirected to login.')
+            window.location.href = '/'
+
+        } catch (error) {
+            console.error('Registration error:', error)
+            alert('An error occurred during registration. Please check your connection.')
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -121,10 +170,14 @@ const RegisterForm = () => {
                         name='password'
                         value={formData.password}
                         onChange={handleChange}
-                        className={inputClassName}
+                        className={`${inputClassName} ${errors.password ? 'border-red-500 focus:ring-red-500' : ''
+                        }`}
                         placeholder='Enter your password'
                         required
                     />
+                    {errors.password && (
+                        <p className='text-red-500 text-xs ml-1'>{errors.password}</p>
+                    )}
                 </div>
 
                 <div className='space-y-1'>
@@ -149,8 +202,11 @@ const RegisterForm = () => {
                 </div>
 
                 <div className='pt-4'>
-                    <Button className='w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20'>
-                        Create Account
+                    <Button
+                        className={`w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Creating Account...' : 'Create Account'}
                     </Button>
                 </div>
             </form>
