@@ -33,6 +33,4 @@ def verify_user_authorization(user_id: str, payload: dict) -> None:
     authenticated_user_id = payload.get("sub")
 
     if authenticated_user_id != user_id:
-        raise UnauthorizedActionError(
-            "You are not authorized to perform this action"
-        )
+        raise UnauthorizedActionError("You are not authorized to perform this action")

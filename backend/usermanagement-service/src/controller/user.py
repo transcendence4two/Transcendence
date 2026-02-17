@@ -24,6 +24,12 @@ async def register_user(
     user = await user_service.register_user(request)
     return UserResponse.model_validate(user)
 
+
+@router.get("/protected")
+async def protected_route(payload: dict = Depends(get_token_payload)):
+    return {"message": "authenticated", "sub": payload.get("sub")}
+
+
 @router.get("/{user_id}", response_model=UserProfileResponse)
 async def get_profile(
     user_id: str,
@@ -32,8 +38,3 @@ async def get_profile(
 ):
     user = await user_service.get_user_profile(user_id)
     return UserProfileResponse.model_validate(user)
-
-
-@router.get("/protected")
-async def protected_route(payload: dict = Depends(get_token_payload)):
-    return {"message": "authenticated", "sub": payload.get("sub")}

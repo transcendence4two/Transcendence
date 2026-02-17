@@ -31,18 +31,22 @@ class UserService(UserRegister, UserOperations):
             payload=payload,
         )
         user = await command.execute()
+        await self.send_welcome_email(user.email, user.username)
+        return user
+
+    async def get_user_profile(self, user_id: str):
+        command = GetUserProfileCommand(self.session, user_id)
+        return await command.execute()
+
+    # Messaging methods
+    async def send_welcome_email(self, email: str, username: str) -> None:
         await self.event_publisher.publish(
             EMAIL_WELCOME_CHANNEL,
-            {"email": user.email, "username": user.username},
+            {"email": email, "username": username},
         )
-        return user
 
     async def send_otp_email(self, email: str, otp_code: str) -> None:
         await self.event_publisher.publish(
             EMAIL_OTP_CHANNEL,
             {"email": email, "otp_code": otp_code},
         )
-
-    async def get_user_profile(self, user_id: str):
-        command = GetUserProfileCommand(self.session, user_id)
-        return await command.execute()
