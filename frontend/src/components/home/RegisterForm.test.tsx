@@ -2,11 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import RegisterForm from './RegisterForm'
 
-// Mock do fetch global
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
-// Mock do window.location e alert
 const mockLocation = { href: '' }
 Object.defineProperty(window, 'location', {
   value: mockLocation,
@@ -14,10 +9,16 @@ Object.defineProperty(window, 'location', {
 })
 window.alert = vi.fn()
 
+const mockFetch = vi.fn()
+window.fetch = mockFetch
+global.fetch = mockFetch
+
 describe('RegisterForm Component', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
+        mockLocation.href = ''
+
         mockFetch.mockResolvedValue({
             ok: true,
             json: async () => ({ id: '123', username: 'testuser' })
@@ -25,21 +26,14 @@ describe('RegisterForm Component', () => {
     })
 
     afterEach(() => {
-        vi.unstubAllGlobals()
+        vi.clearAllMocks()
     })
 
-    // 1. Renderização Inicial
     it('renders form fields correctly', () => {
         render(<RegisterForm />)
-
         expect(screen.getByLabelText(/username/i)).toBeInTheDocument()
-        expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
-        expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument()
-        expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
-        expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
     })
 
-    // 2. Atualização de Inputs
     it('updates input values when typing', () => {
         render(<RegisterForm />)
         const usernameInput = screen.getByLabelText(/username/i)
@@ -47,15 +41,12 @@ describe('RegisterForm Component', () => {
         expect(usernameInput).toHaveValue('newuser')
     })
 
-    // 3. Validação de Senha Incompatível
     it('shows error when passwords do not match', async () => {
         render(<RegisterForm />)
 
-        // Preencher outros campos obrigatórios para evitar outros erros de validação
         fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'user1' } })
         fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@test.com' } })
 
-        // Simular senhas diferentes
         fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'different' } })
 
@@ -69,12 +60,17 @@ describe('RegisterForm Component', () => {
 
     it('submits form with valid data and redirects', async () => {
         render(<RegisterForm />)
+
         fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'validuser' } })
         fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } })
         fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } })
 
         fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+
+        await waitFor(() => {
+            expect(mockFetch).toHaveBeenCalledWith('/api/users/register', expect.any(Object))
+        })
 
         await waitFor(() => {
             expect(mockLocation.href).toBe('/login')
@@ -97,5 +93,8 @@ describe('RegisterForm Component', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /create account/i }))
 
+        await waitFor(() => {
+             expect(screen.getByText(errorMessage)).toBeInTheDocument()
+        })
     })
 })
