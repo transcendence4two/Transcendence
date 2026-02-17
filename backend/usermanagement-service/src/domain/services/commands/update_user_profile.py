@@ -36,7 +36,6 @@ class UpdateUserProfileCommand(Command):
             user.email = self.payload.email
 
         updated_user = await self._persist(user)
-        logger.info(f"User profile updated: {updated_user.id}")
         return updated_user
 
     async def _get_user(self) -> User:

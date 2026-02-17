@@ -63,7 +63,7 @@ async def get_profile(
     return UserProfileResponse.model_validate(user)
 
 
-@router.put("/profile/{user_id}", response_model=UserProfileResponse)
+@router.put("/{user_id}", response_model=UserProfileResponse)
 async def update_profile(
     user_id: str,
     request: UserProfileUpdateRequest,
