@@ -11,7 +11,6 @@ window.alert = vi.fn()
 
 const mockFetch = vi.fn()
 window.fetch = mockFetch
-global.fetch = mockFetch
 
 describe('RegisterForm Component', () => {
 
