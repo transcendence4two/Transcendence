@@ -36,3 +36,18 @@ class UserProfileResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+### To be removed
+class TokenRequest(BaseModel):
+    """Schema for token generation request"""
+
+    user_id: str = Field(..., min_length=1, description="User ID for token subject")
+
+
+class TokenResponse(BaseModel):
+    """Schema for token generation response"""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+###
