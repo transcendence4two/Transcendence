@@ -37,10 +37,15 @@ def get_event_publisher() -> RedisEventPublisher:
 
 async def get_user_service(
     session: AsyncSession = Depends(get_db_session),
+    event_publisher: RedisEventPublisher = Depends(get_event_publisher),
 ) -> UserRegister:
     """Dependency to get user service."""
     password_service = get_password_service()
-    return UserService(session=session, password_service=password_service)
+    return UserService(
+        session=session,
+        password_service=password_service,
+        event_publisher=event_publisher,
+    )
 
 
 def get_token_service() -> TokenProvider:

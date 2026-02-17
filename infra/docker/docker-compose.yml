@@ -5,6 +5,8 @@ services:
       - "6379:6379"
     restart: unless-stopped
     container_name: redis
+    networks:
+      - transcendence-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
