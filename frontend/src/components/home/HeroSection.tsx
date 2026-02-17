@@ -23,7 +23,12 @@ const HeroSection = () => {
                 <Button variant='hero' icon={<LoginIcon />}>
                     Login
                 </Button>
-                <Button variant='hero' className='hover:shadow-blue-500/50' icon={<UserAddIcon />}>
+                <Button
+                    variant='hero'
+                    className='hover:shadow-blue-500/50'
+                    icon={<UserAddIcon />}
+                    onClick={() => window.location.href = '/register'}
+                >
                     Register
                 </Button>
             </div>
