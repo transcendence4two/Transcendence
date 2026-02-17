@@ -7,72 +7,11 @@ from src.domain.services.commands.get_paginated_users import (
 from src.domain.services.user import UserService
 
 
-class MockSession:
-    """Mock AsyncSession for testing pagination"""
-
-    def __init__(self, users_to_return=None, total_count=0):
-        self.users_to_return = users_to_return or []
-        self.total_count = total_count
-        self.executed_stmts = []
-        self.query_count = 0
-
-    async def execute(self, stmt):
-        self.executed_stmts.append(stmt)
-        self.query_count += 1
-
-        # First query is always count
-        if self.query_count == 1:
-            return MockCountResult(self.total_count)
-
-        # Second query returns users
-        return MockUsersResult(self.users_to_return)
-
-
-class MockCountResult:
-    """Mock result for count query"""
-
-    def __init__(self, count):
-        self.count = count
-
-    def scalar(self):
-        return self.count
-
-
-class MockUsersResult:
-    """Mock result for users query"""
-
-    def __init__(self, users):
-        self.users = users
-
-    def scalars(self):
-        return self
-
-    def all(self):
-        return self.users
-
-
-class MockPasswordService:
-    """Mock password service"""
-
-    def hash_password(self, password: str) -> str:
-        return f"hashed_{password}"
-
-
-class MockEventPublisher:
-    """Mock event publisher"""
-
-    def __init__(self):
-        self.published_events = []
-
-    async def publish(self, channel: str, data: dict):
-        self.published_events.append({"channel": channel, "data": data})
-
-
 @pytest.mark.asyncio
 class TestGetPaginatedUserProfilesCommand:
     """Unit tests for GetPaginatedUserProfilesCommand"""
 
-    async def test_execute_returns_paginated_users_with_defaults(self):
+    async def test_execute_returns_paginated_users_with_defaults(self, mock_session):
         users = [
             User(
                 id="user-1",
@@ -89,7 +28,7 @@ class TestGetPaginatedUserProfilesCommand:
                 enable_2fa=False,
             ),
         ]
-        session = MockSession(users_to_return=users, total_count=2)
+        session = mock_session(users_to_return=users, total_count=2)
 
         command = GetPaginatedUserProfilesCommand(session)
         result = await command.execute()
@@ -100,7 +39,9 @@ class TestGetPaginatedUserProfilesCommand:
         assert result["page_size"] == 10
         assert result["total_pages"] == 1
 
-    async def test_execute_returns_paginated_users_with_custom_page_size(self):
+    async def test_execute_returns_paginated_users_with_custom_page_size(
+        self, mock_session
+    ):
         users = [
             User(
                 id=f"user-{i}",
@@ -111,7 +52,7 @@ class TestGetPaginatedUserProfilesCommand:
             )
             for i in range(5)
         ]
-        session = MockSession(users_to_return=users, total_count=25)
+        session = mock_session(users_to_return=users, total_count=25)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=5)
         result = await command.execute()
@@ -122,7 +63,7 @@ class TestGetPaginatedUserProfilesCommand:
         assert result["page_size"] == 5
         assert result["total_pages"] == 5
 
-    async def test_execute_returns_second_page_correctly(self):
+    async def test_execute_returns_second_page_correctly(self, mock_session):
         users = [
             User(
                 id="user-3",
@@ -132,7 +73,7 @@ class TestGetPaginatedUserProfilesCommand:
                 enable_2fa=False,
             )
         ]
-        session = MockSession(users_to_return=users, total_count=15)
+        session = mock_session(users_to_return=users, total_count=15)
 
         command = GetPaginatedUserProfilesCommand(session, page=2, page_size=10)
         result = await command.execute()
@@ -143,8 +84,8 @@ class TestGetPaginatedUserProfilesCommand:
         assert result["page_size"] == 10
         assert result["total_pages"] == 2
 
-    async def test_execute_returns_empty_list_when_no_users(self):
-        session = MockSession(users_to_return=[], total_count=0)
+    async def test_execute_returns_empty_list_when_no_users(self, mock_session):
+        session = mock_session(users_to_return=[], total_count=0)
 
         command = GetPaginatedUserProfilesCommand(session)
         result = await command.execute()
@@ -155,7 +96,7 @@ class TestGetPaginatedUserProfilesCommand:
         assert result["page_size"] == 10
         assert result["total_pages"] == 0
 
-    async def test_execute_enforces_minimum_page_number(self):
+    async def test_execute_enforces_minimum_page_number(self, mock_session):
         users = [
             User(
                 id="user-1",
@@ -165,61 +106,63 @@ class TestGetPaginatedUserProfilesCommand:
                 enable_2fa=False,
             )
         ]
-        session = MockSession(users_to_return=users, total_count=1)
+        session = mock_session(users_to_return=users, total_count=1)
 
         command = GetPaginatedUserProfilesCommand(session, page=0, page_size=10)
         result = await command.execute()
 
         assert result["page"] == 1
 
-    async def test_execute_enforces_minimum_page_size(self):
+    async def test_execute_enforces_minimum_page_size(self, mock_session):
         users = []
-        session = MockSession(users_to_return=users, total_count=0)
+        session = mock_session(users_to_return=users, total_count=0)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=0)
         result = await command.execute()
 
         assert result["page_size"] == 1
 
-    async def test_execute_enforces_maximum_page_size(self):
+    async def test_execute_enforces_maximum_page_size(self, mock_session):
         users = []
-        session = MockSession(users_to_return=users, total_count=0)
+        session = mock_session(users_to_return=users, total_count=0)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=200)
         result = await command.execute()
 
         assert result["page_size"] == 100
 
-    async def test_execute_calculates_total_pages_correctly(self):
+    async def test_execute_calculates_total_pages_correctly(self, mock_session):
         users = []
-        session = MockSession(users_to_return=users, total_count=45)
+        session = mock_session(users_to_return=users, total_count=45)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=10)
         result = await command.execute()
 
         assert result["total_pages"] == 5
 
-    async def test_execute_calculates_total_pages_with_exact_division(self):
+    async def test_execute_calculates_total_pages_with_exact_division(
+        self, mock_session
+    ):
         users = []
-        session = MockSession(users_to_return=users, total_count=50)
+        session = mock_session(users_to_return=users, total_count=50)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=10)
         result = await command.execute()
 
         assert result["total_pages"] == 5
 
-    async def test_execute_handles_negative_page_number(self):
+    async def test_execute_handles_negative_page_number(self, mock_session):
         users = []
-        session = MockSession(users_to_return=users, total_count=10)
+        session = mock_session(users_to_return=users, total_count=10)
 
         command = GetPaginatedUserProfilesCommand(session, page=-5, page_size=10)
         result = await command.execute()
 
         assert result["page"] == 1
 
-    async def test_execute_handles_negative_page_size(self):
+    async def test_execute_handles_negative_page_size(self, mock_session):
         users = []
-        session = MockSession(users_to_return=users, total_count=10)
+        session = mock_session(users_to_return=users, total_count=10)
 
         command = GetPaginatedUserProfilesCommand(session, page=1, page_size=-10)
         result = await command.execute()
@@ -231,7 +174,9 @@ class TestGetPaginatedUserProfilesCommand:
 class TestUserServiceGetPaginatedUserProfiles:
     """Unit tests for UserService.get_paginated_user_profiles method"""
 
-    async def test_get_paginated_user_profiles_returns_paginated_result(self):
+    async def test_get_paginated_user_profiles_returns_paginated_result(
+        self, mock_session, mock_password_service, mock_event_publisher
+    ):
         users = [
             User(
                 id="service-1",
@@ -248,43 +193,43 @@ class TestUserServiceGetPaginatedUserProfiles:
                 enable_2fa=True,
             ),
         ]
-        session = MockSession(users_to_return=users, total_count=2)
-        password_service = MockPasswordService()
-        event_publisher = MockEventPublisher()
+        session = mock_session(users_to_return=users, total_count=2)
 
-        service = UserService(session, password_service, event_publisher)
+        service = UserService(session, mock_password_service, mock_event_publisher)
         result = await service.get_paginated_user_profiles(page=1, page_size=10)
 
         assert len(result["items"]) == 2
         assert result["total"] == 2
         assert result["page"] == 1
 
-    async def test_get_paginated_user_profiles_with_custom_parameters(self):
+    async def test_get_paginated_user_profiles_with_custom_parameters(
+        self, mock_session, mock_password_service, mock_event_publisher
+    ):
         users = []
-        session = MockSession(users_to_return=users, total_count=50)
-        password_service = MockPasswordService()
-        event_publisher = MockEventPublisher()
+        session = mock_session(users_to_return=users, total_count=50)
 
-        service = UserService(session, password_service, event_publisher)
+        service = UserService(session, mock_password_service, mock_event_publisher)
         result = await service.get_paginated_user_profiles(page=3, page_size=20)
 
         assert result["page"] == 3
         assert result["page_size"] == 20
         assert result["total"] == 50
 
-    async def test_get_paginated_user_profiles_returns_empty_list(self):
-        session = MockSession(users_to_return=[], total_count=0)
-        password_service = MockPasswordService()
-        event_publisher = MockEventPublisher()
+    async def test_get_paginated_user_profiles_returns_empty_list(
+        self, mock_session, mock_password_service, mock_event_publisher
+    ):
+        session = mock_session(users_to_return=[], total_count=0)
 
-        service = UserService(session, password_service, event_publisher)
+        service = UserService(session, mock_password_service, mock_event_publisher)
         result = await service.get_paginated_user_profiles()
 
         assert result["items"] == []
         assert result["total"] == 0
         assert result["total_pages"] == 0
 
-    async def test_get_paginated_user_profiles_uses_default_values(self):
+    async def test_get_paginated_user_profiles_uses_default_values(
+        self, mock_session, mock_password_service, mock_event_publisher
+    ):
         users = [
             User(
                 id="default-test",
@@ -294,11 +239,9 @@ class TestUserServiceGetPaginatedUserProfiles:
                 enable_2fa=False,
             )
         ]
-        session = MockSession(users_to_return=users, total_count=1)
-        password_service = MockPasswordService()
-        event_publisher = MockEventPublisher()
+        session = mock_session(users_to_return=users, total_count=1)
 
-        service = UserService(session, password_service, event_publisher)
+        service = UserService(session, mock_password_service, mock_event_publisher)
         result = await service.get_paginated_user_profiles()
 
         assert result["page"] == 1
