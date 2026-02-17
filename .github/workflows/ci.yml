@@ -83,6 +83,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Lint Code
+        run: bun run lint
+
+      - name: Run Component Tests
+        run: bun run test
+
       - name: Build frontend
         run: bun run build
 

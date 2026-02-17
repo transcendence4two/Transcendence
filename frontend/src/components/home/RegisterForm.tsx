@@ -133,10 +133,15 @@ const RegisterForm = () => {
                         name='username'
                         value={formData.username}
                         onChange={handleChange}
-                        className={inputClassName}
+                        className={`${inputClassName} ${
+                            errors.username ? 'border-red-500 focus:ring-red-500' : ''
+                        }`}
                         placeholder='Enter your username'
                         required
                     />
+                    {errors.username && (
+                        <p className='text-red-500 text-xs ml-1'>{errors.username}</p>
+                    )}
                 </div>
 
                 <div className='space-y-1'>
