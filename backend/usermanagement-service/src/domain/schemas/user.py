@@ -37,6 +37,20 @@ class UserProfileResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class UserProfileUpdateRequest(BaseModel):
+    """Schema for user profile update"""
+
+    username: str | None = Field(None, min_length=1, max_length=255)
+    email: EmailStr | None = None
+
+
+class Toggle2FARequest(BaseModel):
+    """Schema for toggling 2FA"""
+
+    enable: bool
+
+
 ### To be removed
 class TokenRequest(BaseModel):
     """Schema for token generation request"""
@@ -50,4 +64,6 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+
+
 ###

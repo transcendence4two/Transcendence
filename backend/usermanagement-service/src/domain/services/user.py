@@ -1,9 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserOperations, UserRegister
-from src.domain.schemas.user import UserRegisterRequest
+from src.domain.schemas.user import UserProfileUpdateRequest, UserRegisterRequest
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
+from src.domain.services.commands.toggle_2fa import Toggle2FACommand
+from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 from src.domain.services.password import PasswordService
 from src.infrastructure.event_publisher import EventPublisher
 
@@ -36,6 +38,16 @@ class UserService(UserRegister, UserOperations):
 
     async def get_user_profile(self, user_id: str):
         command = GetUserProfileCommand(self.session, user_id)
+        return await command.execute()
+
+    async def update_user_profile(
+        self, user_id: str, payload: UserProfileUpdateRequest
+    ):
+        command = UpdateUserProfileCommand(self.session, user_id, payload)
+        return await command.execute()
+
+    async def toggle_2fa(self, user_id: str, enable: bool):
+        command = Toggle2FACommand(self.session, user_id, enable)
         return await command.execute()
 
     # Messaging methods

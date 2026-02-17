@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.domain.models.user import User
-from src.domain.schemas.user import UserRegisterRequest
+from src.domain.schemas.user import UserProfileUpdateRequest, UserRegisterRequest
 
 
 class PasswordHasher(ABC):
@@ -26,6 +26,14 @@ class UserOperations(ABC):
 
     @abstractmethod
     async def get_user_profile(self, user_id: str) -> User: ...
+
+    @abstractmethod
+    async def update_user_profile(
+        self, user_id: str, payload: UserProfileUpdateRequest
+    ) -> User: ...
+
+    @abstractmethod
+    async def toggle_2fa(self, user_id: str, enable: bool) -> User: ...
 
 
 class TokenProvider(ABC):
