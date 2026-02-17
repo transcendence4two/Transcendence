@@ -21,6 +21,13 @@ class UserRegister(ABC):
     async def register_user(self, payload: UserRegisterRequest) -> User: ...
 
 
+class UserOperations(ABC):
+    """Port for user operations use cases."""
+
+    @abstractmethod
+    async def get_user_profile(self, user_id: str) -> User: ...
+
+
 class TokenProvider(ABC):
     """Port for token operations."""
 

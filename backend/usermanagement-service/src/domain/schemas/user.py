@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -17,6 +19,20 @@ class UserResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileResponse(BaseModel):
+    """Schema for user profile response"""
+
+    id: str
+    username: str
+    email: str
+    enable_2fa: bool
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

@@ -3,7 +3,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.di_config import get_token_service
 from src.domain.contracts import TokenProvider
-from src.domain.exceptions import TokenInvalidError, TokenMissingError
+from src.domain.exceptions import (
+    TokenInvalidError,
+    TokenMissingError,
+    UnauthorizedActionError,
+)
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -22,3 +26,13 @@ def _has_token(credentials: HTTPAuthorizationCredentials):
 
     if credentials.scheme.lower() != "bearer":
         raise TokenInvalidError("Authorization scheme must be Bearer")
+
+
+def verify_user_authorization(user_id: str, payload: dict) -> None:
+    """Verify that the authenticated user matches the requested user_id"""
+    authenticated_user_id = payload.get("sub")
+
+    if authenticated_user_id != user_id:
+        raise UnauthorizedActionError(
+            "You are not authorized to perform this action"
+        )
