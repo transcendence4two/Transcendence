@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from src.core.auth import get_token_payload, verify_user_authorization
 from src.di_config import get_token_service, get_user_service
 from src.domain.contracts import TokenProvider
 from src.domain.schemas.user import (
+    PaginatedResponse,
     Toggle2FARequest,
     TokenRequest,
     TokenResponse,
@@ -51,6 +52,17 @@ async def generate_token(
 @router.get("/protected")
 async def protected_route(payload: dict = Depends(get_token_payload)):
     return {"message": "authenticated", "sub": payload.get("sub")}
+
+
+@router.get("/", response_model=PaginatedResponse[UserProfileResponse])
+async def get_all_profiles(
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(10, ge=1, le=100, description="Items per page"),
+    payload: dict = Depends(get_token_payload),
+    user_service: UserService = Depends(get_user_service),
+):
+    result = await user_service.get_paginated_user_profiles(page, page_size)
+    return result
 
 
 @router.get("/{user_id}", response_model=UserProfileResponse)

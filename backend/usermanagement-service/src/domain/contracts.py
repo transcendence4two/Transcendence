@@ -28,6 +28,9 @@ class UserOperations(ABC):
     async def get_user_profile(self, user_id: str) -> User: ...
 
     @abstractmethod
+    async def get_paginated_user_profiles(self, page: int, page_size: int) -> dict: ...
+
+    @abstractmethod
     async def update_user_profile(
         self, user_id: str, payload: UserProfileUpdateRequest
     ) -> User: ...

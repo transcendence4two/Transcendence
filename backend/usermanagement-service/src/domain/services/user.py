@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserOperations, UserRegister
 from src.domain.schemas.user import UserProfileUpdateRequest, UserRegisterRequest
+from src.domain.services.commands.get_paginated_users import (
+    GetPaginatedUserProfilesCommand,
+)
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.commands.toggle_2fa import Toggle2FACommand
@@ -38,6 +41,10 @@ class UserService(UserRegister, UserOperations):
 
     async def get_user_profile(self, user_id: str):
         command = GetUserProfileCommand(self.session, user_id)
+        return await command.execute()
+
+    async def get_paginated_user_profiles(self, page: int = 1, page_size: int = 10):
+        command = GetPaginatedUserProfilesCommand(self.session, page, page_size)
         return await command.execute()
 
     async def update_user_profile(

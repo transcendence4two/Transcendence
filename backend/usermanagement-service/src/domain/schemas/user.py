@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -51,6 +52,22 @@ class Toggle2FARequest(BaseModel):
     enable: bool
 
 
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic schema for paginated responses"""
+
+    items: list[T]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+    class Config:
+        from_attributes = True
+
+
 ### To be removed
 class TokenRequest(BaseModel):
     """Schema for token generation request"""
@@ -64,4 +81,6 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
+
+
 ###
