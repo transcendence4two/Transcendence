@@ -89,7 +89,7 @@ const RegisterForm = () => {
 
             console.log('User registered:', data)
             alert('Registration successful! You will be redirected to login.')
-            window.location.href = '/'
+            window.location.href = '/login'
 
         } catch (error) {
             console.error('Registration error:', error)
