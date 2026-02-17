@@ -1,11 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import RegisterForm from './RegisterForm'
-import React from 'react'
 
 // Mock do fetch global
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+vi.stubGlobal('fetch', mockFetch)
 
 // Mock do window.location e alert
 const mockLocation = { href: '' }
@@ -23,6 +22,10 @@ describe('RegisterForm Component', () => {
             ok: true,
             json: async () => ({ id: '123', username: 'testuser' })
         })
+    })
+
+    afterEach(() => {
+        vi.unstubAllGlobals()
     })
 
     // 1. Renderização Inicial
