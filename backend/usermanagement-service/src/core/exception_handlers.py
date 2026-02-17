@@ -1,32 +1,94 @@
 import logging
+from typing import Tuple
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from src.domain.exceptions import AppError
+from src.domain.exceptions import (
+    DatabaseError,
+    DomainError,
+    TokenExpiredError,
+    TokenInvalidError,
+    TokenMissingError,
+    UserAlreadyExistsError,
+)
 
 logger = logging.getLogger(__name__)
 
 
-async def app_exception_handler(request: Request, exc: AppError) -> JSONResponse:
-    log_level = logging.WARNING if exc.status_code < 500 else logging.ERROR
-    logger.log(log_level, f"{exc.error_type}: {exc.detail}")
+DOMAIN_ERROR_MAP: dict[type[DomainError], Tuple[int, str]] = {
+    UserAlreadyExistsError: (409, "USER_ALREADY_EXISTS"),
+    DatabaseError: (500, "DATABASE_ERROR"),
+    TokenMissingError: (401, "TOKEN_MISSING"),
+    TokenInvalidError: (401, "TOKEN_INVALID"),
+    TokenExpiredError: (401, "TOKEN_EXPIRED"),
+}
 
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "detail": exc.detail,
-            "error_type": exc.error_type,
-        },
+STATUS_CODE_ERROR_THRESHOLD = 500
+
+
+async def app_exception_handler(
+    request: Request,
+    exc: DomainError,
+) -> JSONResponse:
+    status_code, error_type = _get_error_details(exc)
+    _log_exception(error_type, exc, status_code)
+
+    return _create_error_response(
+        status_code=status_code,
+        error_type=error_type,
+        detail=str(exc),
     )
 
 
-async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    logger.error(f"Unexpected error: {str(exc)}", exc_info=True)
-    return JSONResponse(
+async def general_exception_handler(
+    request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    logger.error(
+        "Unexpected error occurred: %s",
+        str(exc),
+        exc_info=True,
+        extra={"path": request.url.path, "method": request.method},
+    )
+
+    return _create_error_response(
         status_code=500,
+        error_type="INTERNAL_ERROR",
+        detail="Internal server error occurred",
+    )
+
+
+def _get_error_details(exc: DomainError) -> Tuple[int, str]:
+    return DOMAIN_ERROR_MAP.get(
+        type(exc),
+        (500, "INTERNAL_ERROR"),  # Fallback
+    )
+
+
+def _log_exception(error_type: str, exc: DomainError, status_code: int) -> None:
+    log_level = (
+        logging.ERROR if status_code >= STATUS_CODE_ERROR_THRESHOLD else logging.WARNING
+    )
+
+    logger.log(
+        log_level,
+        "%s: %s",
+        error_type,
+        str(exc),
+        extra={"error_type": error_type, "exception": exc.__class__.__name__},
+    )
+
+
+def _create_error_response(
+    status_code: int,
+    error_type: str,
+    detail: str,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
         content={
-            "detail": "internal error application",
-            "error_type": "INTERNAL_ERROR",
+            "error_type": error_type,
+            "detail": detail,
         },
     )

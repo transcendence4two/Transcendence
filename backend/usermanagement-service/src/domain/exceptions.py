@@ -1,26 +1,31 @@
-from fastapi import status
+from dataclasses import dataclass
 
 
-class AppError(Exception):
-    """Base exception class with HTTP metadata."""
+@dataclass
+class DomainError(Exception):
+    """Base exception for domain errors."""
 
-    status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
-    error_type: str = "INTERNAL_ERROR"
+    message: str
 
-    def __init__(self, detail: str = None):
-        self.detail = detail or self.__class__.__name__
-        super().__init__(self.detail)
-
-
-class UserAlreadyExistsError(AppError):
-    """Raised when a user with the same email or username already exists."""
-
-    status_code = status.HTTP_409_CONFLICT
-    error_type = "USER_ALREADY_EXISTS"
+    def __str__(self):
+        return self.message
 
 
-class DatabaseError(AppError):
-    """Raised when database operations fail."""
+class UserAlreadyExistsError(DomainError):
+    """User with same email or username already exists."""
 
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    error_type = "DATABASE_ERROR"
+
+class DatabaseError(DomainError):
+    """Database operation failed."""
+
+
+class TokenMissingError(DomainError):
+    """Auth token is missing."""
+
+
+class TokenInvalidError(DomainError):
+    """Auth token is invalid."""
+
+
+class TokenExpiredError(DomainError):
+    """Auth token is expired."""
