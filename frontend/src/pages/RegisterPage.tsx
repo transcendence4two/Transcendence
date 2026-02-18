@@ -2,8 +2,8 @@ import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import RegisterForm from '../components/home/RegisterForm'
 
-const inputClassName ='w-full max-w-125 border border-slate-700/50 bg-slate-800/50' +
-    'backdrop-blur-sm rounded-2xl p-8 shadow-2xl'
+const inputClassName ='w-full max-w-125 border border-slate-700/50 [.light_&]:border-gray-200 bg-slate-800/50 [.light_&]:bg-white ' +
+    'backdrop-blur-sm rounded-2xl p-8 shadow-2xl [.light_&]:shadow-xl'
 
 const RegisterPage = () => {
     return (

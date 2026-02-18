@@ -3,10 +3,10 @@ import { GoogleIcon } from '../icons/Icons'
 import { useState } from 'react'
 
 const inputClassName =
-    'w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl ' +
-    'text-white placeholder-slate-500 focus:outline-none focus:ring-2 ' +
+    'w-full px-4 py-3 bg-slate-900/50 in-[.light]:bg-gray-100 in-[.light]:border-gray-300 in-[.light]:text-gray-900 border border-slate-600 rounded-xl ' +
+    'text-white placeholder-slate-500 in-[.light]:placeholder-gray-500 focus:outline-none focus:ring-2 ' +
     'focus:ring-cyan-500 focus:border-transparent transition-all'
-const labelClassName = 'block text-sm font-medium text-slate-300 ml-1'
+const labelClassName = 'block text-sm font-medium text-slate-300 in-[.light]:text-gray-700 ml-1'
 
 const LoginSection = () => {
     const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const LoginSection = () => {
     return (
         <div className='w-full space-y-6'>
             <div className='text-center space-y-2'>
-                <h2 className='text-3xl font-bold text-white'>Welcome Back</h2>
+                <h2 className='text-3xl font-bold text-white in-[.light]:text-gray-900'>Welcome Back</h2>
             </div>
 
             <Button
@@ -42,9 +42,9 @@ const LoginSection = () => {
             </Button>
 
             <div className='flex items-center gap-4 py-2'>
-                <div className='h-px bg-slate-700 flex-1' />
+                <div className='h-px bg-slate-700 in-[.light]:bg-gray-300 flex-1' />
                 <span className='text-slate-500 text-sm'>OR</span>
-                <div className='h-px bg-slate-700 flex-1' />
+                <div className='h-px bg-slate-700 in-[.light]:bg-gray-300 flex-1' />
             </div>
 
             <form onSubmit={handleSubmit} className='space-y-4 mt-8'>
