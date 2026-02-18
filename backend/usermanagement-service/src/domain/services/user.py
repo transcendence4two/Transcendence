@@ -1,9 +1,16 @@
+from typing import Any
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserRegister
-from src.domain.schemas.user import UserRegisterRequest
+from src.domain.models.user import User
+from src.domain.schemas.user import LoginRequest, UserRegisterRequest
+from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
+from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
+from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
 
 EMAIL_WELCOME_CHANNEL = "email:welcome"
@@ -17,10 +24,14 @@ class UserService(UserRegister):
         self,
         session: AsyncSession,
         password_service: PasswordService,
+        token_service: TokenService,
+        otp_service: OtpService,
         event_publisher: EventPublisher,
     ):
         self.session = session
         self.password_service = password_service
+        self.token_service = token_service
+        self.otp_service = otp_service
         self.event_publisher = event_publisher
 
     async def register_user(self, payload: UserRegisterRequest):
@@ -41,3 +52,20 @@ class UserService(UserRegister):
             EMAIL_OTP_CHANNEL,
             {"email": email, "otp_code": otp_code},
         )
+
+    async def get_user_by_email(self, email: str) -> User | None:
+        stmt = select(User).where(User.email == email)
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
+
+    async def login_user(self, payload: LoginRequest) -> dict[str, Any]:
+        """Authenticate user and handle login flow"""
+        command = LoginCommand(
+            session=self.session,
+            password_service=self.password_service,
+            token_service=self.token_service,
+            otp_service=self.otp_service,
+            event_publisher=self.event_publisher,
+            payload=payload,
+        )
+        return await command.execute()

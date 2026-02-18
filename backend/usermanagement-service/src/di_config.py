@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.core.settings import settings
 from src.domain.contracts import PasswordHasher, TokenProvider, UserRegister
+from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.domain.services.user import UserService
@@ -41,9 +42,13 @@ async def get_user_service(
 ) -> UserRegister:
     """Dependency to get user service."""
     password_service = get_password_service()
+    token_service = get_token_service()
+    otp_service = get_otp_service()
     return UserService(
         session=session,
         password_service=password_service,
+        token_service=token_service,
+        otp_service=otp_service,
         event_publisher=event_publisher,
     )
 
@@ -51,3 +56,8 @@ async def get_user_service(
 def get_token_service() -> TokenProvider:
     """Dependency to get token service."""
     return TokenService(config=settings.jwt_config)
+
+
+def get_otp_service() -> OtpService:
+    """Dependency to get OTP service."""
+    return OtpService(redis_url=settings.REDIS_URL)
