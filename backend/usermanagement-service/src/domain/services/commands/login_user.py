@@ -42,6 +42,8 @@ class LoginCommand(Command):
         """Execute login authentication"""
         user = await self._authenticate_user()
         
+        logger.info(f"User {user.id} authenticated. 2FA enabled: {user.enable_2fa}")
+        
         if user.enable_2fa:
             return await self._handle_2fa_flow(user)
         
@@ -79,23 +81,28 @@ class LoginCommand(Command):
 
     async def _handle_2fa_flow(self, user: User) -> dict[str, Any]:
         """Handle login for users with 2FA enabled"""
+        logger.info(f"Handling 2FA flow for user: {user.id}, email: {user.email}")
+        
         temporary_token = self.token_service.create_token(
             user.id, expires_minutes=TEMPORARY_TOKEN_EXPIRATION
         )
         
         otp_code = self.otp_service.generate_otp()
+        logger.info(f"Generated OTP code for user {user.id}: {otp_code}")
+        
         await self.otp_service.store_otp(user.id, otp_code)
+        logger.info(f"OTP code stored in Redis for user {user.id}")
         
-        await self.event_publisher.publish(
-            EMAIL_OTP_CHANNEL,
-            {
-                "email": user.email,
-                "username": user.username,
-                "otp_code": otp_code,
-            },
-        )
+        event_data = {
+            "email": user.email,
+            "username": user.username,
+            "otp_code": otp_code,
+        }
+        logger.info(f"Publishing OTP event to channel '{EMAIL_OTP_CHANNEL}' with data: {event_data}")
         
-        logger.info(f"2FA flow initiated for user: {user.id}")
+        await self.event_publisher.publish(EMAIL_OTP_CHANNEL, event_data)
+        
+        logger.info(f"2FA flow completed for user: {user.id}")
         
         return {
             "temporary_token": temporary_token,
