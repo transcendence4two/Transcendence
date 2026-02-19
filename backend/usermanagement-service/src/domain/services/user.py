@@ -1,11 +1,19 @@
 from typing import Any
 
+from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserRegister
 from src.domain.models.user import User
-from src.domain.schemas.user import LoginRequest, UserRegisterRequest
+from src.domain.schemas.user import (
+    Login2FAResponse,
+    LoginRequest,
+    LoginResponse,
+    LoginResult,
+    UserRegisterRequest,
+    UserResponse,
+)
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.otp import OtpService
@@ -58,7 +66,7 @@ class UserService(UserRegister):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def login_user(self, payload: LoginRequest) -> dict[str, Any]:
+    async def login_user(self, payload: LoginRequest) -> LoginResult:
         """Authenticate user and handle login flow"""
         command = LoginCommand(
             session=self.session,
@@ -68,4 +76,25 @@ class UserService(UserRegister):
             event_publisher=self.event_publisher,
             payload=payload,
         )
-        return await command.execute()
+        result = await command.execute()
+
+        if result["requires_2fa"]:
+            response = Login2FAResponse(
+                temporary_token=result["temporary_token"],
+                message="Código de verificação enviado para seu email",
+            )
+            return LoginResult(
+                requires_2fa=True,
+                response=response,
+                status_code=status.HTTP_202_ACCEPTED,
+            )
+
+        response = LoginResponse(
+            access_token=result["token"],
+            user=UserResponse.model_validate(result["user"]),
+        )
+        return LoginResult(
+            requires_2fa=False,
+            response=response,
+            status_code=status.HTTP_200_OK,
+        )

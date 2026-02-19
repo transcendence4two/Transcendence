@@ -1,3 +1,5 @@
+from typing import Literal, Union
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -46,3 +48,11 @@ class Login2FAResponse(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+class LoginResult(BaseModel):
+    """Internal result from login service"""
+
+    requires_2fa: bool
+    response: Union[LoginResponse, Login2FAResponse]
+    status_code: int

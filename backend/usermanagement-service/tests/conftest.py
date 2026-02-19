@@ -1,6 +1,6 @@
 """Pytest configuration and fixtures for integration tests."""
 
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
 import pytest
 from fastapi import FastAPI
@@ -25,7 +25,7 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="function")
-def mock_event_publisher() -> MockEventPublisher:
+def mock_event_publisher() -> Generator[MockEventPublisher, None, None]:
     """Fixture for mock event publisher that is cleared between tests"""
     publisher = MockEventPublisher()
     yield publisher
@@ -33,7 +33,7 @@ def mock_event_publisher() -> MockEventPublisher:
 
 
 @pytest.fixture(scope="function")
-def mock_otp_service() -> MockOtpService:
+def mock_otp_service() -> Generator[MockOtpService, None, None]:
     """Fixture for mock OTP service that is cleared between tests"""
     otp_service = MockOtpService()
     yield otp_service
