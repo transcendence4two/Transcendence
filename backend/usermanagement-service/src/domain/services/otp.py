@@ -34,12 +34,12 @@ class OtpService:
         client = await self._get_client()
         key = f"otp:{user_id}"
         stored_otp = await client.get(key)
-        
+
         if stored_otp is None:
             return False
-        
+
         await client.delete(key)
-        
+
         return stored_otp.decode("utf-8") == otp
 
     async def close(self) -> None:

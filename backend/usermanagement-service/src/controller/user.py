@@ -35,13 +35,13 @@ async def login_user(
 ):
     """
     Authenticate user with email and password.
-    
+
     Returns:
         - 200 OK with access token for users without 2FA
         - 202 Accepted with temporary token for users with 2FA enabled
     """
     result = await user_service.login_user(request)
-    
+
     if result["requires_2fa"]:
         response = Login2FAResponse(
             temporary_token=result["temporary_token"],
@@ -51,7 +51,7 @@ async def login_user(
             status_code=status.HTTP_202_ACCEPTED,
             content=response.model_dump(by_alias=True),
         )
-    
+
     response = LoginResponse(
         access_token=result["token"],
         user=UserResponse.model_validate(result["user"]),

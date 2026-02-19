@@ -37,7 +37,9 @@ class RedisEventPublisher(EventPublisher):
             result = await client.publish(channel, json.dumps(event))
             logger.info(f"Event published successfully. Subscribers notified: {result}")
         except Exception as e:
-            logger.error(f"Failed to publish event to channel '{channel}': {e}", exc_info=True)
+            logger.error(
+                f"Failed to publish event to channel '{channel}': {e}", exc_info=True
+            )
 
     async def close(self) -> None:
         if self._client:
