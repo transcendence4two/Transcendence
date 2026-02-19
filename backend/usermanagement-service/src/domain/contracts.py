@@ -29,3 +29,17 @@ class TokenProvider(ABC):
 
     @abstractmethod
     def validate_token(self, token: str) -> dict: ...
+
+
+class UserRepository(ABC):
+    """Port for user data access."""
+
+    @abstractmethod
+    async def find_by_email(self, email: str) -> User | None: ...
+
+
+class EventPublisher(ABC):
+    """Port for event publishing."""
+
+    @abstractmethod
+    async def publish(self, channel: str, data: dict) -> None: ...
