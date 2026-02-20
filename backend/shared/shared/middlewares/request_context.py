@@ -15,17 +15,17 @@ def request_context_middleware():
         route_path = route.path if route else request.url.path
 
         structlog.contextvars.bind_contextvars(
-            request_id=request_id,
-            trace_id=trace_id,
-            method=request.method,
-            path=request.url.path,
-            route=route_path,
-            client_host=request.client.host if request.client else None,
-            user_agent=request.headers.get("user-agent"),
+            **{"http.request.id": request_id},
+            **{"trace.id": trace_id},
+            **{"http.request.method": request.method},
+            **{"url.path": request.url.path},
+            **{"url.route": route_path},
+            **{"client.address": request.client.host if request.client else None},
+            **{"user_agent.original": request.headers.get("user-agent")},
         )
 
         request.state.request_id = request_id
-        request.state.start_at = time.time()
+        request.state.start_at = time.perf_counter_ns()
 
         logger = structlog.get_logger()
         await logger.ainfo("request_received", message="Request received")
