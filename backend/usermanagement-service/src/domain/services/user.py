@@ -1,4 +1,3 @@
-from typing import Any
 
 from fastapi import status
 from sqlalchemy import select
