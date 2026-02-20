@@ -20,15 +20,18 @@ def logging_middleware():
                 status_code=500, content={"detail": "Internal error"}
             )
 
-        finished_at = time.time()
-        latency_ms = (finished_at - request.state.start_at) * 1000
+        if error is None and response.status_code < 400:
+            event_outcome = "success"
+        else:
+            event_outcome = "failure"
+
+        duration_ns = time.perf_counter_ns() - request.state.start_at
 
         structlog.contextvars.bind_contextvars(
-            status_code=response.status_code,
-            success=error is None and response.status_code < 400,
-            error_type=type(error).__name__ if error else None,
-            latency_ms=latency_ms,
-            finished_at=finished_at,
+            **{"http.response.status_code": response.status_code},
+            **{"event.outcome": event_outcome},
+            **{"error.type": type(error).__name__ if error else None},
+            **{"event.duration": duration_ns},
         )
 
         if error:
