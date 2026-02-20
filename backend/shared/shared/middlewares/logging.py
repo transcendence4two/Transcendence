@@ -1,7 +1,8 @@
 import time
 
 import structlog
-from fastapi import JSONResponse, Request
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 
 def logging_middleware():
