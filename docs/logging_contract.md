@@ -1,128 +1,101 @@
-# 📜 Logging Contract — HTTP Requests (ELK)
+# Logging Contract - HTTP (ECS / ELK)
 
-This document defines the **structured logging contract (JSON)** for all HTTP requests
-across the **Transcendence (42)** backend.
+This document defines the JSON logging contract for HTTP requests across the backend.
+All services must follow this contract.
 
-All services (`auth`, `game`, `chat`, `matchmaking`, etc.) **must comply** with this specification.
+## Purpose
 
----
+- ensure all logs are structured and indexable
+- keep cross-service request correlation
+- support dashboards, metrics, and alerts in ELK
 
-## 🎯 Purpose
+## Contract Rules
 
-Ensure that all logs:
+1. Logs must be valid JSON objects.
+2. Base ECS fields must be present on every log line.
+3. Request/response events must use the field names below.
+4. Do not emit plain-text application logs.
 
-- are **structured** (JSON)
-- are **fully indexable** by the ELK stack
-- allow **request, user and error tracing**
-- enable **dashboards, alerts and metrics**
+## Base Fields (Required)
 
----
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `@timestamp` | string | Yes | ISO 8601 UTC |
+| `log.level` | string | Yes | `debug`, `info`, `warning`, `error`, `critical` |
+| `message` | string | Yes | Event name/message |
+| `service.name` | string | Yes | Service identifier |
+| `service.environment` | string | Yes | `development`, `staging`, `production` |
 
-## 🧱 Log Model
+## Request Context Fields
 
-Every HTTP request log is composed of **four logical blocks**:
+| Field | Type | Required | Source |
+| --- | --- | --- | --- |
+| `http.request.id` | string | Yes | request context middleware |
+| `trace.id` | string | Yes | request context middleware |
+| `http.request.method` | string | Yes | request context middleware |
+| `url.path` | string | Yes | request context middleware |
+| `url.route` | string | Yes | request context middleware |
+| `client.address` | string/null | Yes | request context middleware |
+| `user_agent.original` | string/null | Yes | request context middleware |
 
-> 🕒 Temporal  
-> 🧭 Identity  
-> 🌐 HTTP  
-> 📦 Business
+## Response/Outcome Fields
 
----
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `http.response.status_code` | number | Yes (request completion events) | HTTP status |
+| `event.duration` | number | Yes (request completion events) | nanoseconds |
+| `event.outcome` | string | Yes (request completion events) | `success` or `failure` |
+| `error.type` | string/null | Yes (request completion events) | exception class name |
 
-## 🕒 Temporal
+## Optional Auth Fields
 
-Time-related metadata.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `user.id` | string | No | present when auth middleware is enabled |
+| `user.roles` | array | No | present when auth middleware is enabled |
 
-| Field         | Type   | Description                                      |
-| ------------- | ------ | ------------------------------------------------ |
-| `timestamp`   | string | Time when the log event was generated (ISO 8601) |
-| `started_at`  | string | When request processing started                  |
-| `finished_at` | string | When request processing finished                 |
-| `duration_ms` | number | Total request duration in milliseconds           |
+## Standard HTTP Events
 
----
+| `message` value | Description |
+| --- | --- |
+| `request_received` | emitted when request enters the service |
+| `request_completed` | emitted when request finishes (includes response fields) |
+| `request_failed` | emitted on exception path |
 
-## 🧭 Identity
+All events for the same request must share `http.request.id` and `trace.id`.
 
-Correlation and traceability.
+## Middleware Registration Order
 
-| Field        | Type        | Description                    |
-| ------------ | ----------- | ------------------------------ |
-| `request_id` | string      | Unique request identifier      |
-| `trace_id`   | string      | Distributed tracing identifier |
-| `user_id`    | string/null | Authenticated user ID          |
-| `ip`         | string      | Client IP address              |
-| `user_agent` | string      | Client User-Agent              |
+Register middlewares in this order:
 
----
+1. `logging_middleware()`
+2. `auth_middleware()` (optional)
+3. `request_context_middleware()`
 
-## 🌐 HTTP
+Why: in FastAPI/Starlette the last registered middleware runs first (outermost). This order keeps request context available for completion logs.
 
-Technical request / response metadata.
+## Lifecycle Events
 
-| Field         | Type        | Description                                                         |
-| ------------- | ----------- | ------------------------------------------------------------------- |
-| `method`      | string      | HTTP method (`GET`, `POST`, etc.)                                   |
-| `path`        | string      | Actual URL path (`/login`)                                          |
-| `route`       | string      | Logical route (`/users/{id}`)                                       |
-| `status_code` | number      | HTTP response code                                                  |
-| `success`     | boolean     | `true` if `status_code < 400`                                       |
-| `error_type`  | string/null | Error category (`auth_error`, `validation_error`, `db_error`, etc.) |
-| `size_in`     | number      | Request payload size in bytes                                       |
-| `size_out`    | number      | Response payload size in bytes                                      |
+Services should also emit:
 
----
+- `application_started`
+- `application_stopped`
 
-## 📦 Business
+These events still need base fields (`@timestamp`, `log.level`, `service.name`, `service.environment`, `message`).
 
-Domain-level context for **Transcendence**.
+## Uvicorn Plain-Text Logs
 
-| Field           | Type        | Description                                |
-| --------------- | ----------- | ------------------------------------------ |
-| `service`       | string      | `auth`, `game`, `chat`, `matchmaking`      |
-| `action`        | string      | `login`, `create_match`, `join_game`, etc. |
-| `game_id`       | string/null | Game identifier                            |
-| `tournament_id` | string/null | Tournament identifier                      |
-| `env`           | string      | `dev`, `staging`, `prod`                   |
+To keep one JSON pipeline, disable Uvicorn text logs in logging config:
 
----
+```python
+"loggers": {
+    "uvicorn.access": {"handlers": [], "propagate": False},
+    "uvicorn.error": {"handlers": [], "propagate": False},
+}
+```
 
-## 📌 Event
+## Security
 
-Each request log **must include**:
-
-| Field   | Type   | Description                                                                  |
-| ------- | ------ | ---------------------------------------------------------------------------- |
-| `event` | string | Event name (`request_received`, `request_completed`, `request_failed`, etc.) |
-
----
-
-## 📈 Standard Events
-
-| `event`             | When it occurs                          |
-| ------------------- | --------------------------------------- |
-| `request_received`  | When the request enters the system      |
-| `request_completed` | When the request finishes successfully  |
-| `request_failed`    | When the request finishes with an error |
-
-All events belonging to the same request **must share the same** `request_id`.
-
----
-
-## 🔐 Security & Privacy
-
-- Never log full request or response bodies by default
-- Never log passwords, tokens, or sensitive data
-- Prefer **structured fields** over free-text messages
-- Logs **must** be emitted only as JSON
-
----
-
-## 🔄 ELK Compatibility
-
-Logs are emitted as **pure JSON**, enabling:
-
-- `codec => json` in Logstash
-- direct indexing in Elasticsearch
-- dashboards in Kibana
-- alerting and metrics
+- never log secrets or tokens
+- never log raw passwords
+- avoid full request/response bodies unless explicitly scrubbed
