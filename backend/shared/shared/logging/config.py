@@ -1,6 +1,11 @@
 import structlog
 import os
-from .processors import add_service, add_request_context
+from .processors import (
+    add_service,
+    add_request_context,
+    rename_level_key,
+    rename_event_key,
+)
 
 
 def configure_logging(service_name: str = None):
@@ -8,19 +13,21 @@ def configure_logging(service_name: str = None):
     env = os.getenv("ENV", "development")
 
     def add_env(_, __, event_dict):
-        event_dict["env"] = env
+        event_dict["service.environment"] = env
         return event_dict
 
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
-            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.TimeStamper(fmt="iso", key="@timestamp"),
             add_env,
             add_service(service),
+            add_request_context,
+            rename_level_key,
+            rename_event_key,
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            add_request_context,
             structlog.processors.JSONRenderer(),
         ],
         logger_factory=structlog.PrintLoggerFactory(),
