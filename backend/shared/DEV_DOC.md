@@ -1,197 +1,265 @@
-# Shared Middlewares & Logging - Guia do Desenvolvedor
+# Shared Middlewares & Logging - Developer Guide
 
-## 📦 Visão Geral
+## Overview
 
-Este pacote compartilhado padroniza **logging estruturado** e **middlewares** para todos os microsserviços do backend.  
-**Objetivo**: Logs consistentes no formato JSON para o ELK, com correlação entre serviços.
+This shared package standardizes **structured logging** and **middlewares** across backend microservices.  
+**Goal**: consistent ECS-compatible JSON logs for ELK, with service-to-service correlation.
 
-## 🏗️ Estrutura
+## Standardization Goals
 
-```
+Ensure all microservices:
+
+- emit ECS-compatible JSON logs
+- include startup/shutdown lifecycle logs
+- do not mix plain-text Uvicorn logs with JSON application logs
+- follow one reusable logging pattern
+
+## Structure
+
+```text
 shared/
-├── setup.py               # Instalação do pacote
+├── setup.py               # Package installation
 └── shared/
-    ├── __init__.py        # Exporta funções principais
+    ├── __init__.py        # Exports public functions
     ├── logging/
-    │   ├── config.py      # Configuração do structlog
-    │   └── processors.py  # Processadores customizados
+    │   ├── config.py      # structlog configuration
+    │   └── processors.py  # Custom processors
     └── middlewares/
-        ├── request_context.py  # request_id, timing
-        ├── auth.py             # Autenticação JWT
-        └── logging.py          # Log de requisições
+        ├── request_context.py  # request context + timing
+        ├── auth.py             # JWT authentication
+        └── logging.py          # request completion logs
 ```
 
-## 🚀 Como usar em seu serviço
+## How To Use In Your Service
 
-### 1. Adicione a dependência
+### Configure in `main.py`
 
-No `requirements.txt` do seu serviço:
-
-```txt
-fastapi
-uvicorn
--e ../shared  # Caminho relativo para o pacote compartilhado
-```
-
-Instale:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 2. Configure no `main.py`
+This is an **example template** based on `usermanagement-service`.  
+Adapt imports, routers, and domain modules to your own service.
 
 ```python
+import asyncio
+from contextlib import asynccontextmanager
+
+import structlog
 from fastapi import FastAPI
 from shared import (
     configure_logging,
-    request_context_middleware,
-    auth_middleware,
     logging_middleware,
+    request_context_middleware,
 )
 
-# 1. Configure o logging com o nome do SEU serviço
-configure_logging("nome-do-seu-servico")  # ex: "game", "tournament", "emails"
+from src.controller import user as user_controller
+from src.core.exception_handlers import (
+    app_exception_handler,
+    general_exception_handler,
+)
+from src.core.settings import settings
+from src.di_config import engine
+from src.domain.exceptions import DomainError
+from src.domain.models import Base
 
-# 2. Crie a app FastAPI
-app = FastAPI()
+configure_logging(service_name="usermanagement-service")
 
-# 3. Adicione os middlewares (ORDEM É IMPORTANTE!)
-# Em FastAPI/Starlette, o ÚLTIMO registrado roda primeiro (mais externo).
-app.middleware("http")(logging_middleware())          # 1º registrar (mais interno)
-app.middleware("http")(auth_middleware())             # 2º registrar (opcional)
-app.middleware("http")(request_context_middleware())  # 3º registrar (mais externo)
+logger = structlog.get_logger()
 
-# 4. Suas rotas
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    max_attempts = 15
+    for attempt in range(1, max_attempts + 1):
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
+        except Exception:
+            if attempt == max_attempts:
+                raise
+            await asyncio.sleep(1)
+
+    logger.info("Usermanagement service started")
+
+    yield
+
+    logger.info("Usermanagement service terminated")
+
+    await engine.dispose()
+
+
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
+
+# Exceptions handler
+app.add_exception_handler(DomainError, app_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+app.middleware("http")(logging_middleware())
+# app.middleware("http")(auth_middleware())
+app.middleware("http")(request_context_middleware())
+
+# Routes
+app.include_router(user_controller.router, prefix="/users", tags=["users"])
+
+
 @app.get("/health")
-async def health():
-    return {"status": "ok"}
+async def health_check():
+    """Health check endpoint."""
+    return {"status": "healthy"}
 ```
 
-### 📝 Como fazer logs no seu código
+## Lifecycle Logging
 
-Em qualquer arquivo:
+Why log startup/shutdown:
 
-```python
-import structlog
+- makes restarts visible during incidents
+- confirms healthy boot after deploy
+- improves ELK timeline correlation
 
-logger = structlog.get_logger(__name__)
+Why `configure_logging()` must come first:
 
-async def minha_funcao(user_id: str):
-    # O contexto da requisição (request_id, user_id) já está automaticamente incluído!
-    logger.info("Processando usuário", user_id=user_id)
+- guarantees JSON ECS formatting from the first log line
+- prevents unstructured logs during startup
 
-    try:
-        resultado = await alguma_operacao()
-        logger.debug("Operação concluída", resultado=resultado)
-        return resultado
-    except Exception as e:
-        logger.exception("Falha na operação")  # Inclui stack trace!
-        raise
-```
+Why to avoid `print()`:
 
-Níveis de log:
+- prints unstructured text to stdout
+- breaks JSON parsing when mixed in ELK streams
+- has no request/trace context
 
-```python
-logger.debug("Só em desenvolvimento")      # Geralmente filtrado em produção
-logger.info("Fluxo normal")                 # Operação bem-sucedida
-logger.warning("Algo preocupante")          # Token expirando, rate limit próximo
-logger.error("Erro recuperável")            # Falha em operação, mas serviço continua
-logger.exception("Erro com stack trace")    # Sempre dentro de except blocks
-logger.critical("Sistema parando")          # Use com moderação!
-```
-
-### 🔍 O que cada middleware faz
+## What Each Middleware Does
 
 1. **request_context_middleware**
-   - Gera/captura `http.request.id`
-   - Binda no contexto: `http.request.id`, `trace.id`, `http.request.method`, `url.path`, `url.route`, `client.address`, `user_agent.original`
-   - Adiciona header `X-Request-ID` na resposta
+- generates or reads `http.request.id`
+- binds `http.request.id`, `trace.id`, `http.request.method`, `url.path`, `url.route`, `client.address`, `user_agent.original`
+- adds `X-Request-ID` response header
 
 2. **auth_middleware**
-   - Valida token JWT no header `Authorization`
-   - Binda no contexto: `user.id`, `user.roles`
-   - Adiciona ao `request.state`
+- validates JWT from `Authorization`
+- binds `user.id`, `user.roles`
+- stores auth data in `request.state`
 
 3. **logging_middleware**
-   - Mede duração da requisição
-   - Binda: `http.response.status_code`, `event.duration`, `event.outcome`, `error.type`
-   - Log final `"Request completed"` com TODO contexto
+- calculates request duration
+- binds `http.response.status_code`, `event.duration`, `event.outcome`, `error.type`
+- emits final `request_completed` event
 
-Ordem real de execução (request -> response):
+Execution order (request -> response):
+
 - request: `request_context` -> `auth` -> `logging`
 - response: `logging` -> `auth` -> `request_context`
 
-### 📊 Formato do log no ELK
+## ECS Log Shape Example
 
 ```json
 {
-  "service": "nome-do-seu-servico",
-  "request_id": "abc-123",
-  "method": "GET",
-  "path": "/users/123",
-  "user_id": "456",
-  "user_roles": ["admin"],
-  "status_code": 200,
-  "duration_ms": 45.2,
-  "success": true,
-  "route": "/users/123",
-  "event": "Request completed",
-  "level": "info",
-  "timestamp": "2024-01-01T12:00:00Z",
-  "env": "production"
+  "@timestamp": "2026-02-20T04:48:12.083656Z",
+  "log.level": "info",
+  "message": "request_completed",
+  "service.name": "usermanagement-service",
+  "service.environment": "development",
+  "trace.id": "6627dd39-b344-4230-b1bd-9c901b2874f0",
+  "http.request.method": "GET",
+  "url.path": "/logging-test",
+  "http.response.status_code": 200,
+  "event.duration": 5581943,
+  "event.outcome": "success"
 }
 ```
 
-### 🎯 Boas práticas
+Expected minimum ECS fields:
 
-**✅ Faça**
+- `@timestamp`
+- `log.level`
+- `service.name`
+- `service.environment`
+- `trace.id`
+- `http.request.method`
+- `url.path`
+- `http.response.status_code`
+- `event.duration`
 
-- Sempre use `logger = structlog.get_logger(__name__)`
-- Adicione contexto relevante nos logs: `user_id`, `order_id`, `transaction_id`
-- Use `logger.exception` em `except` blocks
-- Mantenha a ordem dos middlewares
+## Best Practices
 
-**❌ Não faça**
+**Do**
 
-- Não use `print()` para logs
-- Não logue dados sensíveis (senhas, tokens, cartão de crédito)
-- Não faça `logger.info("mensagem")` sem contexto
-- Não binde o mesmo contexto em múltiplos lugares
+- always create loggers with `structlog.get_logger(...)`
+- add useful domain context fields (for example `user_id`, `order_id`, `room_id`)
+- use `logger.exception(...)` inside `except` blocks
+- keep the documented middleware order
+- include lifecycle logs (`application_started` / `application_stopped`)
 
-### 🔧 Troubleshooting
+**Do not**
 
-- **Meus logs não estão em JSON?**  
-  Verifique se chamou `configure_logging()` antes de criar a app e se o pacote `shared` está instalado corretamente.
+- do not use `print()` for application logs
+- do not log sensitive data (passwords, tokens, card numbers)
+- do not emit context-free logs when context exists
+- do not re-bind the same context in multiple layers unnecessarily
 
-- **O campo service está errado?**  
-  Verifique o parâmetro em `configure_logging("nome-correto")`.
+## Troubleshooting
 
-- **Perdi o request_id em algum log?**  
-  A ordem dos middlewares está correta? `request_context` deve ser o ÚLTIMO a ser registrado (mais externo).
+- **Logs are not JSON**  
+  Confirm `configure_logging()` is called before app creation and shared package is installed correctly.
 
-- **Logs duplicados?**  
-  Verifique se não está chamando `configure_logging()` mais de uma vez.
+- **`service.name` is wrong**  
+  Check the value passed to `configure_logging("correct-service-name")`.
 
-### 🧪 Testando localmente
+- **Missing `http.request.id` in some logs**  
+  Validate middleware registration order: `request_context` must be registered last (outermost).
 
-```bash
-# Rode seu serviço
-uvicorn main:app --reload
+- **Duplicate logs**  
+  Ensure `configure_logging()` is called once and avoid `--reload` in production.
 
-# Faça uma requisição
-curl -H "Authorization: Bearer SEU_TOKEN" http://localhost:8000/sua-rota
+- **Still seeing plain-text Uvicorn logs**  
+  Confirm this exists in `shared/logging/config.py`:
 
-# Veja os logs no console (já em JSON!)
-{"service": "seu-servico", "request_id": "...", "event": "Request started", ...}
-{"service": "seu-servico", "request_id": "...", "event": "Request completed", ...}
+```python
+"loggers": {
+    "uvicorn.access": {"handlers": [], "propagate": False},
+    "uvicorn.error": {"handlers": [], "propagate": False},
+}
 ```
 
-### 📈 Visualizando no ELK
+## Local Testing
 
-No Kibana, você pode:
+```bash
+# Development
+uvicorn main:app --reload
 
-- Filtrar por `service: "usermanagement"` para ver logs de um serviço
-- Buscar por `request_id: "abc-123"` para ver TODA a jornada da requisição
-- Criar dashboards de latência por serviço (`duration_ms`)
-- Alertas de erro por serviço (`level: "error"`)
+# Production-like run (no reload)
+uvicorn main:app
+
+# Test request
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/your-route
+
+# Example logs
+{"message": "application_started", "@timestamp": "...", "service.name": "..."}
+{"message": "request_received", "http.request.id": "...", "trace.id": "..."}
+{"message": "request_completed", "http.response.status_code": 200, "event.duration": 1234567}
+{"message": "application_stopped", "@timestamp": "...", "service.name": "..."}
+```
+
+## Runtime Warning (Read This)
+
+- **Use `--reload` only in development.**
+- **In production, run without `--reload` to avoid extra processes and noisy logs.**
+
+## ELK Usage
+
+In Kibana you can:
+
+- filter by `service.name: "usermanagement-service"`
+- query by `http.request.id: "abc-123"` for full request journey
+- create latency dashboards using `event.duration`
+- create alerts using `log.level: "error"`
+
+## Team Rationale
+
+We standardize logging because observability in a microservices architecture depends on cross-service correlation.
+
+ECS structured logs enable:
+
+- efficient Elasticsearch queries
+- reliable Kibana dashboards
+- service-to-service tracing
+- more accurate alerting
+
+Mixing plain-text logs with JSON logs breaks parsing and makes production operations harder.
