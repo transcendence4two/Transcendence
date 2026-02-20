@@ -82,8 +82,8 @@ def auth_middleware():
             raise HTTPException(status.HTTP_401_UNAUTHORIZED)
 
         structlog.contextvars.bind_contextvars(
-            user_id=token_data.user_id,
-            user_roles=token_data.roles,
+            **{"user.id": token_data.user_id},
+            **{"user.roles": token_data.roles},
         )
 
         request.state.user_id = token_data.user_id
