@@ -26,9 +26,10 @@ configure_logging(service_name="your-service-name")  # e.g. "auth", "game", "cha
 app = FastAPI()
 
 # IMPORTANT: middleware order matters!
-app.middleware("http")(request_context_middleware())  # 1st: request_id, timing
-app.middleware("http")(auth_middleware())  # 2nd: JWT auth (optional)
-app.middleware("http")(logging_middleware())  # 3rd: final log (always last!)
+# FastAPI executes the last registered middleware first (outermost).
+app.middleware("http")(logging_middleware())  # 1st register: innermost
+app.middleware("http")(auth_middleware())  # 2nd register: JWT auth (optional)
+app.middleware("http")(request_context_middleware())  # 3rd register: outermost
 
 # =============================================================================
 # 2. ROUTE EXAMPLE (copy this to your routes)
@@ -49,11 +50,11 @@ async def join_game(game_id: str, user_id: str):
         # Your business logic here
         result = await join_player_to_game(game_id, user_id)
 
-        logger.info("player_joined_game", player_count=result.player_count)
+        logger.info("player_joined_game", player_count=result["player_count"])
 
         return {"success": True}
 
-    except Exception as e:
+    except Exception:
         logger.exception("join_game_failed")
         raise
 
