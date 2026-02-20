@@ -1,3 +1,5 @@
+import logging
+
 import structlog
 import os
 from .processors import (
@@ -7,8 +9,19 @@ from .processors import (
     rename_event_key,
 )
 
+config = {
+    "version": 1,
+    "handlers": {"default": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "uvicorn.access": {"handlers": [], "propagate": False},
+        "uvicorn.error": {"handlers": [], "propagate": False},
+    },
+}
+
 
 def configure_logging(service_name: str = None):
+    logging.config.dictConfig(config)
+
     service = service_name or os.getenv("SERVICE_NAME", "unknown")
     env = os.getenv("ENV", "development")
 
