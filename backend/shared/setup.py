@@ -10,5 +10,4 @@ setup(
         "python-jose[cryptography]>=3.3.0",
         "pydantic>=2.0.0",
     ],
-    py_modules=["shared"],
 )
