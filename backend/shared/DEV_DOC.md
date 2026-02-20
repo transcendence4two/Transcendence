@@ -57,9 +57,10 @@ configure_logging("nome-do-seu-servico")  # ex: "game", "tournament", "emails"
 app = FastAPI()
 
 # 3. Adicione os middlewares (ORDEM É IMPORTANTE!)
-app.middleware("http")(request_context_middleware())  # 1º: contexto básico
-app.middleware("http")(auth_middleware())             # 2º: autenticação
-app.middleware("http")(logging_middleware())          # 3º: log final
+# Em FastAPI/Starlette, o ÚLTIMO registrado roda primeiro (mais externo).
+app.middleware("http")(logging_middleware())          # 1º registrar (mais interno)
+app.middleware("http")(auth_middleware())             # 2º registrar (opcional)
+app.middleware("http")(request_context_middleware())  # 3º registrar (mais externo)
 
 # 4. Suas rotas
 @app.get("/health")
@@ -103,19 +104,23 @@ logger.critical("Sistema parando")          # Use com moderação!
 ### 🔍 O que cada middleware faz
 
 1. **request_context_middleware**
-   - Gera/captura `request_id`
-   - Binda no contexto: `request_id`, `method`, `path`, `client_host`
+   - Gera/captura `http.request.id`
+   - Binda no contexto: `http.request.id`, `trace.id`, `http.request.method`, `url.path`, `url.route`, `client.address`, `user_agent.original`
    - Adiciona header `X-Request-ID` na resposta
 
 2. **auth_middleware**
    - Valida token JWT no header `Authorization`
-   - Binda no contexto: `user_id`, `user_roles`, `user_email`
+   - Binda no contexto: `user.id`, `user.roles`
    - Adiciona ao `request.state`
 
 3. **logging_middleware**
    - Mede duração da requisição
-   - Binda: `status_code`, `duration_ms`, `success`, `error_type`
+   - Binda: `http.response.status_code`, `event.duration`, `event.outcome`, `error.type`
    - Log final `"Request completed"` com TODO contexto
+
+Ordem real de execução (request -> response):
+- request: `request_context` -> `auth` -> `logging`
+- response: `logging` -> `auth` -> `request_context`
 
 ### 📊 Formato do log no ELK
 
@@ -163,7 +168,7 @@ logger.critical("Sistema parando")          # Use com moderação!
   Verifique o parâmetro em `configure_logging("nome-correto")`.
 
 - **Perdi o request_id em algum log?**  
-  A ordem dos middlewares está correta? `request_context` deve ser o PRIMEIRO.
+  A ordem dos middlewares está correta? `request_context` deve ser o ÚLTIMO a ser registrado (mais externo).
 
 - **Logs duplicados?**  
   Verifique se não está chamando `configure_logging()` mais de uma vez.
