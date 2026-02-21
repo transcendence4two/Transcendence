@@ -90,16 +90,6 @@ class MockPasswordService:
         return f"hashed_{password}"
 
 
-class MockEventPublisher:
-    """Mock event publisher for unit tests"""
-
-    def __init__(self):
-        self.published_events = []
-
-    async def publish(self, channel: str, data: dict):
-        self.published_events.append({"channel": channel, "data": data})
-
-
 class MockResult:
     """Mock result from database query"""
 
@@ -183,6 +173,18 @@ class MockSession:
 @pytest.fixture
 def mock_password_service():
     return MockPasswordService()
+
+
+@pytest.fixture
+def mock_token_service():
+    from tests.test_di_config import get_test_token_service
+    return get_test_token_service()
+
+
+@pytest.fixture
+def mock_otp_service():
+    from tests.test_di_config import MockOtpService
+    return MockOtpService()
 
 
 @pytest.fixture

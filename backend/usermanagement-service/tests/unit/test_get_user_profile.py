@@ -61,7 +61,7 @@ class TestUserServiceGetProfile:
     """Unit tests for UserService.get_user_profile method"""
 
     async def test_get_user_profile_returns_user(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         user = User(
             id="service-id-456",
@@ -72,24 +72,24 @@ class TestUserServiceGetProfile:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
         result = await service.get_user_profile("service-id-456")
 
         assert result == user
         assert result.username == "serviceuser"
 
     async def test_get_user_profile_raises_when_user_not_found(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         session = mock_session(user_to_return=None)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
 
         with pytest.raises(UserNotFoundError):
             await service.get_user_profile("missing-user")
 
     async def test_get_user_profile_with_2fa_enabled(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         user = User(
             id="2fa-user",
@@ -100,7 +100,7 @@ class TestUserServiceGetProfile:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
         result = await service.get_user_profile("2fa-user")
 
         assert result.enable_2fa is True

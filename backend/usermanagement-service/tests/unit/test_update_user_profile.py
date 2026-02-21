@@ -149,7 +149,7 @@ class TestUserServiceUpdateProfile:
     """Unit tests for UserService.update_user_profile method"""
 
     async def test_update_user_profile_returns_updated_user(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         user = User(
             id="service-id-123",
@@ -160,7 +160,7 @@ class TestUserServiceUpdateProfile:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
         payload = UserProfileUpdateRequest(username="newname")
         result = await service.update_user_profile("service-id-123", payload)
 
@@ -168,18 +168,18 @@ class TestUserServiceUpdateProfile:
         assert result.id == "service-id-123"
 
     async def test_update_user_profile_raises_when_user_not_found(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         session = mock_session(user_to_return=None)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
         payload = UserProfileUpdateRequest(username="newname")
 
         with pytest.raises(UserNotFoundError):
             await service.update_user_profile("missing-user", payload)
 
     async def test_update_user_profile_updates_email(
-        self, mock_session, mock_password_service, mock_event_publisher
+        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
     ):
         user = User(
             id="email-update-id",
@@ -190,7 +190,7 @@ class TestUserServiceUpdateProfile:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_event_publisher)
+        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
         payload = UserProfileUpdateRequest(email="new@example.com")
         result = await service.update_user_profile("email-update-id", payload)
 
