@@ -39,6 +39,7 @@ Adapt imports, routers, and domain modules to your own service.
 
 ```python
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 import structlog
@@ -82,6 +83,7 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("Usermanagement service terminated")
+    logging.shutdown()
 
     await engine.dispose()
 
@@ -118,6 +120,12 @@ Why `configure_logging()` must come first:
 
 - guarantees JSON ECS formatting from the first log line
 - prevents unstructured logs during startup
+
+Why call `logging.shutdown()` on termination:
+
+- flushes and closes logging handlers before process exit
+- reduces risk of losing final log events during shutdown
+- is especially important when using network/file handlers
 
 Why to avoid `print()`:
 
