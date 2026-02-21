@@ -208,6 +208,7 @@ const RegisterForm = () => {
 
                 <div className='pt-4'>
                     <Button
+                        type='submit'
                         className={`w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         disabled={isLoading}
                     >
