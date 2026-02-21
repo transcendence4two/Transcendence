@@ -1,4 +1,17 @@
 services:
+  logstash:
+    container_name: logstash
+    ports:
+      - "5000:5000"
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-logstash
+    restart: unless-stopped
+    volumes:
+      - ../logstash/pipeline:/usr/share/logstash/pipeline
+    networks:
+      - transcendence-network
+
   redis:
     image: redis:7-alpine
     ports:
