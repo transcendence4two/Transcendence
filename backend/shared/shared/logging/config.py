@@ -1,7 +1,8 @@
 import logging
-
+import logging.config
 import structlog
 import os
+
 from .processors import (
     add_service,
     add_request_context,
@@ -9,9 +10,18 @@ from .processors import (
     rename_event_key,
 )
 
+from ..sender.send_logs import send_logs
+
+
 config = {
     "version": 1,
-    "handlers": {"default": {"class": "logging.StreamHandler"}},
+    "handlers": {
+        "default": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["default"],
+        "level": "INFO",
+    },
     "loggers": {
         "uvicorn.access": {"handlers": [], "propagate": False},
         "uvicorn.error": {"handlers": [], "propagate": False},
@@ -43,6 +53,9 @@ def configure_logging(service_name: str = None):
             structlog.processors.format_exc_info,
             structlog.processors.JSONRenderer(),
         ],
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
+
+    send_logs()
