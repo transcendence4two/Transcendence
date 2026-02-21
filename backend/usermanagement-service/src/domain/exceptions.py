@@ -29,3 +29,7 @@ class TokenInvalidError(DomainError):
 
 class TokenExpiredError(DomainError):
     """Auth token is expired."""
+
+
+class InvalidCredentialsError(DomainError):
+    """Invalid email or password."""

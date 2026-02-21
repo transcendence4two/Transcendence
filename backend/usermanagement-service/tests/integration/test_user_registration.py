@@ -11,12 +11,12 @@ class TestUserRegistration:
     """Integration tests for /users/register endpoint"""
 
     async def test_register_user_success(
-        self, client: AsyncClient, db_session: AsyncSession
+        self, client: AsyncClient, db_session: AsyncSession, mock_event_publisher
     ):
         # Arrange
         payload = {
-            "username": "testuser",
-            "email": "test@example.com",
+            "username": "registertestuser",
+            "email": "register-test@example.com",
             "password": "securepassword123",
             "enable_2fa": False,
         }
@@ -45,11 +45,20 @@ class TestUserRegistration:
         assert user.hashed_password != payload["password"]
         assert user.hashed_password.startswith("$2b$")
 
-    async def test_register_user_with_2fa_enabled(self, client: AsyncClient):
+        # Verify welcome email event was published
+        assert len(mock_event_publisher.published_events) == 1
+        channel, event = mock_event_publisher.published_events[0]
+        assert channel == "email:welcome"
+        assert event["email"] == payload["email"]
+        assert event["username"] == payload["username"]
+
+    async def test_register_user_with_2fa_enabled(
+        self, client: AsyncClient, mock_event_publisher
+    ):
         # Arrange
         payload = {
             "username": "user_2fa",
-            "email": "2fa@example.com",
+            "email": "register-2fa@example.com",
             "password": "securepassword123",
             "enable_2fa": True,
         }
@@ -61,6 +70,12 @@ class TestUserRegistration:
         assert response.status_code == 201
         data = response.json()
         assert data["enable_2fa"] is True
+
+        # Verify welcome email event was published
+        assert len(mock_event_publisher.published_events) == 1
+        channel, event = mock_event_publisher.published_events[0]
+        assert channel == "email:welcome"
+        assert event["email"] == payload["email"]
 
     async def test_register_user_duplicate_username(self, client: AsyncClient):
         # Arrange

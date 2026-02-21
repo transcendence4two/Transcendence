@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -12,13 +13,23 @@ from src.di_config import engine
 from src.domain.exceptions import DomainError
 from src.domain.models import Base
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 # Creating tables
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Starting application...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables created successfully")
     yield
+    logger.info("Shutting down application...")
     await engine.dispose()
 
 
