@@ -16,9 +16,14 @@ class TokenService(TokenProvider):
     def __init__(self, config: JWTConfig) -> None:
         self.config = config
 
-    def create_token(self, subject: str) -> str:
+    def create_token(self, subject: str, expires_minutes: int | None = None) -> str:
         now = self._get_current_utc_time()
-        expires_at = self._calculate_expiration_time(now)
+        expiration_time = (
+            expires_minutes
+            if expires_minutes is not None
+            else self.config.expires_minutes
+        )
+        expires_at = self._calculate_expiration_time(now, expiration_time)
 
         payload = self._build_token_payload(
             subject=subject,
@@ -37,8 +42,10 @@ class TokenService(TokenProvider):
     def _get_current_utc_time(self) -> datetime:
         return datetime.now(timezone.utc)
 
-    def _calculate_expiration_time(self, issued_at: datetime) -> datetime:
-        return issued_at + timedelta(minutes=self.config.expires_minutes)
+    def _calculate_expiration_time(
+        self, issued_at: datetime, expires_minutes: int
+    ) -> datetime:
+        return issued_at + timedelta(minutes=expires_minutes)
 
     def _build_token_payload(
         self,

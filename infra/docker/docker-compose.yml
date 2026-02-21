@@ -52,6 +52,9 @@ services:
     container_name: usermanagement-service
     networks:
       - transcendence-network
+    depends_on:
+      redis:
+        condition: service_healthy
 
   emails-service:
     build:
@@ -63,6 +66,8 @@ services:
       - "4001:4001"
     restart: unless-stopped
     container_name: emails-service
+    networks:
+      - transcendence-network
     depends_on:
       redis:
         condition: service_healthy

@@ -37,3 +37,7 @@ class UserNotFoundError(DomainError):
 
 class UnauthorizedActionError(DomainError):
     """User not authorized to perform this action."""
+
+
+class InvalidCredentialsError(DomainError):
+    """Invalid email or password."""

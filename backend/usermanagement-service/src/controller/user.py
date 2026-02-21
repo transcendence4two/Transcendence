@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Response, Query, status
 
 from src.core.auth import get_token_payload, verify_user_authorization
 from src.di_config import get_token_service, get_user_service
@@ -10,6 +10,11 @@ from src.domain.schemas.user import (
     TokenResponse,
     UserProfileResponse,
     UserProfileUpdateRequest,
+)
+from src.core.auth import get_token_payload
+from src.di_config import get_user_service
+from src.domain.schemas.user import (
+    LoginRequest,
     UserRegisterRequest,
     UserResponse,
 )
@@ -46,7 +51,16 @@ async def generate_token(
     )
 
 
-###
+@router.post("/login")
+async def login_user(
+    request: LoginRequest,
+    response: Response,
+    user_service: UserService = Depends(get_user_service),
+):
+    """Authenticate user with email and password."""
+    result = await user_service.login_user(request)
+    response.status_code = result.status_code
+    return result.response
 
 
 @router.get("/protected")
