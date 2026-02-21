@@ -1,7 +1,6 @@
 import logging
 import structlog
 import socket
-import json
 
 
 class LogstashTCPHandler(logging.Handler):
@@ -9,28 +8,45 @@ class LogstashTCPHandler(logging.Handler):
         super().__init__()
         self.host = host
         self.port = port
+        self.sock = None
+        self._connect()
+
+    def _connect(self):
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((self.host, self.port))
+        except Exception as e:
+            self.sock = None
+            print("Logstash connection error:", e)
 
     def emit(self, record):
         try:
-            log_dict = {
-                "message": record.getMessage(),
-                "level": record.levelname,
-                "logger": record.name,
-            }
+            if self.sock is None:
+                self._connect()
+                if self.sock is None:
+                    return
 
-            log_entry = json.dumps(log_dict)
-
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((self.host, self.port))
-            sock.sendall((log_entry + "\n").encode("utf-8"))
-            sock.close()
+            log_entry = self.format(record)
+            self.sock.sendall((log_entry + "\n").encode("utf-8"))
 
         except Exception:
-            pass
+            self.close()
+            self.sock = None
+
+    def close(self):
+        if self.sock:
+            try:
+                self.sock.close()
+            except Exception:
+                pass
+            finally:
+                self.sock = None
+        super().close()
 
 
 def send_logs():
     handler = LogstashTCPHandler("localhost", 5000)
+    handler.setFormatter(logging.Formatter("%(message)s"))
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
