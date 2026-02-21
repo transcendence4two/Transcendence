@@ -17,3 +17,19 @@ class TournamentNotFoundError(DomainError):
 
 class DatabaseError(DomainError):
     """Database operation failed."""
+
+
+class TournamentStateError(DomainError):
+    """Tournament is in an invalid state for the requested operation."""
+
+
+class TournamentParticipantError(DomainError):
+    """Tournament participant operation is invalid."""
+
+
+class TournamentMatchNotFoundError(DomainError):
+    """Tournament match does not exist."""
+
+
+class TournamentMatchResultError(DomainError):
+    """Tournament match result operation is invalid."""
