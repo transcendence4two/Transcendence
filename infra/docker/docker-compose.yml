@@ -23,6 +23,7 @@ services:
       - ../certs:/etc/nginx/certs:ro
     depends_on:
       - usermanagement-service
+      - tournament-service
       - frontend
     restart: unless-stopped
     container_name: nginx
@@ -55,6 +56,19 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+  tournament-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-tournament-service
+    env_file:
+      - ../../.env
+    expose:
+      - "8002"
+    restart: unless-stopped
+    container_name: tournament-service
+    networks:
+      - transcendence-network
 
   emails-service:
     build:
