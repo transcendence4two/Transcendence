@@ -13,16 +13,74 @@ const LoginSection = () => {
         email: '',
         password: ''
     })
+    const [errors, setErrors] = useState<{ [key: string]: string }>({})
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }))
+        }
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // TODO: Implement login logic
-        console.log('Login data:', formData)
+        setErrors({})
+        setIsLoading(true)
+
+        try {
+            const response = await fetch('/api/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                // Handle error responses
+                if (data.detail) {
+                    setErrors({ general: data.detail })
+                } else if (data.error_type === 'INVALID_CREDENTIALS') {
+                    setErrors({ general: 'Email ou senha incorretos' })
+                } else {
+                    setErrors({ general: 'Erro ao fazer login. Tente novamente.' })
+                }
+                return
+            }
+
+            // Check if 2FA is required (status 202)
+            if (response.status === 202 && data['2fa_required']) {
+                // Store temporary token and redirect to 2FA verification page
+                localStorage.setItem('temp_token', data.temporary_token)
+                alert(data.message) // Or redirect to OTP verification page
+                window.location.href = '/verify-otp'
+                return
+            }
+
+            // Normal login success (status 200)
+            if (data.access_token) {
+                // Store the JWT token
+                localStorage.setItem('access_token', data.access_token)
+                localStorage.setItem('user', JSON.stringify(data.user))
+
+                // Redirect to dashboard or home
+                window.location.href = '/' // Or use react-router navigation
+            }
+
+        } catch (error) {
+            console.error('Login error:', error)
+            setErrors({ general: 'Erro de conexão. Tente novamente.' })
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -48,6 +106,12 @@ const LoginSection = () => {
             </div>
 
             <form onSubmit={handleSubmit} className='space-y-4 mt-8'>
+                {errors.general && (
+                    <div className='bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-xl text-sm'>
+                        {errors.general}
+                    </div>
+                )}
+
                 <div className='space-y-1'>
                     <label htmlFor='email' className={labelClassName}>
                         Email
@@ -61,6 +125,7 @@ const LoginSection = () => {
                         className={inputClassName}
                         placeholder='Enter your email'
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
@@ -77,12 +142,17 @@ const LoginSection = () => {
                         className={inputClassName}
                         placeholder='Enter your password'
                         required
+                        disabled={isLoading}
                     />
                 </div>
 
                 <div className='pt-4'>
-                    <Button className='w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20'>
-                        Sign In
+                    <Button
+                        type='submit'
+                        className='w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20'
+                        disabled={isLoading}
+                    >
+                        {isLoading ? 'Signing In...' : 'Sign In'}
                     </Button>
                 </div>
             </form>
