@@ -5,9 +5,18 @@ interface ButtonProps {
     icon?: React.ReactNode
     className?: string
     disabled?: boolean
+    type?: 'button' | 'submit' | 'reset'
 }
 
-const Button = ({ children, onClick, variant = 'primary', icon, className = '', disabled }: ButtonProps) => {
+const Button = ({
+    children,
+    onClick,
+    variant = 'primary',
+    icon,
+    className = '',
+    disabled,
+    type = 'button'
+}: ButtonProps) => {
     const variantClasses = {
         primary: 'btn-primary',
         secondary: 'btn-secondary',
@@ -16,6 +25,7 @@ const Button = ({ children, onClick, variant = 'primary', icon, className = '', 
 
     return (
         <button
+            type={type}
             onClick={onClick}
             disabled={disabled}
             className={`${variantClasses[variant]} ${className}`}
