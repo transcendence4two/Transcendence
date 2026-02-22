@@ -70,7 +70,6 @@ class UserService(UserRegister, UserOperations):
         command = UpdateUserProfileCommand(self.session, user_id, payload)
         return await command.execute()
 
-
     # Messaging methods
     async def send_welcome_email(self, email: str, username: str) -> None:
         await self.event_publisher.publish(

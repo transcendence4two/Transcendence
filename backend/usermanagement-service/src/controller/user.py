@@ -6,7 +6,6 @@ from src.domain.schemas.user import (
     LoginRequest,
     PaginatedResponse,
     UserProfileResponse,
-    UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
 )
@@ -40,8 +39,6 @@ async def login_user(
     return result.response
 
 
-
-
 @router.get("/", response_model=PaginatedResponse[UserProfileResponse])
 async def get_all_profiles(
     page: int = Query(1, ge=1, description="Page number"),
@@ -61,4 +58,3 @@ async def get_profile(
 ):
     user = await user_service.get_user_profile(user_id)
     return UserProfileResponse.model_validate(user)
-

@@ -36,7 +36,6 @@ class UserOperations(ABC):
     ) -> User: ...
 
 
-
 class TokenProvider(ABC):
     """Port for token operations."""
 

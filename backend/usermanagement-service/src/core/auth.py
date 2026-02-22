@@ -1,4 +1,3 @@
-import logging
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -7,7 +6,6 @@ from src.domain.contracts import TokenProvider
 from src.domain.exceptions import (
     TokenInvalidError,
     TokenMissingError,
-    UnauthorizedActionError,
 )
 
 bearer_scheme = HTTPBearer(auto_error=False)

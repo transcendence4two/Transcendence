@@ -183,8 +183,6 @@ def mock_token_service():
     return get_test_token_service()
 
 
-
-
 @pytest.fixture
 def mock_session():
     def _mock_session(**kwargs):

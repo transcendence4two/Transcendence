@@ -46,8 +46,6 @@ class UserProfileUpdateRequest(BaseModel):
     email: EmailStr | None = None
 
 
-
-
 T = TypeVar("T")
 
 
