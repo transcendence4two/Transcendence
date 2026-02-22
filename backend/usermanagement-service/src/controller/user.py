@@ -6,6 +6,7 @@ from src.domain.schemas.user import (
     LoginRequest,
     PaginatedResponse,
     UserProfileResponse,
+    UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
 )
@@ -57,4 +58,15 @@ async def get_profile(
     user_service: UserService = Depends(get_user_service),
 ):
     user = await user_service.get_user_profile(user_id)
+    return UserProfileResponse.model_validate(user)
+
+
+@router.put("/{user_id}", response_model=UserProfileResponse)
+async def update_profile(
+    user_id: str,
+    request: UserProfileUpdateRequest,
+    payload: dict = Depends(get_token_payload),
+    user_service: UserService = Depends(get_user_service),
+):
+    user = await user_service.update_user_profile(user_id, request)
     return UserProfileResponse.model_validate(user)
