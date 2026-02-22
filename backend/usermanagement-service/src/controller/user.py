@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from src.core.auth import get_token_payload, verify_user_authorization
 from src.di_config import get_user_service

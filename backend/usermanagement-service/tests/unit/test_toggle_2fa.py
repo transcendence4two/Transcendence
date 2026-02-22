@@ -108,7 +108,12 @@ class TestUserServiceToggle2FA:
     """Unit tests for UserService.toggle_2fa method"""
 
     async def test_toggle_2fa_enables_2fa(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         user = User(
             id="service-2fa-id",
@@ -119,14 +124,25 @@ class TestUserServiceToggle2FA:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.toggle_2fa("service-2fa-id", enable=True)
 
         assert result.enable_2fa is True
         assert result.id == "service-2fa-id"
 
     async def test_toggle_2fa_disables_2fa(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         user = User(
             id="disable-2fa-id",
@@ -137,23 +153,45 @@ class TestUserServiceToggle2FA:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.toggle_2fa("disable-2fa-id", enable=False)
 
         assert result.enable_2fa is False
 
     async def test_toggle_2fa_raises_when_user_not_found(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         session = mock_session(user_to_return=None)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
 
         with pytest.raises(UserNotFoundError):
             await service.toggle_2fa("missing-user", enable=True)
 
     async def test_toggle_2fa_returns_updated_user_object(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         user = User(
             id="return-test",
@@ -164,7 +202,13 @@ class TestUserServiceToggle2FA:
         )
         session = mock_session(user_to_return=user)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.toggle_2fa("return-test", enable=True)
 
         assert isinstance(result, User)

@@ -3,26 +3,24 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import UserOperations, UserRegister
-from src.domain.schemas.user import UserProfileUpdateRequest, UserRegisterRequest
-from src.domain.services.commands.get_paginated_users import (
-    GetPaginatedUserProfilesCommand,
-)
-from src.domain.services.commands.get_user_profile import GetUserProfileCommand
-from src.domain.services.commands.register_user import RegisterUserCommand
-from src.domain.services.commands.toggle_2fa import Toggle2FACommand
-from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
-from src.domain.contracts import UserRegister
 from src.domain.models.user import User
 from src.domain.schemas.user import (
     Login2FAResponse,
     LoginRequest,
     LoginResponse,
     LoginResult,
+    UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
 )
+from src.domain.services.commands.get_paginated_users import (
+    GetPaginatedUserProfilesCommand,
+)
+from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
+from src.domain.services.commands.toggle_2fa import Toggle2FACommand
+from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService

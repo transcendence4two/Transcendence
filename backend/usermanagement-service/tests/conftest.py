@@ -1,4 +1,5 @@
 from typing import AsyncGenerator, Generator
+
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
@@ -178,18 +179,10 @@ def mock_password_service():
 @pytest.fixture
 def mock_token_service():
     from tests.test_di_config import get_test_token_service
+
     return get_test_token_service()
 
 
-@pytest.fixture
-def mock_otp_service():
-    from tests.test_di_config import MockOtpService
-    return MockOtpService()
-
-
-@pytest.fixture
-def mock_event_publisher():
-    return MockEventPublisher()
 
 
 @pytest.fixture

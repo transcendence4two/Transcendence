@@ -175,7 +175,12 @@ class TestUserServiceGetPaginatedUserProfiles:
     """Unit tests for UserService.get_paginated_user_profiles method"""
 
     async def test_get_paginated_user_profiles_returns_paginated_result(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         users = [
             User(
@@ -195,7 +200,13 @@ class TestUserServiceGetPaginatedUserProfiles:
         ]
         session = mock_session(users_to_return=users, total_count=2)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.get_paginated_user_profiles(page=1, page_size=10)
 
         assert len(result["items"]) == 2
@@ -203,12 +214,23 @@ class TestUserServiceGetPaginatedUserProfiles:
         assert result["page"] == 1
 
     async def test_get_paginated_user_profiles_with_custom_parameters(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         users = []
         session = mock_session(users_to_return=users, total_count=50)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.get_paginated_user_profiles(page=3, page_size=20)
 
         assert result["page"] == 3
@@ -216,11 +238,22 @@ class TestUserServiceGetPaginatedUserProfiles:
         assert result["total"] == 50
 
     async def test_get_paginated_user_profiles_returns_empty_list(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         session = mock_session(users_to_return=[], total_count=0)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.get_paginated_user_profiles()
 
         assert result["items"] == []
@@ -228,7 +261,12 @@ class TestUserServiceGetPaginatedUserProfiles:
         assert result["total_pages"] == 0
 
     async def test_get_paginated_user_profiles_uses_default_values(
-        self, mock_session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
     ):
         users = [
             User(
@@ -241,7 +279,13 @@ class TestUserServiceGetPaginatedUserProfiles:
         ]
         session = mock_session(users_to_return=users, total_count=1)
 
-        service = UserService(session, mock_password_service, mock_token_service, mock_otp_service, mock_event_publisher)
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
         result = await service.get_paginated_user_profiles()
 
         assert result["page"] == 1
