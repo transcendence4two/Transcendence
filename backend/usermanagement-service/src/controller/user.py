@@ -40,9 +40,6 @@ async def login_user(
     return result.response
 
 
-@router.get("/protected")
-async def protected_route(payload: dict = Depends(get_token_payload)):
-    return {"message": "authenticated", "sub": payload.get("sub")}
 
 
 @router.get("/", response_model=PaginatedResponse[UserProfileResponse])

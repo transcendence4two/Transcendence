@@ -7,7 +7,7 @@ from src.domain.services.token import TokenService
 
 
 async def test_users_protected_requires_token(client):
-    resp = await client.get("/users/protected")
+    resp = await client.get("/users/")
     assert resp.status_code == 401
     assert resp.json()["error_type"] == "TOKEN_MISSING"
 
@@ -15,11 +15,10 @@ async def test_users_protected_requires_token(client):
 async def test_users_protected_with_valid_token_returns_200(client):
     token = TokenService(settings.jwt_config).create_token("integration-sub")
     headers = {"Authorization": f"Bearer {token}"}
-    resp = await client.get("/users/protected", headers=headers)
+    resp = await client.get("/users/", headers=headers)
 
     assert resp.status_code == 200
-    assert resp.json()["sub"] == "integration-sub"
-    assert resp.json()["message"] == "authenticated"
+    assert "items" in resp.json()
 
 
 async def test_users_protected_with_expired_token_returns_401(client):
@@ -33,7 +32,7 @@ async def test_users_protected_with_expired_token_returns_401(client):
     }
     expired_token = jwt.encode(expired_payload, cfg.secret, algorithm=cfg.algorithm)
     headers = {"Authorization": f"Bearer {expired_token}"}
-    resp = await client.get("/users/protected", headers=headers)
+    resp = await client.get("/users/", headers=headers)
 
     assert resp.status_code == 401
     assert resp.json()["error_type"] == "TOKEN_EXPIRED"
@@ -54,7 +53,7 @@ async def test_users_protected_with_bad_signature_returns_401(client):
         algorithm=cfg.algorithm,
     )
     headers = {"Authorization": f"Bearer {bad_token}"}
-    resp = await client.get("/users/protected", headers=headers)
+    resp = await client.get("/users/", headers=headers)
 
     assert resp.status_code == 401
     assert resp.json()["error_type"] == "TOKEN_INVALID"
