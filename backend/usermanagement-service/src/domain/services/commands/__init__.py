@@ -4,7 +4,6 @@ from src.domain.services.commands.get_paginated_users import (
 )
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
-from src.domain.services.commands.toggle_2fa import Toggle2FACommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 
 __all__ = [
@@ -13,5 +12,4 @@ __all__ = [
     "GetUserProfileCommand",
     "GetPaginatedUserProfilesCommand",
     "UpdateUserProfileCommand",
-    "Toggle2FACommand",
 ]

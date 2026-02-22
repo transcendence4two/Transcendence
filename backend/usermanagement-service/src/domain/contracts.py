@@ -35,8 +35,6 @@ class UserOperations(ABC):
         self, user_id: str, payload: UserProfileUpdateRequest
     ) -> User: ...
 
-    @abstractmethod
-    async def toggle_2fa(self, user_id: str, enable: bool) -> User: ...
 
 
 class TokenProvider(ABC):

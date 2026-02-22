@@ -46,10 +46,6 @@ class UserProfileUpdateRequest(BaseModel):
     email: EmailStr | None = None
 
 
-class Toggle2FARequest(BaseModel):
-    """Schema for toggling 2FA"""
-
-    enable: bool
 
 
 T = TypeVar("T")

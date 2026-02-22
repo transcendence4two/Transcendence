@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, Query, Response, status
 
-from src.core.auth import get_token_payload, verify_user_authorization
+from src.core.auth import get_token_payload
 from src.di_config import get_user_service
 from src.domain.schemas.user import (
     LoginRequest,
     PaginatedResponse,
-    Toggle2FARequest,
     UserProfileResponse,
     UserProfileUpdateRequest,
     UserRegisterRequest,
@@ -66,25 +65,3 @@ async def get_profile(
     user = await user_service.get_user_profile(user_id)
     return UserProfileResponse.model_validate(user)
 
-
-@router.put("/{user_id}", response_model=UserProfileResponse)
-async def update_profile(
-    user_id: str,
-    request: UserProfileUpdateRequest,
-    payload: dict = Depends(get_token_payload),
-    user_service: UserService = Depends(get_user_service),
-):
-    verify_user_authorization(user_id, payload)
-    user = await user_service.update_user_profile(user_id, request)
-    return UserProfileResponse.model_validate(user)
-
-
-@router.put("/toggle-2fa", response_model=UserProfileResponse)
-async def toggle_2fa(
-    request: Toggle2FARequest,
-    payload: dict = Depends(get_token_payload),
-    user_service: UserService = Depends(get_user_service),
-):
-    user_id = payload.get("sub")
-    user = await user_service.toggle_2fa(user_id, request.enable)
-    return UserProfileResponse.model_validate(user)

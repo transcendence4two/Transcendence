@@ -19,7 +19,6 @@ from src.domain.services.commands.get_paginated_users import (
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
-from src.domain.services.commands.toggle_2fa import Toggle2FACommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
@@ -71,9 +70,6 @@ class UserService(UserRegister, UserOperations):
         command = UpdateUserProfileCommand(self.session, user_id, payload)
         return await command.execute()
 
-    async def toggle_2fa(self, user_id: str, enable: bool):
-        command = Toggle2FACommand(self.session, user_id, enable)
-        return await command.execute()
 
     # Messaging methods
     async def send_welcome_email(self, email: str, username: str) -> None:
