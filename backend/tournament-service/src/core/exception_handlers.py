@@ -7,14 +7,22 @@ from fastapi.responses import JSONResponse
 from src.domain.exceptions import (
     DatabaseError,
     DomainError,
+    TournamentMatchNotFoundError,
+    TournamentMatchResultError,
     TournamentNotFoundError,
+    TournamentParticipantError,
+    TournamentStateError,
 )
 
 logger = logging.getLogger(__name__)
 
 DOMAIN_ERROR_MAP: dict[type[DomainError], Tuple[int, str]] = {
     TournamentNotFoundError: (404, "TOURNAMENT_NOT_FOUND"),
+    TournamentMatchNotFoundError: (404, "TOURNAMENT_MATCH_NOT_FOUND"),
     DatabaseError: (500, "DATABASE_ERROR"),
+    TournamentStateError: (409, "TOURNAMENT_STATE_ERROR"),
+    TournamentParticipantError: (409, "TOURNAMENT_PARTICIPANT_ERROR"),
+    TournamentMatchResultError: (409, "TOURNAMENT_MATCH_RESULT_ERROR"),
 }
 
 SERVER_ERROR_THRESHOLD = 500

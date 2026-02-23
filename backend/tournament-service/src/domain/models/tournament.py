@@ -26,6 +26,7 @@ class Tournament(Base):
     name = Column(String, nullable=False, index=True)
     status = Column(String, nullable=False, default=TournamentStatus.DRAFT.value)
     created_by = Column(String, nullable=False)
+    champion_user_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -42,6 +43,9 @@ class TournamentParticipant(Base):
     )
     user_id = Column(String, nullable=False, index=True)
     display_name = Column(String, nullable=False)
+    wins = Column(Integer, nullable=False, default=0)
+    losses = Column(Integer, nullable=False, default=0)
+    total_points = Column(Integer, nullable=False, default=0)
     joined_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
 
@@ -73,5 +77,20 @@ class TournamentMatch(Base):
         nullable=True,
     )
     status = Column(String, nullable=False, default=MatchStatus.PENDING.value)
+    player_one_score = Column(Integer, nullable=True)
+    player_two_score = Column(Integer, nullable=True)
     scheduled_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
+
+
+class PlayerStats(Base):
+    __tablename__ = "player_stats"
+
+    user_id = Column(String, primary_key=True, index=True)
+    display_name = Column(String, nullable=False)
+    tournaments_played = Column(Integer, nullable=False, default=0)
+    matches_played = Column(Integer, nullable=False, default=0)
+    wins = Column(Integer, nullable=False, default=0)
+    losses = Column(Integer, nullable=False, default=0)
+    total_points = Column(Integer, nullable=False, default=0)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
