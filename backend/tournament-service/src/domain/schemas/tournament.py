@@ -12,8 +12,7 @@ class TournamentResponse(BaseModel):
     status: str
     created_by: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class TournamentParticipantRegisterRequest(BaseModel):
@@ -30,8 +29,7 @@ class TournamentParticipantResponse(BaseModel):
     losses: int
     total_points: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class TournamentMatchResponse(BaseModel):
@@ -46,8 +44,7 @@ class TournamentMatchResponse(BaseModel):
     player_one_score: int | None
     player_two_score: int | None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class TournamentMatchResultRequest(BaseModel):
@@ -65,5 +62,4 @@ class PlayerStatsResponse(BaseModel):
     losses: int
     total_points: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
