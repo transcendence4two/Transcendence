@@ -8,10 +8,11 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DATABASE_URL: str = "sqlite+aiosqlite:///./tournament.db"
 
-    class Config:
-        env_file = find_root_env()
-        case_sensitive = True
-        extra = "ignore"
+    model_config = {
+        "env_file": find_root_env(),
+        "case_sensitive": True,
+        "extra": "ignore",
+    }
 
 
 settings = Settings()

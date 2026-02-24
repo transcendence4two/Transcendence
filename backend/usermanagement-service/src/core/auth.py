@@ -3,7 +3,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.di_config import get_token_service
 from src.domain.contracts import TokenProvider
-from src.domain.exceptions import TokenInvalidError, TokenMissingError
+from src.domain.exceptions import (
+    TokenInvalidError,
+    TokenMissingError,
+)
 
 bearer_scheme = HTTPBearer(auto_error=False)
 

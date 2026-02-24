@@ -25,6 +25,10 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     lifespan=lifespan,
+    root_path="/api",
+    docs_url="/tournaments/docs",
+    redoc_url="/tournaments/redoc",
+    openapi_url="/tournaments/openapi.json",
 )
 
 app.add_exception_handler(DomainError, app_exception_handler)
