@@ -4,11 +4,13 @@ from src.core.auth import get_token_payload
 from src.di_config import get_user_service
 from src.domain.schemas.user import (
     LoginRequest,
+    LoginResponse,
     PaginatedResponse,
     UserProfileResponse,
     UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
+    Verify2FARequest,
 )
 from src.domain.services.user import UserService
 
@@ -38,6 +40,14 @@ async def login_user(
     result = await user_service.login_user(request)
     response.status_code = result.status_code
     return result.response
+
+
+@router.post("/verify-2fa", response_model=LoginResponse)
+async def verify_two_factor(
+    request: Verify2FARequest,
+    user_service: UserService = Depends(get_user_service),
+):
+    return await user_service.verify_two_factor(request)
 
 
 @router.get("/", response_model=PaginatedResponse[UserProfileResponse])

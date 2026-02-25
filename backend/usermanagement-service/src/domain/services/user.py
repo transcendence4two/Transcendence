@@ -12,6 +12,7 @@ from src.domain.schemas.user import (
     UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
+    Verify2FARequest,
 )
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
@@ -20,6 +21,7 @@ from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
+from src.domain.services.commands.verify_two_factor import VerifyTwoFactorCommand
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
@@ -119,4 +121,19 @@ class UserService(UserRegister, UserOperations):
             requires_2fa=False,
             response=response,
             status_code=status.HTTP_200_OK,
+        )
+
+    async def verify_two_factor(self, payload: Verify2FARequest) -> LoginResponse:
+        command = VerifyTwoFactorCommand(
+            token_service=self.token_service,
+            otp_service=self.otp_service,
+            payload=payload,
+        )
+        result = await command.execute()
+
+        user = await self.get_user_profile(result["user_id"])
+
+        return LoginResponse(
+            access_token=result["access_token"],
+            user=UserResponse.model_validate(user),
         )

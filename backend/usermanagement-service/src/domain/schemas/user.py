@@ -94,3 +94,10 @@ class LoginResult(BaseModel):
     requires_2fa: bool
     response: Union[LoginResponse, Login2FAResponse]
     status_code: int
+
+
+class Verify2FARequest(BaseModel):
+    """Schema for 2FA verification request"""
+
+    temporary_token: str
+    otp_code: str = Field(..., min_length=6, max_length=6)
