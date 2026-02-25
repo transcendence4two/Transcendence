@@ -1,4 +1,3 @@
-from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -47,7 +46,6 @@ def valid_payload():
 
 @pytest.mark.asyncio
 class TestVerifyTwoFactorCommand:
-
     async def test_verify_2fa_success(self, user_id, valid_payload):
         """Should return access_token when token and OTP are valid."""
         # Arrange
@@ -112,7 +110,7 @@ class TestVerifyTwoFactorCommand:
             def validate_token(self, token: str) -> dict:
                 raise TokenExpiredError("Token has expired")
 
-            def create_token(self, subject: str, expires_minutes: int | None = None) -> str:
+            def create_token(self, subject: str, expires_minutes: int | None = None):
                 return f"token_{subject}"
 
         token_service = ExpiredTokenService()
