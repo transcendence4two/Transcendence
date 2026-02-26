@@ -1,4 +1,74 @@
 services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-elasticsearch
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -u elastic:${ELASTIC_PASSWORD} http://localhost:9200 >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+
+  logstash:
+    container_name: logstash
+    image: logstash
+    ports:
+      - "5000:5000"
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-logstash
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - ../logstash/pipeline:/usr/share/logstash/pipeline
+    networks:
+      - transcendence-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    container_name: kibana
+    image: kibana
+    ports:
+      - "5601:5601"
+    build:
+      context: ../../
+      dockerfile: infra/docker/dockerfile-kibana
+    environment:
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${XPACK_REPORTING_ENCRYPTIONKEY}
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
   redis:
     image: redis:7-alpine
     ports:
@@ -85,6 +155,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+volumes:
+  esdata:
+  kibana_data:
 
 networks:
   transcendence-network:

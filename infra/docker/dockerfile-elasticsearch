@@ -1,0 +1,45 @@
+################################################################################
+# STAGE 1 — builder
+################################################################################
+FROM redhat/ubi9-minimal:latest AS builder
+
+RUN microdnf install -y tar gzip findutils && microdnf clean all
+
+WORKDIR /usr/share/elasticsearch
+
+RUN arch="$(rpm --query --queryformat='%{ARCH}' rpm)" && \
+    curl -fSL -o /tmp/elasticsearch.tar.gz \
+    https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.5-linux-$arch.tar.gz && \
+    tar -zxf /tmp/elasticsearch.tar.gz --strip-components=1
+
+COPY infra/elasticsearch/config/elasticsearch.yml config/
+
+################################################################################
+# STAGE 2 — runtime
+################################################################################
+FROM redhat/ubi9-minimal:latest
+
+RUN microdnf install -y curl-minimal shadow-utils procps-ng && microdnf clean all
+
+RUN groupadd -g 1000 elasticsearch && \
+    adduser -u 1000 -g 1000 -d /usr/share/elasticsearch elasticsearch
+
+WORKDIR /usr/share/elasticsearch
+
+COPY --from=builder --chown=1000:1000 /usr/share/elasticsearch .
+
+COPY infra/elasticsearch/bin/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+RUN mkdir -p data logs && \
+    chown -R elasticsearch:elasticsearch /usr/share/elasticsearch
+
+EXPOSE 9200 9300
+
+CMD ["eswrapper"]
+
+USER 1000
+
+ENV PATH=/usr/share/elasticsearch/bin:$PATH
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
