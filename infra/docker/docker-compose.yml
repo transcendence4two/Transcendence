@@ -15,6 +15,8 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
     healthcheck:
       test:
         [
@@ -61,6 +63,8 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+    volumes:
+      - kibana_data:/usr/share/kibana/data
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -132,6 +136,10 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+volumes:
+  esdata:
+  kibana_data:
 
 networks:
   transcendence-network:
