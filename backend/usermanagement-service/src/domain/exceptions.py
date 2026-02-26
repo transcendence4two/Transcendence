@@ -41,3 +41,7 @@ class UnauthorizedActionError(DomainError):
 
 class InvalidCredentialsError(DomainError):
     """Invalid email or password."""
+
+
+class InvalidOtpError(DomainError):
+    """OTP code is invalid or expired."""

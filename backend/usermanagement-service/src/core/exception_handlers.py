@@ -8,6 +8,7 @@ from src.domain.exceptions import (
     DatabaseError,
     DomainError,
     InvalidCredentialsError,
+    InvalidOtpError,
     TokenExpiredError,
     TokenInvalidError,
     TokenMissingError,
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 DOMAIN_ERROR_MAP: dict[type[DomainError], Tuple[int, str]] = {
     UserAlreadyExistsError: (409, "USER_ALREADY_EXISTS"),
     InvalidCredentialsError: (401, "INVALID_CREDENTIALS"),
+    InvalidOtpError: (401, "INVALID_OTP"),
     DatabaseError: (500, "DATABASE_ERROR"),
     TokenMissingError: (401, "TOKEN_MISSING"),
     TokenInvalidError: (401, "TOKEN_INVALID"),
