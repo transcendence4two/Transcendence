@@ -31,5 +31,17 @@ class TokenExpiredError(DomainError):
     """Auth token is expired."""
 
 
+class UserNotFoundError(DomainError):
+    """User not found."""
+
+
+class UnauthorizedActionError(DomainError):
+    """User not authorized to perform this action."""
+
+
 class InvalidCredentialsError(DomainError):
     """Invalid email or password."""
+
+
+class InvalidOtpError(DomainError):
+    """OTP code is invalid or expired."""

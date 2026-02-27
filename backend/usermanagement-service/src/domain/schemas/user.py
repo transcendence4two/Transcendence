@@ -1,4 +1,5 @@
-from typing import Union
+from datetime import datetime
+from typing import Generic, TypeVar, Union
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -19,6 +20,43 @@ class UserResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileResponse(BaseModel):
+    """Schema for user profile response"""
+
+    id: str
+    username: str
+    email: str
+    enable_2fa: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileUpdateRequest(BaseModel):
+    """Schema for user profile update"""
+
+    username: str | None = Field(None, min_length=1, max_length=255)
+    email: EmailStr | None = None
+
+
+T = TypeVar("T")
+
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    """Generic schema for paginated responses"""
+
+    items: list[T]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
 
     class Config:
         from_attributes = True
@@ -56,3 +94,10 @@ class LoginResult(BaseModel):
     requires_2fa: bool
     response: Union[LoginResponse, Login2FAResponse]
     status_code: int
+
+
+class Verify2FARequest(BaseModel):
+    """Schema for 2FA verification request"""
+
+    temporary_token: str
+    otp_code: str = Field(..., min_length=6, max_length=6)

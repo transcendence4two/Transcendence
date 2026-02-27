@@ -2,18 +2,26 @@ from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.contracts import UserRegister
+from src.domain.contracts import UserOperations, UserRegister
 from src.domain.models.user import User
 from src.domain.schemas.user import (
     Login2FAResponse,
     LoginRequest,
     LoginResponse,
     LoginResult,
+    UserProfileUpdateRequest,
     UserRegisterRequest,
     UserResponse,
+    Verify2FARequest,
 )
+from src.domain.services.commands.get_paginated_users import (
+    GetPaginatedUserProfilesCommand,
+)
+from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
+from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
+from src.domain.services.commands.verify_two_factor import VerifyTwoFactorCommand
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
@@ -23,7 +31,7 @@ EMAIL_WELCOME_CHANNEL = "email:welcome"
 EMAIL_OTP_CHANNEL = "email:otp"
 
 
-class UserService(UserRegister):
+class UserService(UserRegister, UserOperations):
     """Service for user operations"""
 
     def __init__(
@@ -47,11 +55,29 @@ class UserService(UserRegister):
             payload=payload,
         )
         user = await command.execute()
+        await self.send_welcome_email(user.email, user.username)
+        return user
+
+    async def get_user_profile(self, user_id: str):
+        command = GetUserProfileCommand(self.session, user_id)
+        return await command.execute()
+
+    async def get_paginated_user_profiles(self, page: int = 1, page_size: int = 10):
+        command = GetPaginatedUserProfilesCommand(self.session, page, page_size)
+        return await command.execute()
+
+    async def update_user_profile(
+        self, user_id: str, payload: UserProfileUpdateRequest
+    ):
+        command = UpdateUserProfileCommand(self.session, user_id, payload)
+        return await command.execute()
+
+    # Messaging methods
+    async def send_welcome_email(self, email: str, username: str) -> None:
         await self.event_publisher.publish(
             EMAIL_WELCOME_CHANNEL,
-            {"email": user.email, "username": user.username},
+            {"email": email, "username": username},
         )
-        return user
 
     async def send_otp_email(self, email: str, otp_code: str) -> None:
         await self.event_publisher.publish(
@@ -95,4 +121,19 @@ class UserService(UserRegister):
             requires_2fa=False,
             response=response,
             status_code=status.HTTP_200_OK,
+        )
+
+    async def verify_two_factor(self, payload: Verify2FARequest) -> LoginResponse:
+        command = VerifyTwoFactorCommand(
+            token_service=self.token_service,
+            otp_service=self.otp_service,
+            payload=payload,
+        )
+        result = await command.execute()
+
+        user = await self.get_user_profile(result["user_id"])
+
+        return LoginResponse(
+            access_token=result["access_token"],
+            user=UserResponse.model_validate(user),
         )

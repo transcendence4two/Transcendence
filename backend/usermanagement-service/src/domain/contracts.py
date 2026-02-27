@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from src.domain.models.user import User
-from src.domain.schemas.user import UserRegisterRequest
+from src.domain.schemas.user import UserProfileUpdateRequest, UserRegisterRequest
 
 
 class PasswordHasher(ABC):
@@ -19,6 +19,21 @@ class UserRegister(ABC):
 
     @abstractmethod
     async def register_user(self, payload: UserRegisterRequest) -> User: ...
+
+
+class UserOperations(ABC):
+    """Port for user operations use cases."""
+
+    @abstractmethod
+    async def get_user_profile(self, user_id: str) -> User: ...
+
+    @abstractmethod
+    async def get_paginated_user_profiles(self, page: int, page_size: int) -> dict: ...
+
+    @abstractmethod
+    async def update_user_profile(
+        self, user_id: str, payload: UserProfileUpdateRequest
+    ) -> User: ...
 
 
 class TokenProvider(ABC):
