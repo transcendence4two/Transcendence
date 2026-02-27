@@ -1,7 +1,9 @@
 import logging
 import logging.config
-import structlog
+from copy import deepcopy
 import os
+
+import structlog
 
 from .processors import (
     add_service,
@@ -15,8 +17,27 @@ from ..sender.send_logs import send_logs
 
 config = {
     "version": 1,
+    "formatters": {
+        "uvicorn_default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s %(message)s",
+            "use_colors": None,
+        },
+        "uvicorn_access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',
+        },
+    },
     "handlers": {
         "default": {"class": "logging.StreamHandler"},
+        "uvicorn_default": {
+            "class": "logging.StreamHandler",
+            "formatter": "uvicorn_default",
+        },
+        "uvicorn_access": {
+            "class": "logging.StreamHandler",
+            "formatter": "uvicorn_access",
+        },
     },
     "root": {
         "handlers": ["default"],
@@ -30,10 +51,24 @@ config = {
 
 
 def configure_logging(service_name: str = None):
-    logging.config.dictConfig(config)
+    runtime_config = deepcopy(config)
 
     service = service_name or os.getenv("SERVICE_NAME", "unknown")
     env = os.getenv("ENV", "development")
+
+    if env.lower() == "development":
+        runtime_config["loggers"]["uvicorn.error"] = {
+            "handlers": ["uvicorn_default"],
+            "level": "INFO",
+            "propagate": False,
+        }
+        runtime_config["loggers"]["uvicorn.access"] = {
+            "handlers": ["uvicorn_access"],
+            "level": "INFO",
+            "propagate": False,
+        }
+
+    logging.config.dictConfig(runtime_config)
 
     def add_env(_, __, event_dict):
         event_dict["service.environment"] = env
