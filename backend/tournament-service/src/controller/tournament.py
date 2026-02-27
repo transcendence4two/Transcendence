@@ -3,8 +3,14 @@ from fastapi import APIRouter, Depends, status
 from src.di_config import get_tournament_service
 from src.domain.contracts import TournamentManager
 from src.domain.schemas.tournament import (
+    MatchmakingQueueEntryResponse,
+    MatchPlayerSnapshotResponse,
+    MatchRecordResponse,
+    MatchRecordSaveRequest,
+    MatchRecordSaveResponse,
     PlayerStatsResponse,
     TournamentCreateRequest,
+    TournamentJoinQueueRequest,
     TournamentMatchResponse,
     TournamentMatchResultRequest,
     TournamentParticipantRegisterRequest,
@@ -26,6 +32,38 @@ async def create_tournament(
 ):
     created_tournament = await tournament_service.create_tournament(request)
     return TournamentResponse.model_validate(created_tournament)
+
+
+@router.post(
+    "/join",
+    response_model=MatchmakingQueueEntryResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def join_matchmaking_queue(
+    request: TournamentJoinQueueRequest,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    queue_entry = await tournament_service.join_matchmaking_queue(request)
+    return MatchmakingQueueEntryResponse.model_validate(queue_entry)
+
+
+@router.post(
+    "/save",
+    response_model=MatchRecordSaveResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_match_record(
+    request: MatchRecordSaveRequest,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    match_record, match_players = await tournament_service.save_match_record(request)
+    return MatchRecordSaveResponse(
+        match_record=MatchRecordResponse.model_validate(match_record),
+        players=[
+            MatchPlayerSnapshotResponse.model_validate(match_player)
+            for match_player in match_players
+        ],
+    )
 
 
 @router.get(

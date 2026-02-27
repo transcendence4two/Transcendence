@@ -110,3 +110,65 @@ class TestTournamentEndpoints:
         assert stats_response.status_code == 200
         assert stats_payload["wins"] == 1
         assert stats_payload["matches_played"] == 1
+
+    async def test_join_matchmaking_queue_success_and_duplicate(self, client: AsyncClient):
+        queue_payload = {
+            "user_id": "queued_player",
+            "display_name": "Queued Player",
+            "preferred_game_mode": "pong_1v1",
+        }
+        first_join_response = await client.post("/tournaments/join", json=queue_payload)
+        assert first_join_response.status_code == 201
+        first_join_body = first_join_response.json()
+        assert first_join_body["user_id"] == queue_payload["user_id"]
+        assert first_join_body["status"] in {"queued", "matched"}
+
+        duplicate_join_response = await client.post(
+            "/tournaments/join",
+            json=queue_payload,
+        )
+        assert duplicate_join_response.status_code == 409
+        duplicate_join_body = duplicate_join_response.json()
+        assert duplicate_join_body["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+
+    async def test_save_match_record_persists_match_and_players(self, client: AsyncClient):
+        save_payload = {
+            "game_service_match_id": "game-service-match-001",
+            "game_room_id": "room-001",
+            "game_mode": "pong_1v1",
+            "status": "finished",
+            "winner_user_id": "player_alpha",
+            "winning_reason": "score",
+            "started_at": "2026-02-27T10:00:00+00:00",
+            "ended_at": "2026-02-27T10:03:30+00:00",
+            "duration_seconds": 210,
+            "players": [
+                {
+                    "user_id": "player_alpha",
+                    "display_name": "Player Alpha",
+                    "player_side": "left",
+                    "score": 7,
+                    "is_winner": True,
+                },
+                {
+                    "user_id": "player_beta",
+                    "display_name": "Player Beta",
+                    "player_side": "right",
+                    "score": 4,
+                    "is_winner": False,
+                },
+            ],
+        }
+        save_response = await client.post("/tournaments/save", json=save_payload)
+
+        assert save_response.status_code == 201
+        save_body = save_response.json()
+        assert save_body["match_record"]["game_service_match_id"] == "game-service-match-001"
+        assert save_body["match_record"]["winner_user_id"] == "player_alpha"
+        assert len(save_body["players"]) == 2
+
+        alpha_stats_response = await client.get("/tournaments/stats/players/player_alpha")
+        alpha_stats_body = alpha_stats_response.json()
+        assert alpha_stats_response.status_code == 200
+        assert alpha_stats_body["wins"] >= 1
+        assert alpha_stats_body["matches_played"] >= 1

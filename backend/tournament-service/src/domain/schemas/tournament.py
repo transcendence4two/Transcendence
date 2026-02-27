@@ -143,3 +143,8 @@ class MatchRecordResponse(BaseModel):
     duration_seconds: int | None
 
     model_config = {"from_attributes": True}
+
+
+class MatchRecordSaveResponse(BaseModel):
+    match_record: MatchRecordResponse
+    players: list[MatchPlayerSnapshotResponse]

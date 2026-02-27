@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.contracts import TournamentManager
 from src.domain.exceptions import (
     DatabaseError,
+    MatchmakingQueueError,
+    MatchRecordValidationError,
     TournamentMatchNotFoundError,
     TournamentMatchResultError,
     TournamentNotFoundError,
@@ -15,6 +17,11 @@ from src.domain.exceptions import (
     TournamentStateError,
 )
 from src.domain.models.tournament import (
+    MatchPlayerSnapshot,
+    MatchRecord,
+    MatchRecordStatus,
+    MatchmakingQueueEntry,
+    MatchmakingQueueStatus,
     MatchStatus,
     PlayerStats,
     Tournament,
@@ -23,7 +30,9 @@ from src.domain.models.tournament import (
     TournamentStatus,
 )
 from src.domain.schemas.tournament import (
+    MatchRecordSaveRequest,
     TournamentCreateRequest,
+    TournamentJoinQueueRequest,
     TournamentMatchResultRequest,
     TournamentParticipantRegisterRequest,
 )
@@ -216,6 +225,101 @@ class TournamentService(TournamentManager):
             return query_result.scalar_one_or_none()
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch player stats") from database_exception
+
+    async def join_matchmaking_queue(
+        self,
+        payload: TournamentJoinQueueRequest,
+    ) -> MatchmakingQueueEntry:
+        normalized_user_id = payload.user_id.strip()
+        normalized_display_name = payload.display_name.strip()
+        normalized_game_mode = payload.preferred_game_mode.strip()
+        normalized_tournament_id = (
+            payload.tournament_id.strip() if payload.tournament_id else None
+        )
+
+        await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
+
+        queue_entry = MatchmakingQueueEntry(
+            id=str(uuid4()),
+            user_id=normalized_user_id,
+            display_name=normalized_display_name,
+            skill_rating=payload.skill_rating,
+            preferred_game_mode=normalized_game_mode,
+            tournament_id=normalized_tournament_id,
+            status=MatchmakingQueueStatus.QUEUED.value,
+        )
+        self.session.add(queue_entry)
+        matched_opponent = await self._find_matchmaking_opponent(queue_entry)
+        if matched_opponent is not None:
+            match_timestamp = datetime.now(timezone.utc)
+            queue_entry.status = MatchmakingQueueStatus.MATCHED.value
+            queue_entry.matched_at = match_timestamp
+            matched_opponent.status = MatchmakingQueueStatus.MATCHED.value
+            matched_opponent.matched_at = match_timestamp
+
+        try:
+            await self.session.commit()
+            await self.session.refresh(queue_entry)
+            return queue_entry
+        except SQLAlchemyError as database_exception:
+            await self.session.rollback()
+            raise DatabaseError("Failed to enqueue player in matchmaking") from database_exception
+
+    async def save_match_record(
+        self,
+        payload: MatchRecordSaveRequest,
+    ) -> tuple[MatchRecord, list[MatchPlayerSnapshot]]:
+        self._validate_match_record_payload(payload)
+
+        normalized_status = payload.status.strip().lower()
+        match_record = MatchRecord(
+            id=str(uuid4()),
+            game_service_match_id=payload.game_service_match_id,
+            tournament_id=payload.tournament_id,
+            tournament_match_id=payload.tournament_match_id,
+            game_room_id=payload.game_room_id,
+            game_mode=payload.game_mode.strip(),
+            status=normalized_status,
+            winner_user_id=payload.winner_user_id,
+            winning_reason=payload.winning_reason,
+            started_at=payload.started_at,
+            ended_at=payload.ended_at,
+            duration_seconds=payload.duration_seconds,
+        )
+        self.session.add(match_record)
+
+        saved_snapshots: list[MatchPlayerSnapshot] = []
+        for player_snapshot in payload.players:
+            persisted_snapshot = MatchPlayerSnapshot(
+                id=str(uuid4()),
+                match_record_id=match_record.id,
+                user_id=player_snapshot.user_id.strip(),
+                display_name=player_snapshot.display_name.strip(),
+                participant_id=player_snapshot.participant_id,
+                player_side=player_snapshot.player_side,
+                score=player_snapshot.score,
+                is_winner=player_snapshot.is_winner,
+                disconnect_count=player_snapshot.disconnect_count,
+                latency_average_ms=player_snapshot.latency_average_ms,
+                latency_max_ms=player_snapshot.latency_max_ms,
+            )
+            saved_snapshots.append(persisted_snapshot)
+            self.session.add(persisted_snapshot)
+            await self._upsert_player_stats_from_match_snapshot(persisted_snapshot)
+
+        if payload.tournament_match_id is not None:
+            await self._sync_tournament_match_from_match_record(
+                match_record=match_record,
+                saved_snapshots=saved_snapshots,
+            )
+
+        try:
+            await self.session.commit()
+            await self.session.refresh(match_record)
+            return match_record, saved_snapshots
+        except SQLAlchemyError as database_exception:
+            await self.session.rollback()
+            raise DatabaseError("Failed to persist match record") from database_exception
 
     async def _persist_tournament(self, tournament: Tournament) -> Tournament:
         self.session.add(tournament)
@@ -432,3 +536,146 @@ class TournamentService(TournamentManager):
             return list(query_result.scalars().all())
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch round matches") from database_exception
+
+    async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
+        statement = select(MatchmakingQueueEntry).where(
+            MatchmakingQueueEntry.user_id == user_id,
+            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+        )
+        try:
+            query_result = await self.session.execute(statement)
+            existing_queue_entry = query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to validate matchmaking queue entry") from database_exception
+
+        if existing_queue_entry is not None:
+            raise MatchmakingQueueError("Player is already queued for matchmaking")
+
+    async def _find_matchmaking_opponent(
+        self,
+        queue_entry: MatchmakingQueueEntry,
+    ) -> MatchmakingQueueEntry | None:
+        statement = (
+            select(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+                MatchmakingQueueEntry.preferred_game_mode == queue_entry.preferred_game_mode,
+                MatchmakingQueueEntry.user_id != queue_entry.user_id,
+            )
+            .order_by(asc(MatchmakingQueueEntry.joined_at))
+        )
+        if queue_entry.tournament_id is None:
+            statement = statement.where(MatchmakingQueueEntry.tournament_id.is_(None))
+        else:
+            statement = statement.where(
+                MatchmakingQueueEntry.tournament_id == queue_entry.tournament_id
+            )
+
+        try:
+            query_result = await self.session.execute(statement)
+            return query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to find matchmaking opponent") from database_exception
+
+    def _validate_match_record_payload(self, payload: MatchRecordSaveRequest) -> None:
+        if payload.ended_at and payload.started_at and payload.ended_at < payload.started_at:
+            raise MatchRecordValidationError("ended_at cannot be earlier than started_at")
+
+        winner_identifiers_in_payload = {
+            player_snapshot.user_id
+            for player_snapshot in payload.players
+            if player_snapshot.is_winner
+        }
+        if len(winner_identifiers_in_payload) > 1:
+            raise MatchRecordValidationError("Only one winner is allowed per match")
+
+        if payload.winner_user_id is not None:
+            payload_winner_user_id = payload.winner_user_id.strip()
+            valid_user_identifiers = {player.user_id for player in payload.players}
+            if payload_winner_user_id not in valid_user_identifiers:
+                raise MatchRecordValidationError("winner_user_id must belong to a match player")
+
+            if winner_identifiers_in_payload and payload_winner_user_id not in winner_identifiers_in_payload:
+                raise MatchRecordValidationError(
+                    "winner_user_id must match the winner snapshot entry"
+                )
+
+    async def _upsert_player_stats_from_match_snapshot(
+        self,
+        persisted_snapshot: MatchPlayerSnapshot,
+    ) -> None:
+        statement = select(PlayerStats).where(
+            PlayerStats.user_id == persisted_snapshot.user_id
+        )
+        try:
+            query_result = await self.session.execute(statement)
+            player_stats = query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to update player stats from match snapshot") from database_exception
+
+        if player_stats is None:
+            player_stats = PlayerStats(
+                user_id=persisted_snapshot.user_id,
+                display_name=persisted_snapshot.display_name,
+                tournaments_played=0,
+                matches_played=0,
+                wins=0,
+                losses=0,
+                total_points=0,
+            )
+            self.session.add(player_stats)
+
+        player_stats.matches_played += 1
+        if persisted_snapshot.is_winner:
+            player_stats.wins += 1
+        else:
+            player_stats.losses += 1
+        player_stats.total_points += persisted_snapshot.score
+
+    async def _sync_tournament_match_from_match_record(
+        self,
+        match_record: MatchRecord,
+        saved_snapshots: list[MatchPlayerSnapshot],
+    ) -> None:
+        if match_record.tournament_match_id is None:
+            return
+
+        statement = select(TournamentMatch).where(
+            TournamentMatch.id == match_record.tournament_match_id
+        )
+        try:
+            query_result = await self.session.execute(statement)
+            tournament_match = query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to sync tournament match") from database_exception
+
+        if tournament_match is None:
+            raise TournamentMatchNotFoundError(
+                f"Match '{match_record.tournament_match_id}' was not found"
+            )
+
+        score_by_participant_id = {
+            snapshot.participant_id: snapshot.score
+            for snapshot in saved_snapshots
+            if snapshot.participant_id is not None
+        }
+
+        if tournament_match.player_one_participant_id in score_by_participant_id:
+            tournament_match.player_one_score = score_by_participant_id[
+                tournament_match.player_one_participant_id
+            ]
+        if tournament_match.player_two_participant_id in score_by_participant_id:
+            tournament_match.player_two_score = score_by_participant_id[
+                tournament_match.player_two_participant_id
+            ]
+
+        winner_snapshot = next(
+            (snapshot for snapshot in saved_snapshots if snapshot.is_winner),
+            None,
+        )
+        if winner_snapshot is not None and winner_snapshot.participant_id is not None:
+            tournament_match.winner_participant_id = winner_snapshot.participant_id
+
+        if match_record.status == MatchRecordStatus.FINISHED.value:
+            tournament_match.status = MatchStatus.FINISHED.value
+            tournament_match.completed_at = match_record.ended_at
