@@ -19,7 +19,6 @@ const LoginSection = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
-        // Clear error when user starts typing
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }))
         }
@@ -45,7 +44,6 @@ const LoginSection = () => {
             const data = await response.json()
 
             if (!response.ok) {
-                // Handle error responses
                 if (data.detail) {
                     setErrors({ general: data.detail })
                 } else if (data.error_type === 'INVALID_CREDENTIALS') {
@@ -56,23 +54,18 @@ const LoginSection = () => {
                 return
             }
 
-            // Check if 2FA is required (status 202)
             if (response.status === 202 && data['2fa_required']) {
-                // Store temporary token and redirect to 2FA verification page
                 localStorage.setItem('temp_token', data.temporary_token)
-                alert(data.message) // Or redirect to OTP verification page
+                alert(data.message)
                 window.location.href = '/verify-otp'
                 return
             }
 
-            // Normal login success (status 200)
             if (data.access_token) {
-                // Store the JWT token
                 localStorage.setItem('access_token', data.access_token)
                 localStorage.setItem('user', JSON.stringify(data.user))
 
-                // Redirect to dashboard or home
-                window.location.href = '/' // Or use react-router navigation
+                window.location.href = '/home'
             }
 
         } catch (error) {
