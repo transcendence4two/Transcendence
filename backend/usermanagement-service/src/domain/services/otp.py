@@ -38,9 +38,11 @@ class OtpService:
         if stored_otp is None:
             return False
 
-        await client.delete(key)
+        if stored_otp.decode("utf-8") == otp:
+            await client.delete(key)
+            return True
 
-        return stored_otp.decode("utf-8") == otp
+        return False
 
     async def close(self) -> None:
         """Close Redis connection"""
