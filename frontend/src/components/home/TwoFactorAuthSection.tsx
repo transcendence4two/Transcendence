@@ -14,17 +14,14 @@ const TwoFactorAuthSection = () => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
     const handleChange = (index: number, value: string) => {
-        // Only allow numbers
         if (value && !/^\d$/.test(value)) return
 
         const newOtp = [...otp]
         newOtp[index] = value
         setOtp(newOtp)
 
-        // Clear error when user starts typing
         if (error) setError('')
 
-        // Move to next input if value is entered
         if (value && index < 5) {
             inputRefs.current[index + 1]?.focus()
         }
