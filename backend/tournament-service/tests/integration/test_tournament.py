@@ -1,6 +1,39 @@
 import pytest
 from httpx import AsyncClient
 
+WEBHOOK_HEADER_NAME = "X-Webhook-Token"
+WEBHOOK_SHARED_SECRET = "local-webhook-token"
+
+
+def build_match_record_payload() -> dict:
+    return {
+        "game_service_match_id": "game-service-match-001",
+        "game_room_id": "room-001",
+        "game_mode": "pong_1v1",
+        "status": "finished",
+        "winner_user_id": "player_alpha",
+        "winning_reason": "score",
+        "started_at": "2026-02-27T10:00:00+00:00",
+        "ended_at": "2026-02-27T10:03:30+00:00",
+        "duration_seconds": 210,
+        "players": [
+            {
+                "user_id": "player_alpha",
+                "display_name": "Player Alpha",
+                "player_side": "left",
+                "score": 7,
+                "is_winner": True,
+            },
+            {
+                "user_id": "player_beta",
+                "display_name": "Player Beta",
+                "player_side": "right",
+                "score": 4,
+                "is_winner": False,
+            },
+        ],
+    }
+
 
 @pytest.mark.asyncio
 class TestTournamentEndpoints:
@@ -132,33 +165,7 @@ class TestTournamentEndpoints:
         assert duplicate_join_body["error_type"] == "MATCHMAKING_QUEUE_ERROR"
 
     async def test_save_match_record_persists_match_and_players(self, client: AsyncClient):
-        save_payload = {
-            "game_service_match_id": "game-service-match-001",
-            "game_room_id": "room-001",
-            "game_mode": "pong_1v1",
-            "status": "finished",
-            "winner_user_id": "player_alpha",
-            "winning_reason": "score",
-            "started_at": "2026-02-27T10:00:00+00:00",
-            "ended_at": "2026-02-27T10:03:30+00:00",
-            "duration_seconds": 210,
-            "players": [
-                {
-                    "user_id": "player_alpha",
-                    "display_name": "Player Alpha",
-                    "player_side": "left",
-                    "score": 7,
-                    "is_winner": True,
-                },
-                {
-                    "user_id": "player_beta",
-                    "display_name": "Player Beta",
-                    "player_side": "right",
-                    "score": 4,
-                    "is_winner": False,
-                },
-            ],
-        }
+        save_payload = build_match_record_payload()
         save_response = await client.post("/tournaments/save", json=save_payload)
 
         assert save_response.status_code == 201
@@ -172,3 +179,21 @@ class TestTournamentEndpoints:
         assert alpha_stats_response.status_code == 200
         assert alpha_stats_body["wins"] >= 1
         assert alpha_stats_body["matches_played"] >= 1
+
+    async def test_webhook_save_requires_valid_token(self, client: AsyncClient):
+        save_payload = build_match_record_payload()
+
+        unauthorized_response = await client.post(
+            "/tournaments/webhooks/game-match-finished",
+            json=save_payload,
+        )
+        assert unauthorized_response.status_code == 401
+
+        authorized_response = await client.post(
+            "/tournaments/webhooks/game-match-finished",
+            json=save_payload,
+            headers={WEBHOOK_HEADER_NAME: WEBHOOK_SHARED_SECRET},
+        )
+        assert authorized_response.status_code == 201
+        authorized_response_body = authorized_response.json()
+        assert authorized_response_body["match_record"]["winner_user_id"] == "player_alpha"

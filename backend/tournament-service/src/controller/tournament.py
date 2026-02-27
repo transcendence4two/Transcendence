@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, status
 
+from src.core.webhook_auth import require_valid_webhook_token
 from src.di_config import get_tournament_service
 from src.domain.contracts import TournamentManager
+from src.domain.models.tournament import MatchPlayerSnapshot, MatchRecord
 from src.domain.schemas.tournament import (
     MatchmakingQueueEntryResponse,
     MatchPlayerSnapshotResponse,
@@ -19,6 +21,19 @@ from src.domain.schemas.tournament import (
 )
 
 router = APIRouter()
+
+
+def _build_match_record_save_response(
+    match_record: MatchRecord,
+    match_players: list[MatchPlayerSnapshot],
+) -> MatchRecordSaveResponse:
+    return MatchRecordSaveResponse(
+        match_record=MatchRecordResponse.model_validate(match_record),
+        players=[
+            MatchPlayerSnapshotResponse.model_validate(match_player)
+            for match_player in match_players
+        ],
+    )
 
 
 @router.post(
@@ -57,12 +72,26 @@ async def save_match_record(
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
     match_record, match_players = await tournament_service.save_match_record(request)
-    return MatchRecordSaveResponse(
-        match_record=MatchRecordResponse.model_validate(match_record),
-        players=[
-            MatchPlayerSnapshotResponse.model_validate(match_player)
-            for match_player in match_players
-        ],
+    return _build_match_record_save_response(
+        match_record=match_record,
+        match_players=match_players,
+    )
+
+
+@router.post(
+    "/webhooks/game-match-finished",
+    response_model=MatchRecordSaveResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def save_match_record_from_game_webhook(
+    request: MatchRecordSaveRequest,
+    _validated_webhook_token: None = Depends(require_valid_webhook_token),
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    match_record, match_players = await tournament_service.save_match_record(request)
+    return _build_match_record_save_response(
+        match_record=match_record,
+        match_players=match_players,
     )
 
 
