@@ -1,6 +1,11 @@
 from src.domain.schemas.tournament import (
+    MatchmakingQueueEntryResponse,
+    MatchPlayerSnapshotResponse,
+    MatchRecordResponse,
+    MatchRecordSaveRequest,
     PlayerStatsResponse,
     TournamentCreateRequest,
+    TournamentJoinQueueRequest,
     TournamentMatchResponse,
     TournamentMatchResultRequest,
     TournamentParticipantRegisterRequest,
@@ -9,8 +14,13 @@ from src.domain.schemas.tournament import (
 )
 
 __all__ = [
+    "MatchmakingQueueEntryResponse",
+    "MatchPlayerSnapshotResponse",
+    "MatchRecordResponse",
+    "MatchRecordSaveRequest",
     "PlayerStatsResponse",
     "TournamentCreateRequest",
+    "TournamentJoinQueueRequest",
     "TournamentMatchResponse",
     "TournamentMatchResultRequest",
     "TournamentParticipantRegisterRequest",

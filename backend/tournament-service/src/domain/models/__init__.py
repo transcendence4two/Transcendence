@@ -1,6 +1,11 @@
 from src.domain.models.tournament import (
     Base,
     MatchStatus,
+    MatchPlayerSnapshot,
+    MatchRecord,
+    MatchRecordStatus,
+    MatchmakingQueueEntry,
+    MatchmakingQueueStatus,
     PlayerStats,
     Tournament,
     TournamentMatch,
@@ -10,6 +15,11 @@ from src.domain.models.tournament import (
 
 __all__ = [
     "Base",
+    "MatchmakingQueueEntry",
+    "MatchmakingQueueStatus",
+    "MatchRecord",
+    "MatchRecordStatus",
+    "MatchPlayerSnapshot",
     "MatchStatus",
     "PlayerStats",
     "Tournament",

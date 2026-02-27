@@ -33,3 +33,11 @@ class TournamentMatchNotFoundError(DomainError):
 
 class TournamentMatchResultError(DomainError):
     """Tournament match result operation is invalid."""
+
+
+class MatchmakingQueueError(DomainError):
+    """Matchmaking queue operation is invalid."""
+
+
+class MatchRecordValidationError(DomainError):
+    """Match record payload is invalid or inconsistent."""
