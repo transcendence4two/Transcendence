@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, text
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -112,6 +112,15 @@ class PlayerStats(Base):
 
 class MatchmakingQueueEntry(Base):
     __tablename__ = "matchmaking_queue_entries"
+    __table_args__ = (
+        Index(
+            "uq_matchmaking_queue_entries_queued_user_id",
+            "user_id",
+            unique=True,
+            sqlite_where=text("status = 'queued'"),
+            postgresql_where=text("status = 'queued'"),
+        ),
+    )
 
     id = Column(String, primary_key=True, index=True)
     user_id = Column(String, nullable=False, index=True)

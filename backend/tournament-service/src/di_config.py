@@ -6,7 +6,18 @@ from src.core.settings import settings
 from src.domain.contracts import TournamentManager
 from src.domain.services.tournament import TournamentService
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False)
+
+def _build_engine_connect_args() -> dict:
+    if settings.database_url.startswith("sqlite"):
+        return {"timeout": 30}
+    return {}
+
+
+engine = create_async_engine(
+    settings.database_url,
+    echo=False,
+    connect_args=_build_engine_connect_args(),
+)
 async_session_factory = sessionmaker(
     engine,
     class_=AsyncSession,

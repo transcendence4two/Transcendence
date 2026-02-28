@@ -1,5 +1,9 @@
+from uuid import uuid4
+
 import pytest
 from httpx import AsyncClient
+
+from src.domain.models.tournament import MatchmakingQueueEntry, MatchmakingQueueStatus
 
 WEBHOOK_HEADER_NAME = "X-Webhook-Token"
 WEBHOOK_SHARED_SECRET = "local-webhook-token"
@@ -163,6 +167,43 @@ class TestTournamentEndpoints:
         assert duplicate_join_response.status_code == 409
         duplicate_join_body = duplicate_join_response.json()
         assert duplicate_join_body["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+
+    async def test_join_matchmaking_queue_handles_multiple_available_opponents(
+        self,
+        client: AsyncClient,
+        db_session,
+    ):
+        db_session.add(
+            MatchmakingQueueEntry(
+                id=str(uuid4()),
+                user_id="existing_player_one",
+                display_name="Existing Player One",
+                preferred_game_mode="pong_1v1",
+                status=MatchmakingQueueStatus.QUEUED.value,
+            )
+        )
+        db_session.add(
+            MatchmakingQueueEntry(
+                id=str(uuid4()),
+                user_id="existing_player_two",
+                display_name="Existing Player Two",
+                preferred_game_mode="pong_1v1",
+                status=MatchmakingQueueStatus.QUEUED.value,
+            )
+        )
+        await db_session.commit()
+
+        join_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "new_player",
+                "display_name": "New Player",
+                "preferred_game_mode": "pong_1v1",
+            },
+        )
+
+        assert join_response.status_code == 201
+        assert join_response.json()["status"] == "matched"
 
     async def test_save_match_record_persists_match_and_players(self, client: AsyncClient):
         save_payload = build_match_record_payload()

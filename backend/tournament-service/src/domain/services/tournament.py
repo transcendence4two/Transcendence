@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import asc, select
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import asc, select, update
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import TournamentManager
@@ -237,8 +237,6 @@ class TournamentService(TournamentManager):
             payload.tournament_id.strip() if payload.tournament_id else None
         )
 
-        await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
-
         queue_entry = MatchmakingQueueEntry(
             id=str(uuid4()),
             user_id=normalized_user_id,
@@ -248,19 +246,28 @@ class TournamentService(TournamentManager):
             tournament_id=normalized_tournament_id,
             status=MatchmakingQueueStatus.QUEUED.value,
         )
+
         self.session.add(queue_entry)
-        matched_opponent = await self._find_matchmaking_opponent(queue_entry)
-        if matched_opponent is not None:
-            match_timestamp = datetime.now(timezone.utc)
-            queue_entry.status = MatchmakingQueueStatus.MATCHED.value
-            queue_entry.matched_at = match_timestamp
-            matched_opponent.status = MatchmakingQueueStatus.MATCHED.value
-            matched_opponent.matched_at = match_timestamp
 
         try:
+            await self.session.flush()
+            matched_opponent = await self._claim_matchmaking_opponent(
+                preferred_game_mode=normalized_game_mode,
+                tournament_id=normalized_tournament_id,
+                excluded_user_id=normalized_user_id,
+            )
+            if matched_opponent is not None:
+                match_timestamp = datetime.now(timezone.utc)
+                queue_entry.status = MatchmakingQueueStatus.MATCHED.value
+                queue_entry.matched_at = match_timestamp
             await self.session.commit()
             await self.session.refresh(queue_entry)
             return queue_entry
+        except IntegrityError as integrity_exception:
+            await self.session.rollback()
+            raise MatchmakingQueueError("Player is already queued for matchmaking") from (
+                integrity_exception
+            )
         except SQLAlchemyError as database_exception:
             await self.session.rollback()
             raise DatabaseError("Failed to enqueue player in matchmaking") from database_exception
@@ -537,43 +544,54 @@ class TournamentService(TournamentManager):
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch round matches") from database_exception
 
-    async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
-        statement = select(MatchmakingQueueEntry).where(
-            MatchmakingQueueEntry.user_id == user_id,
-            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
-        )
-        try:
-            query_result = await self.session.execute(statement)
-            existing_queue_entry = query_result.scalar_one_or_none()
-        except SQLAlchemyError as database_exception:
-            raise DatabaseError("Failed to validate matchmaking queue entry") from database_exception
-
-        if existing_queue_entry is not None:
-            raise MatchmakingQueueError("Player is already queued for matchmaking")
-
-    async def _find_matchmaking_opponent(
+    async def _claim_matchmaking_opponent(
         self,
-        queue_entry: MatchmakingQueueEntry,
+        preferred_game_mode: str,
+        tournament_id: str | None,
+        excluded_user_id: str,
     ) -> MatchmakingQueueEntry | None:
         statement = (
             select(MatchmakingQueueEntry)
             .where(
                 MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
-                MatchmakingQueueEntry.preferred_game_mode == queue_entry.preferred_game_mode,
-                MatchmakingQueueEntry.user_id != queue_entry.user_id,
+                MatchmakingQueueEntry.preferred_game_mode == preferred_game_mode,
+                MatchmakingQueueEntry.user_id != excluded_user_id,
             )
             .order_by(asc(MatchmakingQueueEntry.joined_at))
+            .limit(1)
         )
-        if queue_entry.tournament_id is None:
+        if tournament_id is None:
             statement = statement.where(MatchmakingQueueEntry.tournament_id.is_(None))
         else:
-            statement = statement.where(
-                MatchmakingQueueEntry.tournament_id == queue_entry.tournament_id
-            )
+            statement = statement.where(MatchmakingQueueEntry.tournament_id == tournament_id)
+        if self.session.bind is not None and self.session.bind.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True)
 
         try:
             query_result = await self.session.execute(statement)
-            return query_result.scalar_one_or_none()
+            matched_opponent = query_result.scalars().first()
+            if matched_opponent is None:
+                return None
+
+            match_timestamp = datetime.now(timezone.utc)
+            update_statement = (
+                update(MatchmakingQueueEntry)
+                .where(
+                    MatchmakingQueueEntry.id == matched_opponent.id,
+                    MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+                )
+                .values(
+                    status=MatchmakingQueueStatus.MATCHED.value,
+                    matched_at=match_timestamp,
+                )
+            )
+            update_result = await self.session.execute(update_statement)
+            if update_result.rowcount != 1:
+                return None
+
+            matched_opponent.status = MatchmakingQueueStatus.MATCHED.value
+            matched_opponent.matched_at = match_timestamp
+            return matched_opponent
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to find matchmaking opponent") from database_exception
 
