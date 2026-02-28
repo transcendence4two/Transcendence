@@ -34,9 +34,7 @@ class TestAuthValidate:
             "iat": int((now - timedelta(minutes=10)).timestamp()),
             "exp": int((now - timedelta(minutes=1)).timestamp()),
         }
-        expired_token = jwt.encode(
-            expired_payload, cfg.secret, algorithm=cfg.algorithm
-        )
+        expired_token = jwt.encode(expired_payload, cfg.secret, algorithm=cfg.algorithm)
         headers = {"Authorization": f"Bearer {expired_token}"}
 
         resp = await client.get("/auth/validate", headers=headers)
