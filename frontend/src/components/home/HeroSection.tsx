@@ -20,7 +20,12 @@ const HeroSection = () => {
 
             {/* Action Buttons */}
             <div className='flex gap-6 justify-center items-center flex-wrap'>
-                <Button variant='hero' icon={<LoginIcon />}>
+                <Button
+                    variant='hero'
+                    className='hover:shadow-blue-500/50'
+                    icon={<LoginIcon />}
+                    onClick={() => window.location.href = '/login'}
+                >
                     Login
                 </Button>
                 <Button

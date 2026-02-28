@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import RegisterPage from './pages/RegisterPage'
+import LoginPage from './pages/LoginPage'
+import TFAPage from './pages/TFAPage'
 
 function App() {
   return (
@@ -10,6 +12,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify-otp" element={<TFAPage />} />
       </Routes>
     </BrowserRouter>
   )

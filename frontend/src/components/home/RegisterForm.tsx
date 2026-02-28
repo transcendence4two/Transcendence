@@ -3,10 +3,10 @@ import Button from '../common/Button'
 import { GoogleIcon } from '../icons/Icons'
 
 const inputClassName =
-    'w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl ' +
-    'text-white placeholder-slate-500 focus:outline-none focus:ring-2 ' +
+    'w-full px-4 py-3 bg-slate-900/50 [.light_&]:bg-gray-100 [.light_&]:border-gray-300 [.light_&]:text-gray-900 border border-slate-600 rounded-xl ' +
+    'text-white placeholder-slate-500 [.light_&]:placeholder-gray-500 focus:outline-none focus:ring-2 ' +
     'focus:ring-cyan-500 focus:border-transparent transition-all'
-const labelClassName = 'block text-sm font-medium text-slate-300 ml-1'
+const labelClassName = 'block text-sm font-medium text-slate-300 [.light_&]:text-gray-700 ml-1'
 
 const RegisterForm = () => {
     const [formData, setFormData] = useState({
@@ -102,7 +102,7 @@ const RegisterForm = () => {
     return (
         <div className='w-full space-y-6'>
             <div className='text-center space-y-2'>
-                <h2 className='text-3xl font-bold text-white'>Create Account</h2>
+                <h2 className='text-3xl font-bold text-white in-[.light]:text-gray-900'>Create Account</h2>
             </div>
 
             <Button
@@ -116,9 +116,9 @@ const RegisterForm = () => {
             </Button>
 
             <div className='flex items-center gap-4 py-2'>
-                <div className='h-px bg-slate-700 flex-1' />
+                <div className='h-px bg-slate-700 in-[.light]:bg-gray-300 flex-1' />
                 <span className='text-slate-500 text-sm'>OR</span>
-                <div className='h-px bg-slate-700 flex-1' />
+                <div className='h-px bg-slate-700 in-[.light]:bg-gray-300 flex-1' />
             </div>
 
             <form onSubmit={handleSubmit} className='space-y-4 mt-8'>
@@ -208,6 +208,7 @@ const RegisterForm = () => {
 
                 <div className='pt-4'>
                     <Button
+                        type='submit'
                         className={`w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         disabled={isLoading}
                     >
