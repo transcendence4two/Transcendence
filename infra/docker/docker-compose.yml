@@ -83,6 +83,30 @@ services:
       timeout: 3s
       retries: 5
 
+  tournament-postgres:
+    image: postgres:16-alpine
+    container_name: tournament-postgres
+    environment:
+      - POSTGRES_DB=${TOURNAMENT_POSTGRES_DB:-tournament_service}
+      - POSTGRES_USER=${TOURNAMENT_POSTGRES_USER:-tournament_user}
+      - POSTGRES_PASSWORD=${TOURNAMENT_POSTGRES_PASSWORD:-tournament_password}
+    expose:
+      - "5432"
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    volumes:
+      - tournament_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${TOURNAMENT_POSTGRES_USER:-tournament_user} -d ${TOURNAMENT_POSTGRES_DB:-tournament_service}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   nginx:
     build:
       context: ../..
@@ -139,6 +163,9 @@ services:
     container_name: tournament-service
     networks:
       - transcendence-network
+    depends_on:
+      tournament-postgres:
+        condition: service_healthy
 
   emails-service:
     build:
@@ -159,6 +186,7 @@ services:
 volumes:
   esdata:
   kibana_data:
+  tournament_postgres_data:
 
 networks:
   transcendence-network:
