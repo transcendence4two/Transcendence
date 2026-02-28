@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from src.controller import auth as auth_controller
 from src.controller import user as user_controller
 from src.core.exception_handlers import (
     app_exception_handler,
@@ -49,6 +50,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 # Routes
 app.include_router(user_controller.router, prefix="/users", tags=["users"])
+app.include_router(auth_controller.router, prefix="/auth", tags=["auth"])
 
 
 @app.get("/health")
