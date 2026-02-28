@@ -2,6 +2,8 @@ services:
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:9.2.6
+    env_file:
+      - ../../.env
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -28,6 +30,8 @@ services:
   elasticsearch-setup:
     container_name: elasticsearch-setup
     image: elasticsearch:9.2.6
+    env_file:
+      - ../../.env
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |
@@ -57,6 +61,8 @@ services:
   logstash:
     container_name: logstash
     image: logstash:9.2.6
+    env_file:
+      - ../../.env
     ports:
       - "5000:5000"
       - "5044:5044"
@@ -74,6 +80,8 @@ services:
   kibana:
     container_name: kibana
     image: kibana:9.2.6
+    env_file:
+      - ../../.env
     ports:
       - "5601:5601"
     environment:
