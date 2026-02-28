@@ -74,6 +74,24 @@ Se quiser isolar o banco do `tournament-service`, a branch também aceita:
 
 Isso permite usar um banco dedicado para esse serviço sem reaproveitar a `DATABASE_URL` genérica do monorepo.
 
+### Configuração para PostgreSQL Dedicado
+Adicionar no `.env` da raiz:
+
+```env
+TOURNAMENT_DATABASE_URL=postgresql+asyncpg://tournament_user:tournament_password@tournament-postgres:5432/tournament_service
+TOURNAMENT_POSTGRES_DB=tournament_service
+TOURNAMENT_POSTGRES_USER=tournament_user
+TOURNAMENT_POSTGRES_PASSWORD=tournament_password
+```
+
+Depois subir com rebuild:
+
+```bash
+docker-compose -f infra/docker/docker-compose.yml up -d --build tournament-postgres tournament-service nginx
+```
+
+Se essas variáveis não forem definidas, o `tournament-service` continua no fallback atual do projeto.
+
 ### 3) Validar health checks
 ```bash
 curl -k https://localhost/api/health
@@ -264,3 +282,7 @@ Resultado esperado:
 - A correção limita a busca ao primeiro candidato elegível, faz captura condicional do oponente e protege a fila com índice único parcial.
 - A branch também está preparada para usar `FOR UPDATE SKIP LOCKED` quando o banco configurado for PostgreSQL.
 - Para validar esse ponto via Docker, é obrigatório rebuildar o container do `tournament-service` antes do teste, senão o `exec` continuará usando a imagem anterior.
+
+## Quando usar PostgreSQL na Review
+- Se a avaliadora quiser validar apenas o escopo funcional da task, o fallback atual já é suficiente.
+- Se a avaliadora quiser validar o comportamento alinhado a carga alta real, o ideal é ativar `TOURNAMENT_DATABASE_URL` com o PostgreSQL dedicado.

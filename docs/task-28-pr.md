@@ -40,6 +40,8 @@ Também foi adicionado webhook seguro para integração assíncrona com o Game S
 - A fila de matchmaking agora possui índice único parcial para impedir duas entradas `queued` do mesmo jogador.
 - A captura do oponente foi endurecida com atualização condicional.
 - Quando o serviço roda com PostgreSQL, a busca de oponente usa `FOR UPDATE SKIP LOCKED`.
+- O `docker-compose` agora inclui um PostgreSQL dedicado (`tournament-postgres`) para o `tournament-service`.
+- O `tournament-service` depende do health check desse banco quando o ambiente é iniciado via Docker.
 
 ## Modelagem Adicionada
 Arquivo: `backend/tournament-service/src/domain/models/tournament.py`
@@ -94,3 +96,15 @@ Resultado local:
 ## Fora de Escopo
 - Algoritmo avançado de matchmaking (MMR/ELO completo, janelas por latência, etc.).
 - Estratégias distribuídas de lock/coordenação entre múltiplas instâncias.
+
+## Configuração Opcional de PostgreSQL
+Para habilitar o banco dedicado do `tournament-service` no ambiente local:
+
+```env
+TOURNAMENT_DATABASE_URL=postgresql+asyncpg://tournament_user:tournament_password@tournament-postgres:5432/tournament_service
+TOURNAMENT_POSTGRES_DB=tournament_service
+TOURNAMENT_POSTGRES_USER=tournament_user
+TOURNAMENT_POSTGRES_PASSWORD=tournament_password
+```
+
+Sem `TOURNAMENT_DATABASE_URL`, o serviço continua com o fallback atual do projeto.
