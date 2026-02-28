@@ -1,4 +1,5 @@
 import logging
+import logging.config
 
 import structlog
 import os

@@ -1,6 +1,6 @@
-import logging
 from typing import Any
 
+import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +13,7 @@ from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 EMAIL_OTP_CHANNEL = "email:otp"
 TEMPORARY_TOKEN_EXPIRATION = 5  # minutes
@@ -42,7 +42,11 @@ class LoginCommand(Command):
         """Execute login authentication"""
         user = await self._authenticate_user()
 
-        logger.info(f"User {user.id} authenticated. 2FA enabled: {user.enable_2fa}")
+        logger.info(
+            "User authenticated",
+            user_id=user.id,
+            two_fa_enabled=user.enable_2fa,
+        )
 
         if user.enable_2fa:
             return await self._handle_2fa_flow(user)
@@ -56,24 +60,22 @@ class LoginCommand(Command):
         user = result.scalars().first()
 
         if user is None:
-            logger.warning(
-                f"Login attempt with non-existent email: {self.payload.email}"
-            )
+            logger.warning("Login attempt with non-existent email")
             raise InvalidCredentialsError("Email ou senha incorretos")
 
         if not self.password_service.verify_password(
             self.payload.password, user.hashed_password
         ):
-            logger.warning(f"Failed login attempt for user: {user.id}")
+            logger.warning("Failed login attempt", user_id=user.id)
             raise InvalidCredentialsError("Email ou senha incorretos")
 
-        logger.info(f"User authenticated successfully: {user.id}")
+        logger.info("User credentials validated", user_id=user.id)
         return user
 
     async def _handle_normal_login(self, user: User) -> dict[str, Any]:
         """Handle login for users without 2FA enabled"""
         access_token = self.token_service.create_token(user.id)
-        logger.info(f"Normal login completed for user: {user.id}")
+        logger.info("Normal login completed", user_id=user.id)
 
         return {
             "token": access_token,
@@ -83,28 +85,26 @@ class LoginCommand(Command):
 
     async def _handle_2fa_flow(self, user: User) -> dict[str, Any]:
         """Handle login for users with 2FA enabled"""
-        logger.info(f"Handling 2FA flow for user: {user.id}, email: {user.email}")
+        logger.info("Handling 2FA flow", user_id=user.id)
 
         temporary_token = self.token_service.create_token(
             user.id, expires_minutes=TEMPORARY_TOKEN_EXPIRATION
         )
 
         otp_code = self.otp_service.generate_otp()
-        logger.info(f"Generated OTP code for user {user.id}: {otp_code}")
 
         await self.otp_service.store_otp(user.id, otp_code)
-        logger.info(f"OTP code stored in Redis for user {user.id}")
+        logger.info("OTP code stored", user_id=user.id)
 
         event_data = {
             "email": user.email,
             "username": user.username,
             "otp_code": otp_code,
         }
-        logger.info(f"Publishing OTP event '{EMAIL_OTP_CHANNEL}' data: {event_data}")
 
         await self.event_publisher.publish(EMAIL_OTP_CHANNEL, event_data)
 
-        logger.info(f"2FA flow completed for user: {user.id}")
+        logger.info("2FA flow completed", user_id=user.id)
 
         return {
             "temporary_token": temporary_token,
