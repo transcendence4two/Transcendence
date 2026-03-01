@@ -42,6 +42,8 @@ tests:
 	cd backend/usermanagement-service && uv sync --extra test && uv run pytest
 	@echo "Running tests for tournament-service..."
 	cd backend/tournament-service && uv sync --extra test && uv run pytest
+	@echo "Running tests for game-service..."
+	cd backend/game-service && go test ./... -v -race
 
 lint:
 	@echo "Linting code with Ruff..."
@@ -56,4 +58,8 @@ clean: down
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all certs certs-clean deploy down logs tests lint format clean
+.PHONY: deps all certs certs-clean deploy down logs tests lint format clean game-test
+
+game-test:
+	@echo "Running tests for game-service..."
+	cd backend/game-service && go test ./... -v -race

@@ -159,6 +159,19 @@ services:
       redis:
         condition: service_healthy
 
+  game-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-game-service
+    env_file:
+      - ../../.env
+    expose:
+      - "8001"
+    restart: unless-stopped
+    container_name: game-service
+    networks:
+      - transcendence-network
+
   tournament-service:
     build:
       context: ../..
