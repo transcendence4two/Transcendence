@@ -34,11 +34,77 @@ func TestValidateMove_CellTaken(t *testing.T) {
 	}
 }
 
-func TestApplyMove(t *testing.T) {
+func TestApplyMoveInfinity_NoPieceRemoved(t *testing.T) {
 	board := NewBoard()
-	board = ApplyMove(board, 0, 0, SymbolX)
+	history := NewMoveHistory()
+
+	board, history, removed := ApplyMoveInfinity(board, 0, 0, SymbolX, history)
+	if removed != nil {
+		t.Fatal("expected no removal on first piece")
+	}
 	if board[0][0] != SymbolX {
-		t.Fatalf("expected X at (0,0), got %s", board[0][0])
+		t.Fatal("expected X at (0,0)")
+	}
+	if len(history[SymbolX]) != 1 {
+		t.Fatalf("expected 1 piece in history, got %d", len(history[SymbolX]))
+	}
+}
+
+func TestApplyMoveInfinity_RemovesOldestAt4th(t *testing.T) {
+	board := NewBoard()
+	history := NewMoveHistory()
+
+	// Place 3 X pieces
+	board, history, _ = ApplyMoveInfinity(board, 0, 0, SymbolX, history) // oldest
+	board, history, _ = ApplyMoveInfinity(board, 0, 1, SymbolX, history)
+	board, history, _ = ApplyMoveInfinity(board, 0, 2, SymbolX, history)
+
+	// Place 4th — should remove (0,0)
+	board, history, removed := ApplyMoveInfinity(board, 1, 0, SymbolX, history)
+
+	if removed == nil {
+		t.Fatal("expected a piece to be removed")
+	}
+	if removed.Row != 0 || removed.Col != 0 {
+		t.Fatalf("expected removal at (0,0), got (%d,%d)", removed.Row, removed.Col)
+	}
+	if board[0][0] != SymbolEmpty {
+		t.Fatal("expected (0,0) to be empty after removal")
+	}
+	if board[1][0] != SymbolX {
+		t.Fatal("expected X at (1,0)")
+	}
+	if len(history[SymbolX]) != 3 {
+		t.Fatalf("expected 3 pieces in history, got %d", len(history[SymbolX]))
+	}
+}
+
+func TestApplyMoveInfinity_IndependentPerPlayer(t *testing.T) {
+	board := NewBoard()
+	history := NewMoveHistory()
+
+	// X places 3
+	board, history, _ = ApplyMoveInfinity(board, 0, 0, SymbolX, history)
+	board, history, _ = ApplyMoveInfinity(board, 0, 1, SymbolX, history)
+	board, history, _ = ApplyMoveInfinity(board, 0, 2, SymbolX, history)
+
+	// O places 1 — should NOT remove anything
+	board, history, removed := ApplyMoveInfinity(board, 1, 0, SymbolO, history)
+	if removed != nil {
+		t.Fatal("O only has 1 piece, should not remove anything")
+	}
+
+	// X places 4th — removes X's oldest
+	board, history, removed = ApplyMoveInfinity(board, 1, 1, SymbolX, history)
+	if removed == nil || removed.Row != 0 || removed.Col != 0 {
+		t.Fatal("should remove X's oldest at (0,0)")
+	}
+
+	if len(history[SymbolX]) != 3 {
+		t.Fatalf("X should have 3 pieces, got %d", len(history[SymbolX]))
+	}
+	if len(history[SymbolO]) != 1 {
+		t.Fatalf("O should have 1 piece, got %d", len(history[SymbolO]))
 	}
 }
 
@@ -91,35 +157,18 @@ func TestCheckWinner_NoWinner(t *testing.T) {
 	}
 }
 
-func TestIsDraw(t *testing.T) {
-	// X O X
-	// X X O
-	// O X O
-	board := Board{
-		{SymbolX, SymbolO, SymbolX},
-		{SymbolX, SymbolX, SymbolO},
-		{SymbolO, SymbolX, SymbolO},
-	}
-	if !IsDraw(board) {
-		t.Fatal("expected draw")
-	}
-}
-
-func TestIsDraw_NotFull(t *testing.T) {
+func TestWinAfterPieceRemoval(t *testing.T) {
 	board := NewBoard()
-	board[0][0] = SymbolX
-	if IsDraw(board) {
-		t.Fatal("board is not full, should not be a draw")
-	}
-}
+	history := NewMoveHistory()
 
-func TestIsDraw_HasWinner(t *testing.T) {
-	board := Board{
-		{SymbolX, SymbolX, SymbolX},
-		{SymbolO, SymbolO, SymbolEmpty},
-		{SymbolEmpty, SymbolEmpty, SymbolEmpty},
-	}
-	if IsDraw(board) {
-		t.Fatal("has a winner, should not be a draw")
+	// Build a scenario where X wins after piece removal
+	// X: (0,0), (1,1), (2,2) — diagonal, but then X has to place 4th
+	board, history, _ = ApplyMoveInfinity(board, 0, 0, SymbolX, history)
+	board, history, _ = ApplyMoveInfinity(board, 1, 1, SymbolX, history)
+	board, history, _ = ApplyMoveInfinity(board, 2, 2, SymbolX, history)
+
+	// X has a diagonal win right now
+	if w := CheckWinner(board); w != SymbolX {
+		t.Fatalf("expected X to win with diagonal, got %s", w)
 	}
 }

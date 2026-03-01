@@ -31,12 +31,20 @@ func (s GameState) String() string {
 	}
 }
 
-const BoardSize = 3
+const (
+	BoardSize       = 3
+	MaxPiecesPerPlayer = 3
+)
 
 type Board [BoardSize][BoardSize]Symbol
 
 func NewBoard() Board {
 	return Board{}
+}
+
+type Position struct {
+	Row int `json:"row"`
+	Col int `json:"col"`
 }
 
 type Player struct {
@@ -50,11 +58,20 @@ type Move struct {
 	Col      int    `json:"col"`
 }
 
+// MoveHistory tracks placement order per symbol (FIFO queue).
+type MoveHistory map[Symbol][]Position
+
+func NewMoveHistory() MoveHistory {
+	return MoveHistory{
+		SymbolX: {},
+		SymbolO: {},
+	}
+}
+
 type GameResult struct {
 	SessionID string    `json:"session_id"`
-	WinnerID  string    `json:"winner_id,omitempty"`
-	LoserID   string    `json:"loser_id,omitempty"`
-	IsDraw    bool      `json:"is_draw"`
+	WinnerID  string    `json:"winner_id"`
+	LoserID   string    `json:"loser_id"`
 	Reason    string    `json:"reason"`
 	Board     Board     `json:"board"`
 	StartedAt time.Time `json:"started_at"`

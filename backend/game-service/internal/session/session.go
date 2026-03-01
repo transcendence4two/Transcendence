@@ -16,27 +16,30 @@ type NotifyFunc func(playerID string, msg protocol.ServerMessage)
 type Session struct {
 	mu sync.Mutex
 
-	ID        string
-	Board     domain.Board
-	State     domain.GameState
-	Players   [2]*domain.Player
-	TurnIndex int
-	StartedAt time.Time
-	CreatedAt time.Time
+	ID          string
+	Board       domain.Board
+	State       domain.GameState
+	Players     [2]*domain.Player
+	TurnIndex   int
+	MoveHistory domain.MoveHistory
+	StartedAt   time.Time
+	CreatedAt   time.Time
 
-	broadcast BroadcastFunc
-	notify    NotifyFunc
+	lastRemoved *domain.Position
+	broadcast   BroadcastFunc
+	notify      NotifyFunc
 }
 
 func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc) *Session {
 	return &Session{
-		ID:        id,
-		Board:     domain.NewBoard(),
-		State:     domain.StateWaiting,
-		TurnIndex: 0,
-		CreatedAt: time.Now(),
-		broadcast: broadcast,
-		notify:    notify,
+		ID:          id,
+		Board:       domain.NewBoard(),
+		State:       domain.StateWaiting,
+		TurnIndex:   0,
+		MoveHistory: domain.NewMoveHistory(),
+		CreatedAt:   time.Now(),
+		broadcast:   broadcast,
+		notify:      notify,
 	}
 }
 
@@ -100,17 +103,18 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 		return err
 	}
 
-	s.Board = domain.ApplyMove(s.Board, row, col, currentPlayer.Symbol)
+	var removed *domain.Position
+	s.Board, s.MoveHistory, removed = domain.ApplyMoveInfinity(
+		s.Board, row, col, currentPlayer.Symbol, s.MoveHistory,
+	)
+	s.lastRemoved = removed
+
 	slog.Info("move applied", "session", s.ID, "player", playerID,
-		"row", row, "col", col, "symbol", currentPlayer.Symbol)
+		"row", row, "col", col, "symbol", currentPlayer.Symbol,
+		"removed", removed)
 
 	if winner := domain.CheckWinner(s.Board); winner != domain.SymbolEmpty {
 		s.finishGame(playerID, "checkmate")
-		return nil
-	}
-
-	if domain.IsDraw(s.Board) {
-		s.finishGame("", "draw")
 		return nil
 	}
 
@@ -155,28 +159,22 @@ func (s *Session) finishGame(winnerID, reason string) {
 	s.State = domain.StateFinished
 
 	var loserID string
-	if winnerID != "" {
-		for _, p := range s.Players {
-			if p != nil && p.ID != winnerID {
-				loserID = p.ID
-			}
+	for _, p := range s.Players {
+		if p != nil && p.ID != winnerID {
+			loserID = p.ID
 		}
 	}
-
-	isDraw := reason == "draw"
 
 	slog.Info("game finished",
 		"session", s.ID,
 		"winner", winnerID,
 		"reason", reason,
-		"is_draw", isDraw,
 	)
 
 	s.broadcast(s.ID, protocol.ServerMessage{
 		Type: protocol.TypeGameOver,
 		Payload: protocol.GameOverPayload{
 			WinnerID: winnerID,
-			IsDraw:   isDraw,
 			Reason:   reason,
 			Board:    s.boardToStrings(),
 		},
@@ -187,7 +185,6 @@ func (s *Session) finishGame(winnerID, reason string) {
 		SessionID: s.ID,
 		WinnerID:  winnerID,
 		LoserID:   loserID,
-		IsDraw:    isDraw,
 		Reason:    reason,
 		Board:     s.Board,
 		StartedAt: s.StartedAt,
@@ -208,6 +205,13 @@ func (s *Session) buildStatePayload() protocol.GameStatePayload {
 	payload := protocol.GameStatePayload{
 		Board: s.boardToStrings(),
 		State: s.State.String(),
+	}
+
+	if s.lastRemoved != nil {
+		payload.RemovedPiece = &protocol.PositionDTO{
+			Row: s.lastRemoved.Row,
+			Col: s.lastRemoved.Col,
+		}
 	}
 
 	if s.State == domain.StatePlaying && s.Players[s.TurnIndex] != nil {

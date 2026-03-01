@@ -22,10 +22,21 @@ func ValidateMove(board Board, move Move) error {
 	return nil
 }
 
-// ApplyMove does NOT validate — call ValidateMove first.
-func ApplyMove(board Board, row, col int, symbol Symbol) Board {
+// ApplyMoveInfinity places a piece and removes the oldest if the player exceeds MaxPiecesPerPlayer.
+// Returns the updated board, updated history, and the removed position (nil if none).
+func ApplyMoveInfinity(board Board, row, col int, symbol Symbol, history MoveHistory) (Board, MoveHistory, *Position) {
 	board[row][col] = symbol
-	return board
+	history[symbol] = append(history[symbol], Position{Row: row, Col: col})
+
+	var removed *Position
+	if len(history[symbol]) > MaxPiecesPerPlayer {
+		oldest := history[symbol][0]
+		board[oldest.Row][oldest.Col] = SymbolEmpty
+		history[symbol] = history[symbol][1:]
+		removed = &oldest
+	}
+
+	return board, history, removed
 }
 
 func CheckWinner(board Board) Symbol {
@@ -46,18 +57,4 @@ func CheckWinner(board Board) Symbol {
 	}
 
 	return SymbolEmpty
-}
-
-func IsDraw(board Board) bool {
-	if CheckWinner(board) != SymbolEmpty {
-		return false
-	}
-	for i := 0; i < BoardSize; i++ {
-		for j := 0; j < BoardSize; j++ {
-			if board[i][j] == SymbolEmpty {
-				return false
-			}
-		}
-	}
-	return true
 }

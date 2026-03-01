@@ -1,0 +1,265 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #818cf8, #f472b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 2rem;
+}
+
+/* Lobby */
+
+.lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.lobby-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.divider {
+  color: #475569;
+  font-size: 0.8rem;
+  text-align: center;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background: #334155;
+}
+
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
+
+.session-info {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.session-info code {
+  background: #1e293b;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #818cf8;
+}
+
+/* Join Form */
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 0.25rem;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-group input {
+  padding: 0.625rem 0.75rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  border-color: #818cf8;
+}
+
+/* Buttons */
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn--secondary {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+  margin-top: 1.5rem;
+}
+
+.btn--secondary:hover {
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+/* Game */
+
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.game-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.badge {
+  padding: 0.25rem 0.625rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.badge--connected {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+.badge--copy {
+  cursor: pointer;
+  border-color: rgba(129, 140, 248, 0.3);
+  color: #94a3b8;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.badge--copy:hover {
+  border-color: #818cf8;
+  color: #e2e8f0;
+}
+
+.badge--x {
+  border-color: rgba(129, 140, 248, 0.4);
+  color: #818cf8;
+}
+
+.badge--o {
+  border-color: rgba(244, 114, 182, 0.4);
+  color: #f472b6;
+}
+
+.status {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.5rem;
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+/* Event Log */
+
+.event-log {
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.event-log summary {
+  cursor: pointer;
+  color: #64748b;
+  font-size: 0.8rem;
+  padding: 0.5rem;
+}
+
+.events {
+  max-height: 200px;
+  overflow-y: auto;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.event {
+  padding: 0.2rem 0;
+  color: #94a3b8;
+  word-break: break-all;
+}
+
+.event-type {
+  color: #818cf8;
+  margin-right: 0.5rem;
+}

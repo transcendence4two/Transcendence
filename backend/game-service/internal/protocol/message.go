@@ -36,10 +36,16 @@ const (
 )
 
 type GameStatePayload struct {
-	Board       [3][3]string `json:"board"`
-	CurrentTurn string       `json:"current_turn"`
-	State       string       `json:"state"`
-	Players     []PlayerInfo `json:"players"`
+	Board        [3][3]string `json:"board"`
+	CurrentTurn  string       `json:"current_turn"`
+	State        string       `json:"state"`
+	Players      []PlayerInfo `json:"players"`
+	RemovedPiece *PositionDTO `json:"removed_piece,omitempty"`
+}
+
+type PositionDTO struct {
+	Row int `json:"row"`
+	Col int `json:"col"`
 }
 
 type PlayerInfo struct {
@@ -48,8 +54,7 @@ type PlayerInfo struct {
 }
 
 type GameOverPayload struct {
-	WinnerID string       `json:"winner_id,omitempty"`
-	IsDraw   bool         `json:"is_draw"`
+	WinnerID string       `json:"winner_id"`
 	Reason   string       `json:"reason"`
 	Board    [3][3]string `json:"board"`
 }
