@@ -237,6 +237,8 @@ class TournamentService(TournamentManager):
             payload.tournament_id.strip() if payload.tournament_id else None
         )
 
+        await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
+
         queue_entry = MatchmakingQueueEntry(
             id=str(uuid4()),
             user_id=normalized_user_id,
@@ -543,6 +545,20 @@ class TournamentService(TournamentManager):
             return list(query_result.scalars().all())
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch round matches") from database_exception
+
+    async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
+        statement = select(MatchmakingQueueEntry).where(
+            MatchmakingQueueEntry.user_id == user_id,
+            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+        )
+        try:
+            query_result = await self.session.execute(statement)
+            existing_queue_entry = query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to validate matchmaking queue entry") from database_exception
+
+        if existing_queue_entry is not None:
+            raise MatchmakingQueueError("Player is already queued for matchmaking")
 
     async def _claim_matchmaking_opponent(
         self,
