@@ -180,3 +180,10 @@ class MatchPlayerSnapshot(Base):
     disconnect_count = Column(Integer, nullable=False, default=0)
     latency_average_ms = Column(Integer, nullable=True)
     latency_max_ms = Column(Integer, nullable=True)
+
+
+class MatchmakingTransactionLock(Base):
+    __tablename__ = "matchmaking_transaction_locks"
+
+    lock_name = Column(String, primary_key=True)
+    locked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

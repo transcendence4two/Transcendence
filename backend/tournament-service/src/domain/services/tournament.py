@@ -22,6 +22,7 @@ from src.domain.models.tournament import (
     MatchRecordStatus,
     MatchmakingQueueEntry,
     MatchmakingQueueStatus,
+    MatchmakingTransactionLock,
     MatchStatus,
     PlayerStats,
     Tournament,
@@ -40,6 +41,8 @@ from src.domain.schemas.tournament import (
 
 class TournamentService(TournamentManager):
     """Service for tournament operations."""
+
+    MATCHMAKING_LOCK_NAME = "global_matchmaking_join"
 
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -237,21 +240,25 @@ class TournamentService(TournamentManager):
             payload.tournament_id.strip() if payload.tournament_id else None
         )
 
-        await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
-
-        queue_entry = MatchmakingQueueEntry(
-            id=str(uuid4()),
-            user_id=normalized_user_id,
-            display_name=normalized_display_name,
-            skill_rating=payload.skill_rating,
-            preferred_game_mode=normalized_game_mode,
-            tournament_id=normalized_tournament_id,
-            status=MatchmakingQueueStatus.QUEUED.value,
-        )
-
-        self.session.add(queue_entry)
+        queue_entry: MatchmakingQueueEntry | None = None
+        acquired_lock = False
 
         try:
+            await self._acquire_matchmaking_transaction_lock()
+            acquired_lock = True
+            await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
+
+            queue_entry = MatchmakingQueueEntry(
+                id=str(uuid4()),
+                user_id=normalized_user_id,
+                display_name=normalized_display_name,
+                skill_rating=payload.skill_rating,
+                preferred_game_mode=normalized_game_mode,
+                tournament_id=normalized_tournament_id,
+                status=MatchmakingQueueStatus.QUEUED.value,
+            )
+
+            self.session.add(queue_entry)
             await self.session.flush()
             matched_opponent = await self._claim_matchmaking_opponent(
                 preferred_game_mode=normalized_game_mode,
@@ -262,6 +269,8 @@ class TournamentService(TournamentManager):
                 match_timestamp = datetime.now(timezone.utc)
                 queue_entry.status = MatchmakingQueueStatus.MATCHED.value
                 queue_entry.matched_at = match_timestamp
+            await self._release_matchmaking_transaction_lock()
+            acquired_lock = False
             await self.session.commit()
             await self.session.refresh(queue_entry)
             return queue_entry
@@ -273,6 +282,9 @@ class TournamentService(TournamentManager):
         except SQLAlchemyError as database_exception:
             await self.session.rollback()
             raise DatabaseError("Failed to enqueue player in matchmaking") from database_exception
+        finally:
+            if acquired_lock:
+                await self.session.rollback()
 
     async def save_match_record(
         self,
@@ -559,6 +571,29 @@ class TournamentService(TournamentManager):
 
         if existing_queue_entry is not None:
             raise MatchmakingQueueError("Player is already queued for matchmaking")
+
+    async def _acquire_matchmaking_transaction_lock(self) -> None:
+        matchmaking_lock = MatchmakingTransactionLock(
+            lock_name=self.MATCHMAKING_LOCK_NAME
+        )
+        self.session.add(matchmaking_lock)
+        try:
+            await self.session.flush()
+        except IntegrityError as integrity_exception:
+            await self.session.rollback()
+            raise DatabaseError("Failed to acquire matchmaking transaction lock") from (
+                integrity_exception
+            )
+
+    async def _release_matchmaking_transaction_lock(self) -> None:
+        matchmaking_lock = await self.session.get(
+            MatchmakingTransactionLock,
+            self.MATCHMAKING_LOCK_NAME,
+        )
+        if matchmaking_lock is None:
+            return
+        await self.session.delete(matchmaking_lock)
+        await self.session.flush()
 
     async def _claim_matchmaking_opponent(
         self,

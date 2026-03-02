@@ -1,9 +1,21 @@
+import asyncio
+import os
+import tempfile
 from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
-from src.domain.models.tournament import MatchmakingQueueEntry, MatchmakingQueueStatus
+from src.domain.models.tournament import (
+    Base,
+    MatchmakingQueueEntry,
+    MatchmakingQueueStatus,
+)
+from src.domain.schemas.tournament import TournamentJoinQueueRequest
+from src.domain.services.tournament import TournamentService
 
 WEBHOOK_HEADER_NAME = "X-Webhook-Token"
 WEBHOOK_SHARED_SECRET = "local-webhook-token"
@@ -204,6 +216,64 @@ class TestTournamentEndpoints:
 
         assert join_response.status_code == 201
         assert join_response.json()["status"] == "matched"
+
+    async def test_join_matchmaking_queue_serializes_concurrent_requests(self):
+        database_file_descriptor, database_path = tempfile.mkstemp(suffix=".db")
+        os.close(database_file_descriptor)
+        database_url = f"sqlite+aiosqlite:///{database_path}"
+        engine = create_async_engine(database_url, connect_args={"timeout": 30})
+
+        try:
+            async with engine.begin() as connection:
+                await connection.run_sync(Base.metadata.create_all)
+
+            async_session_factory = sessionmaker(
+                engine,
+                class_=AsyncSession,
+                expire_on_commit=False,
+            )
+
+            async def join_queue(request_index: int) -> str:
+                async with async_session_factory() as session:
+                    tournament_service = TournamentService(session=session)
+                    queue_payload = TournamentJoinQueueRequest(
+                        user_id=f"concurrent_player_{request_index}",
+                        display_name=f"Concurrent Player {request_index}",
+                        preferred_game_mode="pong_1v1",
+                    )
+                    queue_entry = await tournament_service.join_matchmaking_queue(
+                        queue_payload
+                    )
+                    return queue_entry.status
+
+            join_results = await asyncio.gather(
+                *(join_queue(request_index) for request_index in range(20))
+            )
+
+            assert len(join_results) == 20
+            assert all(queue_status in {"queued", "matched"} for queue_status in join_results)
+
+            async with async_session_factory() as verification_session:
+                queued_query_result = await verification_session.execute(
+                    select(MatchmakingQueueEntry).where(
+                        MatchmakingQueueEntry.status
+                        == MatchmakingQueueStatus.QUEUED.value
+                    )
+                )
+                matched_query_result = await verification_session.execute(
+                    select(MatchmakingQueueEntry).where(
+                        MatchmakingQueueEntry.status
+                        == MatchmakingQueueStatus.MATCHED.value
+                    )
+                )
+                queued_entries = list(queued_query_result.scalars().all())
+                matched_entries = list(matched_query_result.scalars().all())
+
+            assert len(queued_entries) == 0
+            assert len(matched_entries) == 20
+        finally:
+            await engine.dispose()
+            os.remove(database_path)
 
     async def test_save_match_record_persists_match_and_players(self, client: AsyncClient):
         save_payload = build_match_record_payload()
