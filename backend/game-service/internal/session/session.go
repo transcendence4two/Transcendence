@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/domain"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/protocol"
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 )
 
 type BroadcastFunc func(sessionID string, msg protocol.ServerMessage)
@@ -25,12 +27,14 @@ type Session struct {
 	StartedAt   time.Time
 	CreatedAt   time.Time
 
+	Config      *SessionConfig
 	lastRemoved *domain.Position
 	broadcast   BroadcastFunc
 	notify      NotifyFunc
+	tournament  tournament.Client
 }
 
-func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc) *Session {
+func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *SessionConfig) *Session {
 	return &Session{
 		ID:          id,
 		Board:       domain.NewBoard(),
@@ -38,8 +42,10 @@ func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc) *Session 
 		TurnIndex:   0,
 		MoveHistory: domain.NewMoveHistory(),
 		CreatedAt:   time.Now(),
+		Config:      cfg,
 		broadcast:   broadcast,
 		notify:      notify,
+		tournament:  tc,
 	}
 }
 
@@ -180,16 +186,45 @@ func (s *Session) finishGame(winnerID, reason string) {
 		},
 	})
 
-	// TODO: delegate result to Tournament Service
-	_ = domain.GameResult{
-		SessionID: s.ID,
-		WinnerID:  winnerID,
-		LoserID:   loserID,
-		Reason:    reason,
-		Board:     s.Board,
-		StartedAt: s.StartedAt,
-		EndedAt:   time.Now(),
+	s.reportToTournament(winnerID, loserID)
+}
+
+func (s *Session) reportToTournament(winnerID, loserID string) {
+	if s.Config == nil || s.tournament == nil {
+		return
 	}
+
+	winnerParticipant, ok := s.Config.ParticipantMap[winnerID]
+	if !ok {
+		slog.Warn("winner not found in participant map", "winner", winnerID)
+		return
+	}
+
+	winnerScore, loserScore := 1, 0
+
+	// Determine player order to match tournament's player_one/player_two
+	p1Score, p2Score := winnerScore, loserScore
+	if s.Players[1] != nil && s.Players[1].ID == winnerID {
+		p1Score, p2Score = loserScore, winnerScore
+	}
+
+	payload := tournament.MatchResultPayload{
+		WinnerParticipantID: winnerParticipant,
+		PlayerOneScore:      p1Score,
+		PlayerTwoScore:      p2Score,
+	}
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := s.tournament.ReportResult(ctx, s.Config.TournamentID, s.Config.MatchID, payload); err != nil {
+			slog.Error("failed to report result to tournament",
+				"session", s.ID,
+				"error", err,
+			)
+		}
+	}()
 }
 
 // broadcastState must be called with s.mu held.

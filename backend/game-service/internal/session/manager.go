@@ -6,33 +6,41 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 )
 
 type Manager struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
 
-	broadcast BroadcastFunc
-	notify    NotifyFunc
+	broadcast  BroadcastFunc
+	notify     NotifyFunc
+	tournament tournament.Client
 }
 
-func NewManager(broadcast BroadcastFunc, notify NotifyFunc) *Manager {
+func NewManager(broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client) *Manager {
 	return &Manager{
-		sessions:  make(map[string]*Session),
-		broadcast: broadcast,
-		notify:    notify,
+		sessions:   make(map[string]*Session),
+		broadcast:  broadcast,
+		notify:     notify,
+		tournament: tc,
 	}
 }
 
 func (m *Manager) CreateSession() string {
+	return m.CreateSessionWithConfig(nil)
+}
+
+func (m *Manager) CreateSessionWithConfig(cfg *SessionConfig) string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	id := uuid.New().String()
-	session := NewSession(id, m.broadcast, m.notify)
+	session := NewSession(id, m.broadcast, m.notify, m.tournament, cfg)
 	m.sessions[id] = session
 
-	slog.Info("session created", "session_id", id)
+	slog.Info("session created", "session_id", id,
+		"has_tournament_config", cfg != nil)
 	return id
 }
 
@@ -44,7 +52,7 @@ func (m *Manager) GetOrCreateSession(id string) *Session {
 		return session
 	}
 
-	session := NewSession(id, m.broadcast, m.notify)
+	session := NewSession(id, m.broadcast, m.notify, m.tournament, nil)
 	m.sessions[id] = session
 	slog.Info("session created on demand", "session_id", id)
 	return session

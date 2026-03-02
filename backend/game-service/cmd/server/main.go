@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/config"
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/transport"
 )
 
@@ -22,7 +23,10 @@ func main() {
 
 	cfg := config.Load()
 
-	hub := transport.NewHub()
+	tc := tournament.NewHTTPClient(cfg.TournamentServiceURL)
+	slog.Info("tournament client configured", "url", cfg.TournamentServiceURL)
+
+	hub := transport.NewHub(tc)
 	go hub.Run()
 
 	mux := http.NewServeMux()

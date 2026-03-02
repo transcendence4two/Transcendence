@@ -7,6 +7,7 @@ import (
 
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/protocol"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/session"
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 )
 
 type Hub struct {
@@ -19,13 +20,13 @@ type Hub struct {
 	sessionMgr *session.Manager
 }
 
-func NewHub() *Hub {
+func NewHub(tc tournament.Client) *Hub {
 	h := &Hub{
 		clients:    make(map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 	}
-	h.sessionMgr = session.NewManager(h.BroadcastToSession, h.NotifyPlayer)
+	h.sessionMgr = session.NewManager(h.BroadcastToSession, h.NotifyPlayer, tc)
 	return h
 }
 
