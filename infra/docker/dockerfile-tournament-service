@@ -6,8 +6,11 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY backend/tournament-service/pyproject.toml /tmp/pyproject.toml
-RUN dependencies="$(python -c "import tomllib; pyproject_file=open('/tmp/pyproject.toml','rb'); print(' '.join(tomllib.load(pyproject_file)['project']['dependencies']))")" \
+RUN dependencies="$(python -c "import tomllib; pyproject_file=open('/tmp/pyproject.toml','rb'); print(' '.join(d for d in tomllib.load(pyproject_file)['project']['dependencies'] if d != 'shared-middlewares'))")" \
     && uv pip install --system --no-cache-dir ${dependencies}
+
+COPY backend/shared /tmp/shared
+RUN uv pip install --system --no-cache-dir /tmp/shared && rm -rf /tmp/shared
 
 COPY backend/tournament-service/src /app/src
 COPY backend/tournament-service/main.py /app/main.py
