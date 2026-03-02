@@ -64,7 +64,7 @@ git pull
 make deploy
 ```
 
-Se a avaliadora estiver testando após atualizar a branch com código novo do `tournament-service`, prefira rebuild explícito:
+Se   estiver testando após atualizar a branch com código novo do `tournament-service`, prefira rebuild explícito:
 ```bash
 docker-compose -f infra/docker/docker-compose.yml up -d --build tournament-service nginx
 ```
@@ -256,6 +256,21 @@ Resultado esperado:
 - status `201`
 - partida salva com sucesso
 
+## Teste 6 - Concorrência no Matchmaking
+
+Para validar o hardening de concorrência no `join`, execute 20 chamadas simultâneas:
+
+```bash
+seq 1 20 | xargs -P 20 -I {} curl -sk -X POST https://localhost/api/tournaments/join \
+  -H "Content-Type: application/json" \
+  -d "{\"user_id\":\"load_user_{}\",\"display_name\":\"Load User {}\",\"preferred_game_mode\":\"pong_1v1\"}"
+```
+
+Resultado esperado:
+- não deve haver `500`
+- as respostas devem retornar `queued` ou `matched`
+- o serviço não deve permitir inconsistência por duplicidade do mesmo jogador
+
 ## Teste Automatizado
 
 ```bash
@@ -267,7 +282,7 @@ uv run pytest -q
 Resultado esperado:
 - `9 passed`
 
-## O que a avaliadora deve confirmar
+## O que   deve confirmar
 
 1. Os endpoints pedidos pela task existem (`/join` e `/save`).
 2. A fila impede duplicidade de jogador.
@@ -275,6 +290,7 @@ Resultado esperado:
 4. As estatísticas do jogador são atualizadas.
 5. O webhook exige token válido.
 6. O histórico está rastreável por commits atômicos.
+7. O fluxo de `join` não apresenta `500` sob concorrência simples de review.
 
 ## Nota de Concorrência
 - Houve reprodução de erro com 10 requisições simultâneas no fluxo antigo de matchmaking.
@@ -285,8 +301,8 @@ Resultado esperado:
 - Para validar esse ponto via Docker, é obrigatório rebuildar o container do `tournament-service` antes do teste, senão o `exec` continuará usando a imagem anterior.
 
 ## Quando usar PostgreSQL na Review
-- Se a avaliadora quiser validar apenas o escopo funcional da task, o fallback atual já é suficiente.
-- Se a avaliadora quiser validar o comportamento alinhado a carga alta real, o ideal é ativar `TOURNAMENT_DATABASE_URL` com o PostgreSQL dedicado.
+- Se   quiser validar apenas o escopo funcional da task, o fallback atual já é suficiente.
+- Se   quiser validar o comportamento alinhado a carga alta real, o ideal é ativar `TOURNAMENT_DATABASE_URL` com o PostgreSQL dedicado.
 
 ## Como a branch trata Data Race
 - O `join` do matchmaking entra primeiro em um lock transacional persistido no banco.
