@@ -1,4 +1,106 @@
 services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:9.2.6
+    env_file:
+      - ../../.env
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+      - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -u elastic:${ELASTIC_PASSWORD} http://localhost:9200 >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+
+  elasticsearch-setup:
+    container_name: elasticsearch-setup
+    image: elasticsearch:9.2.6
+    env_file:
+      - ../../.env
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        for i in {1..60}; do
+          if curl -fsS -u "elastic:${ELASTIC_PASSWORD}" \
+            -H "Content-Type: application/json" \
+            -X POST "http://elasticsearch:9200/_security/user/kibana_system/_password" \
+            -d "{\"password\":\"${ELASTICSEARCH_PASSWORD}\"}" >/dev/null; then
+            echo "kibana_system password configured"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "failed to configure kibana_system password" >&2
+        exit 1
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    restart: "no"
+    networks:
+      - transcendence-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  logstash:
+    container_name: logstash
+    image: logstash:9.2.6
+    env_file:
+      - ../../.env
+    ports:
+      - "5000:5000"
+      - "5044:5044"
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - ../logstash/pipeline/default.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    networks:
+      - transcendence-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    container_name: kibana
+    image: kibana:9.2.6
+    env_file:
+      - ../../.env
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY}
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${XPACK_REPORTING_ENCRYPTIONKEY}
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+      - ../kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      elasticsearch-setup:
+        condition: service_completed_successfully
+
   redis:
     image: redis:7-alpine
     ports:
@@ -23,6 +125,7 @@ services:
       - ../certs:/etc/nginx/certs:ro
     depends_on:
       - usermanagement-service
+      - tournament-service
       - frontend
     restart: unless-stopped
     container_name: nginx
@@ -52,6 +155,22 @@ services:
     container_name: usermanagement-service
     networks:
       - transcendence-network
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  tournament-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-tournament-service
+    env_file:
+      - ../../.env
+    expose:
+      - "8002"
+    restart: unless-stopped
+    container_name: tournament-service
+    networks:
+      - transcendence-network
 
   emails-service:
     build:
@@ -63,9 +182,15 @@ services:
       - "4001:4001"
     restart: unless-stopped
     container_name: emails-service
+    networks:
+      - transcendence-network
     depends_on:
       redis:
         condition: service_healthy
+
+volumes:
+  esdata:
+  kibana_data:
 
 networks:
   transcendence-network:

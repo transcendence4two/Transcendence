@@ -1,4 +1,4 @@
-DOCKER_COMPOSE = docker-compose -f infra/docker/docker-compose.yml
+DOCKER_COMPOSE = docker-compose --env-file .env -f infra/docker/docker-compose.yml
 
 frontend:
 	@echo "Starting frontend service locally..."
@@ -40,6 +40,8 @@ logs:
 tests:
 	@echo "Running tests for usermanagement-service..."
 	cd backend/usermanagement-service && uv sync --extra test && uv run pytest
+	@echo "Running tests for tournament-service..."
+	cd backend/tournament-service && uv sync --extra test && uv run pytest
 
 lint:
 	@echo "Linting code with Ruff..."

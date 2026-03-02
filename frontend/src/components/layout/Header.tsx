@@ -1,12 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SunIcon, MoonIcon } from '../icons/Icons'
 
 const Header = () => {
-    const [isDarkMode, setIsDarkMode] = useState(true)
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        const savedTheme = localStorage.getItem('theme')
+        return savedTheme ? savedTheme === 'dark' : true
+    })
+
+    useEffect(() => {
+        const root = document.documentElement
+        if (isDarkMode) {
+            root.classList.remove('light')
+            localStorage.setItem('theme', 'dark')
+        } else {
+            root.classList.add('light')
+            localStorage.setItem('theme', 'light')
+        }
+    }, [isDarkMode])
 
     const toggleTheme = () => {
-        setIsDarkMode(!isDarkMode)
-        document.documentElement.classList.toggle('light')
+        setIsDarkMode(prev => !prev)
     }
 
     return (
