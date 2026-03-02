@@ -1,5 +1,4 @@
-import logging
-
+import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +7,7 @@ from src.domain.models.user import User
 from src.domain.schemas.user import UserProfileUpdateRequest
 from src.domain.services.commands.base import Command
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class UpdateUserProfileCommand(Command):
@@ -27,15 +26,26 @@ class UpdateUserProfileCommand(Command):
     async def execute(self) -> User:
         user = await self._get_user()
 
+        updated_fields = []
+
         if self.payload.username:
             await self._ensure_username_unique(self.payload.username)
             user.username = self.payload.username
+            updated_fields.append("username")
 
         if self.payload.email:
             await self._ensure_email_unique(self.payload.email)
             user.email = self.payload.email
+            updated_fields.append("email")
 
         updated_user = await self._persist(user)
+
+        logger.info(
+            "User profile updated",
+            user_id=self.user_id,
+            updated_fields=updated_fields,
+        )
+
         return updated_user
 
     async def _get_user(self) -> User:
@@ -44,6 +54,7 @@ class UpdateUserProfileCommand(Command):
         user = result.scalars().first()
 
         if not user:
+            logger.warning("User not found for profile update", user_id=self.user_id)
             raise UserNotFoundError(f"User with id '{self.user_id}' not found")
 
         return user

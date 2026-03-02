@@ -9,6 +9,9 @@ COPY backend/usermanagement-service/pyproject.toml /tmp/pyproject.toml
 RUN deps="$(python -c "import tomllib; f=open('/tmp/pyproject.toml','rb'); print(' '.join(tomllib.load(f)['project']['dependencies']))")" \
     && uv pip install --system --no-cache-dir ${deps}
 
+COPY backend/shared /tmp/shared
+RUN uv pip install --system --no-cache-dir /tmp/shared && rm -rf /tmp/shared
+
 COPY backend/usermanagement-service/src /app/src
 COPY backend/usermanagement-service/main.py /app/main.py
 

@@ -1,3 +1,4 @@
+import structlog
 from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,6 +28,8 @@ from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
 
+logger = structlog.get_logger()
+
 EMAIL_WELCOME_CHANNEL = "email:welcome"
 EMAIL_OTP_CHANNEL = "email:otp"
 
@@ -55,6 +58,7 @@ class UserService(UserRegister, UserOperations):
             payload=payload,
         )
         user = await command.execute()
+        logger.info("Sending welcome email", user_id=user.id)
         await self.send_welcome_email(user.email, user.username)
         return user
 
@@ -132,6 +136,7 @@ class UserService(UserRegister, UserOperations):
         result = await command.execute()
 
         user = await self.get_user_profile(result["user_id"])
+        logger.info("2FA login completed", user_id=result["user_id"])
 
         return LoginResponse(
             access_token=result["access_token"],

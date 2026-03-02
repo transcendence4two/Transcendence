@@ -1,7 +1,9 @@
-import logging
+import asyncio
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
+from shared import configure_logging, logging_middleware, request_context_middleware
 
 from src.controller import auth as auth_controller
 from src.controller import user as user_controller
@@ -14,23 +16,30 @@ from src.di_config import engine
 from src.domain.exceptions import DomainError
 from src.domain.models import Base
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+configure_logging(service_name="usermanagement-service")
+
+logger = structlog.get_logger()
 
 
-# Creating tables
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting application...")
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Database tables created successfully")
+    max_attempts = 15
+    for attempt in range(1, max_attempts + 1):
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            break
+        except Exception:
+            if attempt == max_attempts:
+                raise
+            await asyncio.sleep(1)
+
+    logger.info("Usermanagement service started")
+
     yield
-    logger.info("Shutting down application...")
+
+    logger.info("Usermanagement service terminated")
+
     await engine.dispose()
 
 
@@ -47,6 +56,9 @@ app = FastAPI(
 # Exceptions handler
 app.add_exception_handler(DomainError, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
+
+app.middleware("http")(logging_middleware())
+app.middleware("http")(request_context_middleware())
 
 # Routes
 app.include_router(user_controller.router, prefix="/users", tags=["users"])
