@@ -265,7 +265,7 @@ uv run pytest -q
 ```
 
 Resultado esperado:
-- `8 passed`
+- `9 passed`
 
 ## O que a avaliadora deve confirmar
 
@@ -280,9 +280,15 @@ Resultado esperado:
 - Houve reprodução de erro com 10 requisições simultâneas no fluxo antigo de matchmaking.
 - A causa era a busca de oponente assumir um único resultado possível, quando a fila podia conter vários candidatos válidos ao mesmo tempo.
 - A correção limita a busca ao primeiro candidato elegível, faz captura condicional do oponente e protege a fila com índice único parcial.
+- O fluxo de `join` também foi serializado por um lock transacional no banco, reduzindo a seção crítica a uma operação única por vez.
 - A branch também está preparada para usar `FOR UPDATE SKIP LOCKED` quando o banco configurado for PostgreSQL.
 - Para validar esse ponto via Docker, é obrigatório rebuildar o container do `tournament-service` antes do teste, senão o `exec` continuará usando a imagem anterior.
 
 ## Quando usar PostgreSQL na Review
 - Se a avaliadora quiser validar apenas o escopo funcional da task, o fallback atual já é suficiente.
 - Se a avaliadora quiser validar o comportamento alinhado a carga alta real, o ideal é ativar `TOURNAMENT_DATABASE_URL` com o PostgreSQL dedicado.
+
+## Como a branch trata Data Race
+- O `join` do matchmaking entra primeiro em um lock transacional persistido no banco.
+- Enquanto uma requisição está pareando jogadores, outra requisição não entra na mesma seção crítica.
+- Isso evita que dois requests reservem o mesmo oponente ao mesmo tempo.

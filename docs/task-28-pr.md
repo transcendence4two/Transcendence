@@ -42,6 +42,8 @@ Também foi adicionado webhook seguro para integração assíncrona com o Game S
 - Quando o serviço roda com PostgreSQL, a busca de oponente usa `FOR UPDATE SKIP LOCKED`.
 - O `docker-compose` agora inclui um PostgreSQL dedicado (`tournament-postgres`) para o `tournament-service`.
 - O `tournament-service` depende do health check desse banco quando o ambiente é iniciado via Docker.
+- O `join` do matchmaking agora é serializado por um lock transacional persistido no banco (`MatchmakingTransactionLock`).
+- Isso transforma a entrada na fila em uma seção crítica única e elimina a corrida entre duas requisições tentando parear ao mesmo tempo.
 
 ## Modelagem Adicionada
 Arquivo: `backend/tournament-service/src/domain/models/tournament.py`
@@ -74,7 +76,7 @@ uv run pytest -q
 ```
 
 Resultado local:
-- `8 passed`
+- `9 passed`
 
 ## Concurrency Check (10 requisições simultâneas)
 - Problema reproduzido no fluxo antigo: ao gerar 10 chamadas simultâneas em `POST /tournaments/join`, o serviço retornava `500` com `DATABASE_ERROR`.
@@ -85,8 +87,9 @@ Resultado local:
   - a leitura agora usa `scalars().first()` para selecionar apenas o jogador mais antigo elegível
   - a captura do oponente agora faz atualização condicional para evitar dupla captura
   - a fila agora é protegida por índice único parcial para entradas `queued`
+  - o fluxo de `join` agora passa por um lock transacional global no banco antes de tocar na fila
 - Validação:
-  - testes automatizados continuam passando (`8 passed`)
+  - testes automatizados continuam passando (`9 passed`)
   - teste concorrente executado diretamente no código atual da branch com 20 chamadas simultâneas deixou de gerar exceção
   - resultado observado: todas as 20 requisições concluíram com `queued` ou `matched`, sem `500`
 - Observação operacional:
