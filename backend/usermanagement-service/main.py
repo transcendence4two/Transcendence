@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 import structlog
@@ -41,6 +42,7 @@ async def lifespan(app: FastAPI):
     logger.info("Usermanagement service terminated")
 
     await engine.dispose()
+    logging.shutdown()
 
 
 app = FastAPI(
