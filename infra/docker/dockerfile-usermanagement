@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY backend/usermanagement-service/pyproject.toml /tmp/pyproject.toml
-RUN deps="$(python -c "import tomllib; f=open('/tmp/pyproject.toml','rb'); print(' '.join(tomllib.load(f)['project']['dependencies']))")" \
+RUN deps="$(python -c "import tomllib; f=open('/tmp/pyproject.toml','rb'); print(' '.join(d for d in tomllib.load(f)['project']['dependencies'] if d != 'shared-middlewares'))")" \
     && uv pip install --system --no-cache-dir ${deps}
 
 COPY backend/shared /tmp/shared
