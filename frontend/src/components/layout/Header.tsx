@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { SunIcon, MoonIcon } from '../icons/Icons'
+import HamburgerMenu from '../common/HamburgerMenu'
 
 const Header = () => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -23,14 +24,18 @@ const Header = () => {
     }
 
     return (
-        <header className='header-main relative'>
-            <button
-                onClick={toggleTheme}
-                className='absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-700/50 transition-colors z-10'
-                aria-label='Toggle theme'
-            >
-                {isDarkMode ? <SunIcon /> : <MoonIcon />}
-            </button>
+        <header className='header-main relative flex items-center'>
+            <HamburgerMenu />
+
+            <div className='ml-auto'>
+                <button
+                    onClick={toggleTheme}
+                    className='p-2 rounded-lg hover:bg-gray-700/50 in-[.light]:hover:bg-gray-200 transition-colors z-10'
+                    aria-label='Toggle theme'
+                >
+                    {isDarkMode ? <SunIcon /> : <MoonIcon />}
+                </button>
+            </div>
         </header>
     )
 }
