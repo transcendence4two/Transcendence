@@ -18,6 +18,19 @@
   --font-heading: theme(fontFamily.sans);
 }
 
+/* Fix overscroll background color */
+html,
+body {
+  background-color: #1e293b;
+  margin: 0;
+  padding: 0;
+}
+
+html.light,
+html.light body {
+  background-color: #ffffffE6;
+}
+
 /* Custom component classes */
 @layer components {
   .header-main {
