@@ -120,6 +120,7 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 		"removed", removed)
 
 	if winner := domain.CheckWinner(s.Board); winner != domain.SymbolEmpty {
+		s.broadcastState()
 		s.finishGame(playerID, "checkmate")
 		return nil
 	}
