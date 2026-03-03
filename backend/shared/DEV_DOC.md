@@ -39,6 +39,7 @@ Adapt imports, routers, and domain modules to your own service.
 
 ```python
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 import structlog
@@ -82,6 +83,7 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("Usermanagement service terminated")
+    logging.shutdown()
 
     await engine.dispose()
 
@@ -118,6 +120,12 @@ Why `configure_logging()` must come first:
 
 - guarantees JSON ECS formatting from the first log line
 - prevents unstructured logs during startup
+
+Why call `logging.shutdown()` on termination:
+
+- flushes and closes logging handlers before process exit
+- reduces risk of losing final log events during shutdown
+- is especially important when using network/file handlers
 
 Why to avoid `print()`:
 
@@ -204,43 +212,6 @@ Expected minimum ECS fields:
 
 - **Missing `http.request.id` in some logs**  
   Validate middleware registration order: `request_context` must be registered last (outermost).
-
-- **Duplicate logs**  
-  Ensure `configure_logging()` is called once and avoid `--reload` in production.
-
-- **Still seeing plain-text Uvicorn logs**  
-  Confirm this exists in `shared/logging/config.py`:
-
-```python
-"loggers": {
-    "uvicorn.access": {"handlers": [], "propagate": False},
-    "uvicorn.error": {"handlers": [], "propagate": False},
-}
-```
-
-## Local Testing
-
-```bash
-# Development
-uvicorn main:app --reload
-
-# Production-like run (no reload)
-uvicorn main:app
-
-# Test request
-curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8000/your-route
-
-# Example logs
-{"message": "application_started", "@timestamp": "...", "service.name": "..."}
-{"message": "request_received", "http.request.id": "...", "trace.id": "..."}
-{"message": "request_completed", "http.response.status_code": 200, "event.duration": 1234567}
-{"message": "application_stopped", "@timestamp": "...", "service.name": "..."}
-```
-
-## Runtime Warning (Read This)
-
-- **Use `--reload` only in development.**
-- **In production, run without `--reload` to avoid extra processes and noisy logs.**
 
 ## ELK Usage
 

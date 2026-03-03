@@ -1,85 +1,110 @@
-import time
-from typing import Optional
+import os
+from typing import Any, Iterable, Optional
 
 import structlog
-from fastapi import HTTPException, Request, status
+from fastapi import Request
+from fastapi.responses import JSONResponse
 from jose import JWTError, jwt
-from pydantic import BaseModel, ValidationError
-
-from src.core.settings import settings
-
-SECRET_KEY = settings.JWT_SECRET
-ALGORITHM = settings.JWT_ALGORITHM
-TOKEN_EXPIRY_SECONDS = settings.JWT_EXPIRES_MINUTES
+from pydantic import BaseModel, Field, ValidationError
 
 
 class TokenData(BaseModel):
     user_id: str
-    username: str
-    email: str
-    roles: list = []
-    exp: Optional[int] = None
-    iat: Optional[int] = None
+    roles: list[str] = Field(default_factory=list)
+    claims: dict[str, Any] = Field(default_factory=dict)
 
 
-def is_token_expired(exp_timestamp: Optional[int]) -> bool:
-    if not exp_timestamp:
-        return True
-    return int(time.time()) > exp_timestamp
-
-
-def get_token_age(iat_timestamp: Optional[int]) -> Optional[int]:
-    if not iat_timestamp:
+def _extract_bearer_token(authorization_header: Optional[str]) -> Optional[str]:
+    if not authorization_header:
         return None
-    return int(time.time()) - iat_timestamp
+
+    parts = authorization_header.split(" ", 1)
+    if len(parts) != 2:
+        return None
+
+    scheme, token = parts[0], parts[1].strip()
+    if scheme.lower() != "bearer" or not token:
+        return None
+
+    return token
 
 
-def validate_token(token: str) -> Optional[TokenData]:
-    if token.startswith("Bearer "):
-        token = token.replace("Bearer ", "")
+def validate_token(
+    token: str,
+    *,
+    secret_key: str,
+    algorithm: str,
+    expected_issuer: Optional[str] = None,
+) -> Optional[TokenData]:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        username = payload.get("username")
-        email = payload.get("email")
+        payload = jwt.decode(
+            token,
+            secret_key,
+            algorithms=[algorithm],
+            issuer=expected_issuer,
+        )
+        user_id = payload.get("sub") or payload.get("user_id")
         roles = payload.get("roles", [])
-        exp = payload.get("exp")
-        iat = payload.get("iat")
 
-        if not user_id or not username or not email:
+        if not user_id:
             return None
-        if is_token_expired(exp):
-            return None
-        token_age = get_token_age(iat)
-        if token_age and (token_age > TOKEN_EXPIRY_SECONDS + 60):
-            return None
+        if not isinstance(roles, list):
+            roles = []
 
         return TokenData(
             user_id=user_id,
-            username=username,
-            email=email,
             roles=roles,
-            exp=exp,
-            iat=iat,
+            claims=payload,
         )
 
     except (JWTError, ValidationError, AttributeError):
         return None
 
 
-def auth_middleware():
+def _unauthorized_response() -> JSONResponse:
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Unauthorized"},
+    )
+
+
+def auth_middleware(
+    *,
+    secret_key: Optional[str] = None,
+    algorithm: Optional[str] = None,
+    expected_issuer: Optional[str] = None,
+    excluded_paths: Optional[Iterable[str]] = None,
+):
+    jwt_secret = secret_key or os.getenv("JWT_SECRET")
+    jwt_algorithm = algorithm or os.getenv("JWT_ALGORITHM", "HS256")
+    bypass_paths = set(excluded_paths or {"/health", "/docs", "/openapi.json", "/redoc"})
+
+    if not jwt_secret:
+        raise RuntimeError(
+            "auth_middleware requires JWT secret. Set `secret_key` or JWT_SECRET."
+        )
+
     async def middleware(request: Request, call_next):
         logger = structlog.get_logger()
 
-        token = request.headers.get("authorization")
-        if not token:
-            logger.warning("No token provided")
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+        if request.method == "OPTIONS" or request.url.path in bypass_paths:
+            return await call_next(request)
 
-        token_data = validate_token(token)
+        raw_authorization = request.headers.get("authorization")
+        token = _extract_bearer_token(raw_authorization)
+        if not token:
+            logger.warning("auth_failed", reason="missing_or_invalid_authorization_header")
+            return _unauthorized_response()
+
+        token_data = validate_token(
+            token,
+            secret_key=jwt_secret,
+            algorithm=jwt_algorithm,
+            expected_issuer=expected_issuer,
+        )
         if token_data is None:
-            logger.warning("Invalid token")
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+            logger.warning("auth_failed", reason="invalid_token")
+            return _unauthorized_response()
 
         structlog.contextvars.bind_contextvars(
             **{"user.id": token_data.user_id},
@@ -88,6 +113,7 @@ def auth_middleware():
 
         request.state.user_id = token_data.user_id
         request.state.user_roles = token_data.roles
+        request.state.token_claims = token_data.claims
         request.state.is_authenticated = True
 
         response = await call_next(request)

@@ -42,6 +42,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra test
 
+      - name: Install shared package
+        run: uv pip install ../shared
+
       - name: Lint with Ruff
         run: uv run ruff check .
 

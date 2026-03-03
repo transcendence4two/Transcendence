@@ -1,6 +1,6 @@
-import logging
 from uuid import uuid4
 
+import structlog
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +10,7 @@ from src.domain.schemas.user import UserRegisterRequest
 from src.domain.services.commands.base import Command
 from src.domain.services.password import PasswordService
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class RegisterUserCommand(Command):
@@ -30,7 +30,7 @@ class RegisterUserCommand(Command):
         """Execute user registration with validation and error handling"""
         await self._ensure_unique(self.payload.username, self.payload.email)
         user = await self._create_user()
-        logger.info(f"User registered successfully: {user.id}")
+        logger.info("User registered successfully", user_id=user.id)
         return user
 
     async def _create_user(self) -> User:
@@ -55,6 +55,11 @@ class RegisterUserCommand(Command):
 
         if existing_user:
             if existing_user.username == username:
+                logger.warning(
+                    "Registration attempt with duplicate username",
+                    username=username,
+                )
                 raise UserAlreadyExistsError(f"Username '{username}' is already taken")
             if existing_user.email == email:
+                logger.warning("Registration attempt with duplicate email")
                 raise UserAlreadyExistsError(f"Email '{email}' is already registered")
