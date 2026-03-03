@@ -66,8 +66,8 @@ const DashboardPage = () => {
         total !== null && total > 0
             ? `${Math.round((wins! / total) * 100)}%`
             : total === 0
-              ? '0%'
-              : null
+                ? '0%'
+                : null
 
     const statItems = [
         { icon: <TrophyIcon className='w-6 h-6' />, value: wins !== null ? String(wins) : 'N/A', label: 'Wins', color: 'text-emerald-400' },
@@ -122,7 +122,7 @@ const DashboardPage = () => {
                         <Button
                             className='w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30
                                 flex items-center justify-center gap-2'
-                            onClick={() => alert('Game feature coming soon!')}
+                            onClick={() => navigate('/game')}
                         >
                             <span>🎮</span> Play
                         </Button>

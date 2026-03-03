@@ -150,6 +150,7 @@ services:
     depends_on:
       - usermanagement-service
       - tournament-service
+      - game-service
       - frontend
     restart: unless-stopped
     container_name: nginx

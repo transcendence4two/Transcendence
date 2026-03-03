@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage'
 import LoginPage from './pages/LoginPage'
 import TFAPage from './pages/TFAPage'
 import DashboardPage from './pages/DashboardPage'
+import GameLobbyPage from './pages/GameLobbyPage'
+import GamePage from './pages/GamePage'
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<TFAPage />} />
         <Route path="/home" element={<DashboardPage />} />
+        <Route path="/game" element={<GameLobbyPage />} />
+        <Route path="/game/:sessionId" element={<GamePage />} />
       </Routes>
     </BrowserRouter>
   )
