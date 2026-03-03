@@ -31,3 +31,7 @@ build/
 
 # SSL Certificates
 infra/certs/
+
+# Local PR support docs
+docs/task-*-pr.md
+docs/task-*-review-guide.md
