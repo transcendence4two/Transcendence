@@ -8,10 +8,6 @@ const Header = () => {
         return savedTheme ? savedTheme === 'dark' : true
     })
 
-    const [isLoggedIn] = useState(() => {
-        return !!localStorage.getItem('access_token')
-    })
-
     useEffect(() => {
         const root = document.documentElement
         if (isDarkMode) {
@@ -28,15 +24,13 @@ const Header = () => {
     }
 
     return (
-        <header className='header-main relative flex items-center justify-between'>
-            <div className='flex items-center'>
-                {isLoggedIn && <HamburgerMenu />}
-            </div>
+        <header className='header-main relative flex items-center'>
+            <HamburgerMenu />
 
-            <div className='flex items-center'>
+            <div className='ml-auto'>
                 <button
                     onClick={toggleTheme}
-                    className='p-2 rounded-lg hover:bg-gray-700/50 transition-colors z-10'
+                    className='p-2 rounded-lg hover:bg-gray-700/50 in-[.light]:hover:bg-gray-200 transition-colors z-10'
                     aria-label='Toggle theme'
                 >
                     {isDarkMode ? <SunIcon /> : <MoonIcon />}
