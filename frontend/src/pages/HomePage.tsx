@@ -1,8 +1,11 @@
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import HeroSection from '../components/home/HeroSection'
+import useRedirectIfAuthenticated from '../hooks/useRedirectIfAuthenticated'
 
 const HomePage = () => {
+    useRedirectIfAuthenticated()
+
     return (
         <div className='container-main'>
             <Header />
