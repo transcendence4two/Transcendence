@@ -119,9 +119,9 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 		"row", row, "col", col, "symbol", currentPlayer.Symbol,
 		"removed", removed)
 
-	if winner := domain.CheckWinner(s.Board); winner != domain.SymbolEmpty {
+	if winner, line := domain.CheckWinner(s.Board); winner != domain.SymbolEmpty {
 		s.broadcastState()
-		s.finishGame(playerID, "checkmate")
+		s.finishGame(playerID, "checkmate", line)
 		return nil
 	}
 
@@ -151,7 +151,7 @@ func (s *Session) Disconnect(playerID string) {
 				winnerID = p.ID
 			}
 		}
-		s.finishGame(winnerID, "forfeit")
+		s.finishGame(winnerID, "forfeit", nil)
 	}
 }
 
@@ -162,7 +162,7 @@ func (s *Session) GetStatePayload() protocol.GameStatePayload {
 }
 
 // finishGame must be called with s.mu held.
-func (s *Session) finishGame(winnerID, reason string) {
+func (s *Session) finishGame(winnerID, reason string, line []domain.Position) {
 	s.State = domain.StateFinished
 
 	var loserID string
@@ -178,12 +178,21 @@ func (s *Session) finishGame(winnerID, reason string) {
 		"reason", reason,
 	)
 
+	var winningLine []protocol.PositionDTO
+	for _, p := range line {
+		winningLine = append(winningLine, protocol.PositionDTO{
+			Row: p.Row,
+			Col: p.Col,
+		})
+	}
+
 	s.broadcast(s.ID, protocol.ServerMessage{
 		Type: protocol.TypeGameOver,
 		Payload: protocol.GameOverPayload{
-			WinnerID: winnerID,
-			Reason:   reason,
-			Board:    s.boardToStrings(),
+			WinnerID:    winnerID,
+			Reason:      reason,
+			Board:       s.boardToStrings(),
+			WinningLine: winningLine,
 		},
 	})
 

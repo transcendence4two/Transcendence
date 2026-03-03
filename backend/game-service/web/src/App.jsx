@@ -75,6 +75,7 @@ function Game({ sessionId, initialPlayer }) {
     error,
     events,
     playerId,
+    winningLine,
     connect,
     sendMove,
     disconnect,
@@ -154,6 +155,7 @@ function Game({ sessionId, initialPlayer }) {
             currentTurn={gameState?.current_turn}
             playerId={playerId}
             removedPiece={gameState?.removed_piece}
+            winningLine={winningLine}
           />
 
           <button className="btn btn--secondary" onClick={handleDisconnect}>

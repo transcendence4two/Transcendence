@@ -7,6 +7,7 @@ export function useGameSocket(sessionId) {
     const [error, setError] = useState(null)
     const [events, setEvents] = useState([])
     const [playerId, setPlayerId] = useState(null)
+    const [winningLine, setWinningLine] = useState(null)
     const wsRef = useRef(null)
 
     const addEvent = useCallback((event) => {
@@ -20,6 +21,7 @@ export function useGameSocket(sessionId) {
         setError(null)
         setGameOver(null)
         setGameState(null)
+        setWinningLine(null)
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         const host = window.location.host
@@ -45,6 +47,9 @@ export function useGameSocket(sessionId) {
                     break
                 case 'game_over':
                     setGameOver(msg.payload)
+                    if (msg.payload.winning_line) {
+                        setWinningLine(msg.payload.winning_line)
+                    }
                     break
                 case 'error':
                     setError(msg.payload.message)
@@ -54,6 +59,7 @@ export function useGameSocket(sessionId) {
 
         ws.onclose = () => {
             setConnected(false)
+            setWinningLine(null)
             wsRef.current = null
             addEvent({ type: 'system', message: 'Disconnected' })
         }
@@ -92,6 +98,7 @@ export function useGameSocket(sessionId) {
         error,
         events,
         playerId,
+        winningLine,
         connect,
         sendMove,
         disconnect,

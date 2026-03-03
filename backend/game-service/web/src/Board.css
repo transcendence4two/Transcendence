@@ -1,12 +1,140 @@
+.board-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   gap: 8px;
-  width: 320px;
-  max-width: 90vw;
-  height: 320px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+}
+
+.winning-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 5px rgba(255, 255, 255, 0.5);
+  z-index: 10;
+  animation: winning-line-unfold 0.4s ease-out forwards;
+}
+
+/* Horizontal Rows */
+.winning-line--row-0,
+.winning-line--row-1,
+.winning-line--row-2 {
+  left: 5%;
+  width: 90%;
+  height: 6px;
+}
+
+.winning-line--row-0 {
+  top: 16.66%;
+  margin-top: -3px;
+}
+
+.winning-line--row-1 {
+  top: 50%;
+  margin-top: -3px;
+}
+
+.winning-line--row-2 {
+  top: 83.33%;
+  margin-top: -3px;
+}
+
+/* Vertical Cols */
+.winning-line--col-0,
+.winning-line--col-1,
+.winning-line--col-2 {
+  top: 5%;
+  height: 90%;
+  width: 6px;
+}
+
+.winning-line--col-0 {
+  left: 16.66%;
+  margin-left: -3px;
+}
+
+.winning-line--col-1 {
+  left: 50%;
+  margin-left: -3px;
+}
+
+.winning-line--col-2 {
+  left: 83.33%;
+  margin-left: -3px;
+}
+
+/* Diagonals */
+.winning-line--diag-1,
+.winning-line--diag-2 {
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 6px;
+  transform-origin: center;
+}
+
+.winning-line--diag-1 {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.winning-line--diag-2 {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+@keyframes winning-line-unfold {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Ensure diag lines maintain their rotation during animation */
+.winning-line--diag-1 {
+  animation: winning-line-unfold-diag1 0.4s ease-out forwards;
+}
+
+.winning-line--diag-2 {
+  animation: winning-line-unfold-diag2 0.4s ease-out forwards;
+}
+
+@keyframes winning-line-unfold-diag1 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg) scaleX(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(45deg) scaleX(1);
+  }
+}
+
+@keyframes winning-line-unfold-diag2 {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-45deg) scaleX(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(-45deg) scaleX(1);
+  }
 }
 
 .cell {

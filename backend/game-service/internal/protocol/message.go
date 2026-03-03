@@ -54,9 +54,10 @@ type PlayerInfo struct {
 }
 
 type GameOverPayload struct {
-	WinnerID string       `json:"winner_id"`
-	Reason   string       `json:"reason"`
-	Board    [3][3]string `json:"board"`
+	WinnerID    string         `json:"winner_id"`
+	Reason      string         `json:"reason"`
+	Board       [3][3]string   `json:"board"`
+	WinningLine []PositionDTO  `json:"winning_line,omitempty"`
 }
 
 type ErrorPayload struct {
