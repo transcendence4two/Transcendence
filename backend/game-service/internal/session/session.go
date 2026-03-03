@@ -260,7 +260,19 @@ func (s *Session) buildStatePayload() protocol.GameStatePayload {
 	}
 
 	if s.State == domain.StatePlaying && s.Players[s.TurnIndex] != nil {
-		payload.CurrentTurn = s.Players[s.TurnIndex].ID
+		currentPlayer := s.Players[s.TurnIndex]
+		payload.CurrentTurn = currentPlayer.ID
+
+		// If the current player already has MaxPiecesPerPlayer pieces, their
+		// oldest piece will be removed when they play next. Show it in advance.
+		history := s.MoveHistory[currentPlayer.Symbol]
+		if len(history) >= domain.MaxPiecesPerPlayer {
+			oldest := history[0]
+			payload.NextRemovedPiece = &protocol.PositionDTO{
+				Row: oldest.Row,
+				Col: oldest.Col,
+			}
+		}
 	}
 
 	for _, p := range s.Players {

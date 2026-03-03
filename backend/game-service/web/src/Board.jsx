@@ -1,6 +1,6 @@
 import './Board.css'
 
-export default function Board({ board, onCellClick, disabled, currentTurn, playerId, removedPiece, winningLine }) {
+export default function Board({ board, onCellClick, disabled, currentTurn, playerId, removedPiece, nextRemovedPiece, winningLine }) {
     const isMyTurn = currentTurn === playerId
 
     const getWinningLineClass = () => {
@@ -26,10 +26,11 @@ export default function Board({ board, onCellClick, disabled, currentTurn, playe
                 {board.map((row, i) =>
                     row.map((cell, j) => {
                         const wasRemoved = removedPiece && removedPiece.row === i && removedPiece.col === j
+                        const isNextRemoved = nextRemovedPiece && nextRemovedPiece.row === i && nextRemovedPiece.col === j
                         return (
                             <button
                                 key={`${i}-${j}`}
-                                className={`cell ${cell ? 'cell--filled' : ''} ${cell === 'X' ? 'cell--x' : ''} ${cell === 'O' ? 'cell--o' : ''} ${wasRemoved ? 'cell--removed' : ''}`}
+                                className={`cell ${cell ? 'cell--filled' : ''} ${cell === 'X' ? 'cell--x' : ''} ${cell === 'O' ? 'cell--o' : ''} ${wasRemoved ? 'cell--removed' : ''} ${isNextRemoved ? 'cell--next-removed' : ''}`}
                                 onClick={() => onCellClick(i, j)}
                                 disabled={disabled || !isMyTurn || cell !== ''}
                             >

@@ -36,11 +36,12 @@ const (
 )
 
 type GameStatePayload struct {
-	Board        [3][3]string `json:"board"`
-	CurrentTurn  string       `json:"current_turn"`
-	State        string       `json:"state"`
-	Players      []PlayerInfo `json:"players"`
-	RemovedPiece *PositionDTO `json:"removed_piece,omitempty"`
+	Board             [3][3]string `json:"board"`
+	CurrentTurn       string       `json:"current_turn"`
+	State             string       `json:"state"`
+	Players           []PlayerInfo `json:"players"`
+	RemovedPiece      *PositionDTO `json:"removed_piece,omitempty"`
+	NextRemovedPiece  *PositionDTO `json:"next_removed_piece,omitempty"`
 }
 
 type PositionDTO struct {

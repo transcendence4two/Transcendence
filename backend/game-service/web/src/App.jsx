@@ -155,6 +155,7 @@ function Game({ sessionId, initialPlayer }) {
             currentTurn={gameState?.current_turn}
             playerId={playerId}
             removedPiece={gameState?.removed_piece}
+            nextRemovedPiece={gameState?.next_removed_piece}
             winningLine={winningLine}
           />
 
