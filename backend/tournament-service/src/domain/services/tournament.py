@@ -47,6 +47,14 @@ class TournamentService(TournamentManager):
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    @staticmethod
+    def _to_utc_naive(timestamp_value: datetime | None) -> datetime | None:
+        if timestamp_value is None:
+            return None
+        if timestamp_value.tzinfo is None:
+            return timestamp_value
+        return timestamp_value.astimezone(timezone.utc).replace(tzinfo=None)
+
     async def create_tournament(self, payload: TournamentCreateRequest) -> Tournament:
         tournament = Tournament(
             id=str(uuid4()),
@@ -266,7 +274,7 @@ class TournamentService(TournamentManager):
                 excluded_user_id=normalized_user_id,
             )
             if matched_opponent is not None:
-                match_timestamp = datetime.now(timezone.utc)
+                match_timestamp = self._to_utc_naive(datetime.now(timezone.utc))
                 queue_entry.status = MatchmakingQueueStatus.MATCHED.value
                 queue_entry.matched_at = match_timestamp
             await self._release_matchmaking_transaction_lock()
@@ -303,11 +311,12 @@ class TournamentService(TournamentManager):
             status=normalized_status,
             winner_user_id=payload.winner_user_id,
             winning_reason=payload.winning_reason,
-            started_at=payload.started_at,
-            ended_at=payload.ended_at,
+            started_at=self._to_utc_naive(payload.started_at),
+            ended_at=self._to_utc_naive(payload.ended_at),
             duration_seconds=payload.duration_seconds,
         )
         self.session.add(match_record)
+        await self.session.flush()
 
         saved_snapshots: list[MatchPlayerSnapshot] = []
         for player_snapshot in payload.players:
@@ -326,6 +335,10 @@ class TournamentService(TournamentManager):
             )
             saved_snapshots.append(persisted_snapshot)
             self.session.add(persisted_snapshot)
+
+        await self.session.flush()
+
+        for persisted_snapshot in saved_snapshots:
             await self._upsert_player_stats_from_match_snapshot(persisted_snapshot)
 
         if payload.tournament_match_id is not None:
@@ -333,6 +346,12 @@ class TournamentService(TournamentManager):
                 match_record=match_record,
                 saved_snapshots=saved_snapshots,
             )
+
+        await self._deactivate_matchmaking_entries_for_users(
+            user_identifiers=[
+                persisted_snapshot.user_id for persisted_snapshot in saved_snapshots
+            ]
+        )
 
         try:
             await self.session.commit()
@@ -561,7 +580,12 @@ class TournamentService(TournamentManager):
     async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
         statement = select(MatchmakingQueueEntry).where(
             MatchmakingQueueEntry.user_id == user_id,
-            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+            MatchmakingQueueEntry.status.in_(
+                [
+                    MatchmakingQueueStatus.QUEUED.value,
+                    MatchmakingQueueStatus.MATCHED.value,
+                ]
+            ),
         )
         try:
             query_result = await self.session.execute(statement)
@@ -571,6 +595,34 @@ class TournamentService(TournamentManager):
 
         if existing_queue_entry is not None:
             raise MatchmakingQueueError("Player is already queued for matchmaking")
+
+    async def _deactivate_matchmaking_entries_for_users(
+        self,
+        user_identifiers: list[str],
+    ) -> None:
+        if not user_identifiers:
+            return
+
+        unique_user_identifiers = list(dict.fromkeys(user_identifiers))
+        update_statement = (
+            update(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.user_id.in_(unique_user_identifiers),
+                MatchmakingQueueEntry.status.in_(
+                    [
+                        MatchmakingQueueStatus.QUEUED.value,
+                        MatchmakingQueueStatus.MATCHED.value,
+                    ]
+                ),
+            )
+            .values(status=MatchmakingQueueStatus.EXPIRED.value)
+        )
+        try:
+            await self.session.execute(update_statement)
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to deactivate matchmaking entries") from (
+                database_exception
+            )
 
     async def _acquire_matchmaking_transaction_lock(self) -> None:
         matchmaking_lock = MatchmakingTransactionLock(
@@ -624,7 +676,7 @@ class TournamentService(TournamentManager):
             if matched_opponent is None:
                 return None
 
-            match_timestamp = datetime.now(timezone.utc)
+            match_timestamp = self._to_utc_naive(datetime.now(timezone.utc))
             update_statement = (
                 update(MatchmakingQueueEntry)
                 .where(
@@ -677,7 +729,8 @@ class TournamentService(TournamentManager):
             PlayerStats.user_id == persisted_snapshot.user_id
         )
         try:
-            query_result = await self.session.execute(statement)
+            with self.session.no_autoflush:
+                query_result = await self.session.execute(statement)
             player_stats = query_result.scalar_one_or_none()
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to update player stats from match snapshot") from database_exception

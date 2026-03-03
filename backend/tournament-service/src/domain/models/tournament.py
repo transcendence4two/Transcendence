@@ -7,6 +7,10 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
+def utc_now_naive() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 class TournamentStatus(str, Enum):
     DRAFT = "draft"
     ACTIVE = "active"
@@ -41,8 +45,8 @@ class Tournament(Base):
     status = Column(String, nullable=False, default=TournamentStatus.DRAFT.value)
     created_by = Column(String, nullable=False)
     champion_user_id = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now_naive, nullable=False)
+    updated_at = Column(DateTime, default=utc_now_naive, onupdate=utc_now_naive)
 
 
 class TournamentParticipant(Base):
@@ -60,7 +64,7 @@ class TournamentParticipant(Base):
     wins = Column(Integer, nullable=False, default=0)
     losses = Column(Integer, nullable=False, default=0)
     total_points = Column(Integer, nullable=False, default=0)
-    joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    joined_at = Column(DateTime, default=utc_now_naive, nullable=False)
 
 
 class TournamentMatch(Base):
@@ -107,7 +111,7 @@ class PlayerStats(Base):
     wins = Column(Integer, nullable=False, default=0)
     losses = Column(Integer, nullable=False, default=0)
     total_points = Column(Integer, nullable=False, default=0)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=utc_now_naive, onupdate=utc_now_naive)
 
 
 class MatchmakingQueueEntry(Base):
@@ -129,7 +133,7 @@ class MatchmakingQueueEntry(Base):
     preferred_game_mode = Column(String, nullable=False, default="pong_1v1")
     tournament_id = Column(String, ForeignKey("tournaments.id"), nullable=True, index=True)
     status = Column(String, nullable=False, default=MatchmakingQueueStatus.QUEUED.value)
-    joined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    joined_at = Column(DateTime, default=utc_now_naive, nullable=False)
     matched_at = Column(DateTime, nullable=True)
 
 
@@ -153,7 +157,7 @@ class MatchRecord(Base):
     started_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
     duration_seconds = Column(Integer, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=utc_now_naive, nullable=False)
 
 
 class MatchPlayerSnapshot(Base):
@@ -186,4 +190,4 @@ class MatchmakingTransactionLock(Base):
     __tablename__ = "matchmaking_transaction_locks"
 
     lock_name = Column(String, primary_key=True)
-    locked_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    locked_at = Column(DateTime, default=utc_now_naive, nullable=False)

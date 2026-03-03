@@ -217,6 +217,18 @@ class TestTournamentEndpoints:
         assert join_response.status_code == 201
         assert join_response.json()["status"] == "matched"
 
+        duplicate_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "new_player",
+                "display_name": "New Player",
+                "preferred_game_mode": "pong_1v1",
+            },
+        )
+
+        assert duplicate_response.status_code == 409
+        assert duplicate_response.json()["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+
     async def test_join_matchmaking_queue_serializes_concurrent_requests(self):
         database_file_descriptor, database_path = tempfile.mkstemp(suffix=".db")
         os.close(database_file_descriptor)
@@ -276,6 +288,25 @@ class TestTournamentEndpoints:
             os.remove(database_path)
 
     async def test_save_match_record_persists_match_and_players(self, client: AsyncClient):
+        first_join_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "player_alpha",
+                "display_name": "Player Alpha",
+                "preferred_game_mode": "pong_1v1",
+            },
+        )
+        second_join_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "player_beta",
+                "display_name": "Player Beta",
+                "preferred_game_mode": "pong_1v1",
+            },
+        )
+        assert first_join_response.status_code == 201
+        assert second_join_response.status_code == 201
+
         save_payload = build_match_record_payload()
         save_response = await client.post("/tournaments/save", json=save_payload)
 
@@ -290,6 +321,16 @@ class TestTournamentEndpoints:
         assert alpha_stats_response.status_code == 200
         assert alpha_stats_body["wins"] >= 1
         assert alpha_stats_body["matches_played"] >= 1
+
+        rejoin_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "player_alpha",
+                "display_name": "Player Alpha",
+                "preferred_game_mode": "pong_1v1",
+            },
+        )
+        assert rejoin_response.status_code == 201
 
     async def test_webhook_save_requires_valid_token(self, client: AsyncClient):
         save_payload = build_match_record_payload()
