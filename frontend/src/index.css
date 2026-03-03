@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Fix overscroll background color */
+html,
+body {
+  background-color: #1e293b;
+  margin: 0;
+  padding: 0;
+}
+
+html.light,
+html.light body {
+  background-color: #ffffffe6;
+}
+
 @theme {
   /* Colors */
   --color-primary-cyan: #22d3ee;
@@ -71,6 +84,162 @@
   .card-feature {
     @apply border border-cyan-500/30 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 w-64 hover:border-cyan-500/60 transition-all;
   }
+
+  .profile-shell {
+    @apply mx-auto w-full max-w-4xl rounded-3xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm p-6 sm:p-8 shadow-2xl space-y-8;
+  }
+
+  .profile-nav-shell {
+    @apply w-full border-b border-slate-700/50 bg-slate-900/60 backdrop-blur-sm;
+  }
+
+  .profile-nav {
+    @apply mx-auto w-full max-w-6xl grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6 py-4;
+  }
+
+  .profile-nav-btn {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_0_18px_rgba(14,165,233,0.5)] hover:brightness-110 hover:shadow-[0_0_24px_rgba(14,165,233,0.65)] transition-all;
+  }
+
+  .profile-nav-title {
+    @apply flex items-center justify-start justify-self-start gap-2 text-lg sm:text-xl font-semibold text-white;
+  }
+
+  .profile-nav-arrow {
+    @apply w-7 h-7 object-contain;
+    filter: brightness(0) invert(1);
+  }
+
+  .profile-nav-icon {
+    @apply w-5 h-5 sm:w-6 sm:h-6 object-contain;
+  }
+
+  .profile-theme-btn {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/40 text-cyan-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer;
+  }
+
+  .profile-header {
+    @apply flex flex-col items-center text-center gap-2;
+  }
+
+  .profile-initials {
+    @apply w-24 h-24 rounded-full border-2 border-cyan-500/60 shadow-md grid place-items-center text-3xl font-bold text-white uppercase bg-linear-to-br from-cyan-500 to-blue-600;
+  }
+
+  .profile-name {
+    @apply text-2xl font-bold text-white;
+  }
+
+  .profile-email {
+    @apply text-sm text-gray-400;
+  }
+
+  .profile-section-title {
+    @apply mb-4 text-sm sm:text-base font-semibold uppercase tracking-[0.14em] text-gray-400;
+  }
+
+  .profile-help-fab {
+    @apply fixed right-4 bottom-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_4px_14px_rgba(0,0,0,0.45)] transition-colors cursor-pointer;
+    background-color: #2d3139;
+    border-color: #59606b;
+  }
+
+  .profile-help-fab:hover {
+    background-color: #383e49;
+    border-color: #68707d;
+  }
+
+  .profile-help-icon {
+    @apply w-5 h-5 object-contain opacity-95;
+  }
+
+  .stats-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+
+  .stat-card {
+    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-5 text-center flex flex-col items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500/70 hover:bg-slate-900/60;
+  }
+
+  .stat-icon {
+    @apply w-6 h-6 object-contain;
+  }
+
+  .stat-value {
+    @apply text-2xl font-bold;
+  }
+
+  .stat-label {
+    @apply text-sm text-gray-300;
+  }
+
+  .history-list {
+    @apply space-y-3;
+  }
+
+  .history-item {
+    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-3 flex items-center justify-between gap-4 transition-all duration-200 hover:border-slate-500/70 hover:bg-slate-900/60;
+  }
+
+  .history-icon {
+    @apply w-5 h-5 object-contain;
+  }
+
+  .history-icon-badge {
+    @apply w-9 h-9 rounded-full grid place-items-center border;
+  }
+
+  .history-icon-badge-win {
+    @apply bg-emerald-500/15 border-emerald-400/35;
+  }
+
+  .history-icon-badge-loss {
+    @apply bg-rose-500/15 border-rose-400/35;
+  }
+
+  .history-text {
+    @apply flex-1 text-sm sm:text-base text-white;
+  }
+
+  .history-score {
+    @apply text-sm font-semibold px-2.5 py-1 rounded-md bg-slate-950/50 border border-slate-700/60 min-w-[4.5rem] text-center;
+  }
+
+  .history-score-win {
+    @apply text-emerald-400;
+  }
+
+  .history-score-loss {
+    @apply text-rose-400;
+  }
+
+  .icon-svg {
+    opacity: 0.95;
+  }
+
+  .icon-cyan {
+    filter: brightness(0) saturate(100%) invert(78%) sepia(39%) saturate(6167%)
+      hue-rotate(144deg) brightness(98%) contrast(92%);
+  }
+
+  .icon-rose {
+    filter: brightness(0) saturate(100%) invert(66%) sepia(44%) saturate(4833%)
+      hue-rotate(316deg) brightness(99%) contrast(98%);
+  }
+
+  .icon-emerald {
+    filter: brightness(0) saturate(100%) invert(73%) sepia(23%) saturate(1408%)
+      hue-rotate(103deg) brightness(94%) contrast(92%);
+  }
+
+  .icon-blue {
+    filter: brightness(0) saturate(100%) invert(46%) sepia(95%) saturate(1279%)
+      hue-rotate(203deg) brightness(96%) contrast(93%);
+  }
+
+  .icon-white {
+    filter: brightness(0) invert(1);
+  }
 }
 
 /* Light Mode Styles */
@@ -92,6 +261,127 @@
 
 .light .card-feature {
   @apply border-blue-200 bg-white/80 hover:border-blue-400 shadow-sm;
+}
+
+.light .profile-shell {
+  @apply border-gray-200 bg-white shadow-xl;
+}
+
+.light .profile-nav {
+  @apply bg-transparent;
+}
+
+.light .profile-nav-shell {
+  @apply border-gray-200 bg-white/70;
+}
+
+.light .profile-nav-btn {
+  @apply border-blue-400 from-sky-400 to-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.35)] hover:shadow-[0_0_18px_rgba(37,99,235,0.45)];
+}
+
+.light .profile-nav-title {
+  @apply text-gray-900;
+}
+
+.light .profile-theme-btn {
+  @apply border-blue-300 text-blue-700 hover:text-blue-800 hover:bg-blue-50;
+}
+
+.light .profile-initials {
+  @apply border-blue-400 from-cyan-400 to-blue-500;
+}
+
+.light .profile-name {
+  @apply text-gray-900;
+}
+
+.light .profile-email {
+  @apply text-gray-600;
+}
+
+.light .profile-section-title {
+  @apply text-gray-600;
+}
+
+.light .profile-help-fab {
+  border-color: #cbd5e1;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+
+.light .profile-help-fab:hover {
+  background-color: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.light .profile-help-icon {
+  filter: none;
+  opacity: 0.75;
+}
+
+.light .stat-card {
+  @apply border-gray-200 bg-gray-100 hover:border-gray-300 hover:bg-white;
+}
+
+.light .stat-label {
+  @apply text-gray-600;
+}
+
+.light .history-item {
+  @apply border-gray-200 bg-gray-100 hover:border-gray-300 hover:bg-white;
+}
+
+.light .history-icon-badge-win {
+  @apply bg-emerald-100 border-emerald-300;
+}
+
+.light .history-icon-badge-loss {
+  @apply bg-rose-100 border-rose-300;
+}
+
+.light .history-text {
+  @apply text-gray-900;
+}
+
+.light .history-score-win {
+  @apply text-emerald-600;
+}
+
+.light .history-score-loss {
+  @apply text-rose-600;
+}
+
+.light .history-score {
+  @apply bg-white border-gray-300;
+}
+
+.light .icon-svg {
+  opacity: 0.85;
+}
+
+.light .icon-cyan {
+  filter: brightness(0) saturate(100%) invert(37%) sepia(81%) saturate(2183%)
+    hue-rotate(190deg) brightness(91%) contrast(92%);
+}
+
+.light .icon-rose {
+  filter: brightness(0) saturate(100%) invert(34%) sepia(74%) saturate(2096%)
+    hue-rotate(324deg) brightness(99%) contrast(91%);
+}
+
+.light .icon-emerald {
+  filter: brightness(0) saturate(100%) invert(42%) sepia(34%) saturate(1169%)
+    hue-rotate(108deg) brightness(92%) contrast(92%);
+}
+
+.light .icon-blue {
+  filter: brightness(0) saturate(100%) invert(33%) sepia(91%) saturate(2097%)
+    hue-rotate(212deg) brightness(93%) contrast(94%);
+}
+
+.light .icon-violet {
+  filter: brightness(0) saturate(100%) invert(28%) sepia(72%) saturate(2045%)
+    hue-rotate(244deg) brightness(92%) contrast(91%);
 }
 
 .light .text-gray-300 {
