@@ -5,12 +5,6 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import TFAPage from "./pages/TFAPage";
 import DashboardPage from "./pages/DashboardPage";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
-import TFAPage from "./pages/TFAPage";
 import ProfilePage from "./pages/ProfilePage";
 
 function App() {

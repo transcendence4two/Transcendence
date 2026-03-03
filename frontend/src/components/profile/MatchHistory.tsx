@@ -1,5 +1,4 @@
-import trophyIcon from "../../assets/profile/trophy.svg";
-import bullseyeIcon from "../../assets/profile/bullseye.svg";
+import { BullseyeFillIcon, TrophyFillIcon } from "../icons/Icons";
 
 export type MatchHistoryItem = {
   result: "win" | "loss";
@@ -16,24 +15,24 @@ type MatchHistoryProps = {
 const fallbackMatches: MatchHistoryItem[] = [
   {
     result: "win",
-    opponent: { username: "noob", score: 8 },
-    player: { score: 11 },
+    opponent: { username: "noob", score: 1 },
+    player: { score: 3 },
   },
   {
     result: "win",
-    opponent: { username: "noob", score: 6 },
-    player: { score: 11 },
+    opponent: { username: "noob", score: 0 },
+    player: { score: 3 },
   },
   {
     result: "loss",
-    opponent: { username: "noob", score: 11 },
-    player: { score: 10 },
+    opponent: { username: "noob", score: 3 },
+    player: { score: 2 },
   },
 ];
 
 const getOpponentName = (opponent: MatchHistoryItem["opponent"]) => {
   if (typeof opponent === "string") return opponent;
-  return opponent.username ?? "oponente";
+  return opponent.username ?? "opponent";
 };
 
 const getMatchScore = (match: MatchHistoryItem) => {
@@ -51,7 +50,7 @@ const MatchHistory = (props: MatchHistoryProps) => {
 
   return (
     <dl
-      aria-label={`Histórico de partidas de ${props.username}`}
+      aria-label={`${props.username} match history`}
       className="history-list"
     >
       {history.map((match, index) => (
@@ -59,16 +58,14 @@ const MatchHistory = (props: MatchHistoryProps) => {
           <span
             className={`history-icon-badge ${match.result === "win" ? "history-icon-badge-win" : "history-icon-badge-loss"}`}
           >
-            <img
-              src={match.result === "win" ? trophyIcon : bullseyeIcon}
-              alt={
-                match.result === "win" ? "Ícone de vitória" : "Ícone de derrota"
-              }
-              className={`history-icon icon-svg ${match.result === "win" ? "icon-emerald" : "icon-rose"}`}
-            />
+            {match.result === "win" ? (
+              <TrophyFillIcon className="history-icon icon-svg icon-emerald" />
+            ) : (
+              <BullseyeFillIcon className="history-icon icon-svg icon-rose" />
+            )}
           </span>
           <dt className="history-text">
-            {match.result === "win" ? "Vitória" : "Derrota"} vs{" "}
+            {match.result === "win" ? "Win" : "Loss"} vs{" "}
             {getOpponentName(match.opponent)}
           </dt>
           <dd

@@ -41,7 +41,7 @@ body {
 
 html.light,
 html.light body {
-  background-color: #ffffffE6;
+  background-color: #ffffffe6;
 }
 
 /* Custom component classes */
@@ -110,8 +110,40 @@ html.light body {
     @apply mx-auto w-full max-w-6xl grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6 py-4;
   }
 
+  .profile-page-content {
+    @apply px-4 sm:px-6 py-8 sm:py-10;
+  }
+
+  .profile-page-layout {
+    @apply mx-auto w-full max-w-2xl space-y-6;
+  }
+
+  .profile-page-user-card {
+    @apply border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center space-y-4;
+  }
+
+  .profile-page-avatar-wrap {
+    @apply flex justify-center;
+  }
+
+  .profile-page-avatar {
+    @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
+  }
+
+  .profile-page-name {
+    @apply text-xl font-bold text-white in-[.light]:text-gray-900;
+  }
+
+  .profile-page-email {
+    @apply text-sm text-slate-400 in-[.light]:text-gray-500;
+  }
+
+  .profile-page-section-card {
+    @apply border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-6 space-y-4;
+  }
+
   .profile-nav-btn {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_0_18px_rgba(14,165,233,0.5)] hover:brightness-110 hover:shadow-[0_0_24px_rgba(14,165,233,0.65)] transition-all;
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
   }
 
   .profile-nav-title {
@@ -136,7 +168,7 @@ html.light body {
   }
 
   .profile-initials {
-    @apply w-24 h-24 rounded-full border-2 border-cyan-500/60 shadow-md grid place-items-center text-3xl font-bold text-white uppercase bg-linear-to-br from-cyan-500 to-blue-600;
+    @apply w-24 h-24 rounded-full border-2 border-cyan-500/60 shadow-md grid place-items-center text-3xl font-bold text-white uppercase bg-linear-to-r from-cyan-400 to-purple-600;
   }
 
   .profile-name {
@@ -285,11 +317,11 @@ html.light body {
 }
 
 .light .profile-nav-shell {
-  @apply border-gray-200 bg-white/70;
+  @apply border-gray-300 bg-white/90;
 }
 
 .light .profile-nav-btn {
-  @apply border-blue-400 from-sky-400 to-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.35)] hover:shadow-[0_0_18px_rgba(37,99,235,0.45)];
+  @apply border-blue-400 from-sky-400 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(37,99,235,0.45)] hover:shadow-[0_12px_20px_-12px_rgba(37,99,235,0.55)];
 }
 
 .light .profile-nav-title {
@@ -313,7 +345,7 @@ html.light body {
 }
 
 .light .profile-section-title {
-  @apply text-gray-600;
+  @apply text-gray-700;
 }
 
 .light .profile-help-fab {
@@ -329,19 +361,35 @@ html.light body {
 
 .light .profile-help-icon {
   filter: none;
-  opacity: 0.75;
+  opacity: 0.9;
+}
+
+.light .profile-page-user-card {
+  @apply border-gray-300 bg-white shadow-md;
+}
+
+.light .profile-page-section-card {
+  @apply border-gray-300 bg-white shadow-sm;
+}
+
+.light .profile-page-email {
+  @apply text-gray-700;
 }
 
 .light .stat-card {
-  @apply border-gray-200 bg-gray-100 hover:border-gray-300 hover:bg-white;
+  @apply border-gray-300 bg-white hover:border-gray-400;
+}
+
+.light .stat-value {
+  @apply text-gray-900;
 }
 
 .light .stat-label {
-  @apply text-gray-600;
+  @apply text-gray-700;
 }
 
 .light .history-item {
-  @apply border-gray-200 bg-gray-100 hover:border-gray-300 hover:bg-white;
+  @apply border-gray-300 bg-white hover:border-gray-400;
 }
 
 .light .history-icon-badge-win {
@@ -353,7 +401,7 @@ html.light body {
 }
 
 .light .history-text {
-  @apply text-gray-900;
+  @apply text-gray-800;
 }
 
 .light .history-score-win {
@@ -365,7 +413,7 @@ html.light body {
 }
 
 .light .history-score {
-  @apply bg-white border-gray-300;
+  @apply bg-gray-50 border-gray-400;
 }
 
 .light .icon-svg {

@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MoonIcon, SunIcon } from "../components/icons/Icons";
-import personIcon from "../assets/profile/person.svg";
-import arrowLeftIcon from "../assets/profile/arrow-left-short.svg";
-import questionIcon from "../assets/profile/question-lg.svg";
+import {
+  MoonIcon,
+  SunIcon,
+  PersonFillIcon,
+  ArrowLeftShortIcon,
+  QuestionLgIcon,
+} from "../components/icons/Icons";
 
 import UserStats from "../components/profile/UserStats";
 import MatchHistory from "../components/profile/MatchHistory";
@@ -19,7 +22,7 @@ const ProfilePage = () => {
 
   const navigate = useNavigate();
 
-  const nick = username ?? "jogador";
+  const nick = username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
     .filter(Boolean)
@@ -62,75 +65,62 @@ const ProfilePage = () => {
     <div className="container-main">
       <main className="content-main">
         <div className="profile-nav-shell">
-          <nav className="profile-nav" aria-label="Navegação do perfil">
+          <nav className="profile-nav" aria-label="Profile navigation">
             <button
               type="button"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/home")}
               className="profile-nav-btn"
-              aria-label="Voltar"
+              aria-label="Back"
             >
-              <img
-                src={arrowLeftIcon}
-                alt=""
-                aria-hidden="true"
-                className="profile-nav-arrow"
-              />
+              <ArrowLeftShortIcon className="profile-nav-arrow" />
             </button>
 
             <h1 className="profile-nav-title">
-              <img
-                src={personIcon}
-                alt=""
-                aria-hidden="true"
-                className="profile-nav-icon icon-svg icon-cyan"
-              />
-              Perfil do Usuário
+              <PersonFillIcon className="profile-nav-icon icon-svg icon-cyan" />
+              User Profile
             </h1>
 
             <button
               type="button"
               onClick={() => setIsDarkMode((prev) => !prev)}
               className="profile-theme-btn"
-              aria-label="Alternar tema"
+              aria-label="Toggle theme"
             >
               {isDarkMode ? <SunIcon /> : <MoonIcon />}
             </button>
           </nav>
         </div>
 
-        <div className="px-4 sm:px-6 py-8 sm:py-10">
-          <div className="profile-shell">
-            <div className="profile-header">
-              <div
-                className="profile-initials"
-                aria-label={`Avatar de ${nick}`}
-              >
-                {initials || "JG"}
+        <div className="profile-page-content">
+          <div className="profile-page-layout">
+            <div className="profile-page-user-card">
+              <div className="profile-page-avatar-wrap">
+                <div className="profile-page-avatar" aria-label={`Avatar of ${nick}`}>
+                  {initials || "JG"}
+                </div>
               </div>
-              <h2 className="profile-name">{nick}</h2>
-              <p className="profile-email">
-                {userData?.email ?? "example@email.com"}
-              </p>
+
+              <div>
+                <h2 className="profile-page-name">{nick}</h2>
+                <p className="profile-page-email">
+                  {userData?.email ?? "example@email.com"}
+                </p>
+              </div>
             </div>
 
-            <section>
-              <h3 className="profile-section-title">ESTATÍSTICAS</h3>
+            <section className="profile-page-section-card">
+              <h3 className="profile-section-title">STATS</h3>
               <UserStats username={nick} stats={userData} />
             </section>
 
-            <section>
-              <h3 className="profile-section-title">HISTÓRICO RECENTE</h3>
+            <section className="profile-page-section-card">
+              <h3 className="profile-section-title">RECENT HISTORY</h3>
               <MatchHistory username={nick} matches={matches} />
             </section>
           </div>
 
-          <button type="button" className="profile-help-fab" aria-label="Ajuda">
-            <img
-              src={questionIcon}
-              alt=""
-              aria-hidden="true"
-              className="profile-help-icon icon-white"
-            />
+          <button type="button" className="profile-help-fab" aria-label="Help">
+            <QuestionLgIcon className="profile-help-icon icon-white" />
           </button>
         </div>
       </main>
