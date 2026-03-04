@@ -113,7 +113,7 @@ func TestCheckWinner_Row(t *testing.T) {
 	board[0][0] = SymbolX
 	board[0][1] = SymbolX
 	board[0][2] = SymbolX
-	if w := CheckWinner(board); w != SymbolX {
+	if w, _ := CheckWinner(board); w != SymbolX {
 		t.Fatalf("expected X to win row, got %s", w)
 	}
 }
@@ -123,7 +123,7 @@ func TestCheckWinner_Column(t *testing.T) {
 	board[0][1] = SymbolO
 	board[1][1] = SymbolO
 	board[2][1] = SymbolO
-	if w := CheckWinner(board); w != SymbolO {
+	if w, _ := CheckWinner(board); w != SymbolO {
 		t.Fatalf("expected O to win column, got %s", w)
 	}
 }
@@ -133,7 +133,7 @@ func TestCheckWinner_Diagonal(t *testing.T) {
 	board[0][0] = SymbolX
 	board[1][1] = SymbolX
 	board[2][2] = SymbolX
-	if w := CheckWinner(board); w != SymbolX {
+	if w, _ := CheckWinner(board); w != SymbolX {
 		t.Fatalf("expected X to win diagonal, got %s", w)
 	}
 }
@@ -143,7 +143,7 @@ func TestCheckWinner_AntiDiagonal(t *testing.T) {
 	board[0][2] = SymbolO
 	board[1][1] = SymbolO
 	board[2][0] = SymbolO
-	if w := CheckWinner(board); w != SymbolO {
+	if w, _ := CheckWinner(board); w != SymbolO {
 		t.Fatalf("expected O to win anti-diagonal, got %s", w)
 	}
 }
@@ -152,7 +152,7 @@ func TestCheckWinner_NoWinner(t *testing.T) {
 	board := NewBoard()
 	board[0][0] = SymbolX
 	board[0][1] = SymbolO
-	if w := CheckWinner(board); w != SymbolEmpty {
+	if w, _ := CheckWinner(board); w != SymbolEmpty {
 		t.Fatalf("expected no winner, got %s", w)
 	}
 }
@@ -168,7 +168,7 @@ func TestWinAfterPieceRemoval(t *testing.T) {
 	board, history, _ = ApplyMoveInfinity(board, 2, 2, SymbolX, history)
 
 	// X has a diagonal win right now
-	if w := CheckWinner(board); w != SymbolX {
+	if w, _ := CheckWinner(board); w != SymbolX {
 		t.Fatalf("expected X to win with diagonal, got %s", w)
 	}
 }

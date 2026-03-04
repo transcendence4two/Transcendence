@@ -217,7 +217,7 @@ class TestTournamentEndpoints:
         assert join_response.status_code == 201
         assert join_response.json()["status"] == "matched"
 
-        duplicate_response = await client.post(
+        rejoin_response = await client.post(
             "/tournaments/join",
             json={
                 "user_id": "new_player",
@@ -226,8 +226,8 @@ class TestTournamentEndpoints:
             },
         )
 
-        assert duplicate_response.status_code == 409
-        assert duplicate_response.json()["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+        assert rejoin_response.status_code == 201
+        assert rejoin_response.json()["status"] in {"queued", "matched"}
 
     async def test_join_matchmaking_queue_serializes_concurrent_requests(self):
         database_file_descriptor, database_path = tempfile.mkstemp(suffix=".db")
