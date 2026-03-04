@@ -9,6 +9,7 @@ type Config struct {
 	ServerPort           int
 	LogLevel             string
 	TournamentServiceURL string
+	WebhookSharedSecret  string
 }
 
 func Load() Config {
@@ -16,6 +17,7 @@ func Load() Config {
 		ServerPort:           getEnvInt("SERVER_PORT", 8001),
 		LogLevel:             getEnv("LOG_LEVEL", "info"),
 		TournamentServiceURL: getEnv("TOURNAMENT_SERVICE_URL", "http://tournament-service:8002"),
+		WebhookSharedSecret:  getEnv("WEBHOOK_SHARED_SECRET", "local-webhook-token"),
 	}
 }
 
