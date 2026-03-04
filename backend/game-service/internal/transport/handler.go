@@ -9,13 +9,24 @@ import (
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/session"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		// TODO: restrict to allowed origins in production
-		return true
-	},
+func newUpgrader(allowedOrigins []string) websocket.Upgrader {
+	return websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			if len(allowedOrigins) == 0 {
+				return true // no restriction configured — allow all (dev mode)
+			}
+			origin := r.Header.Get("Origin")
+			for _, allowed := range allowedOrigins {
+				if origin == allowed {
+					return true
+				}
+			}
+			slog.Warn("websocket origin rejected", "origin", origin)
+			return false
+		},
+	}
 }
 
 func RegisterRoutes(mux *http.ServeMux, hub *Hub) {
@@ -39,6 +50,7 @@ func handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	upgrader := newUpgrader(hub.Config().AllowedOrigins)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error("websocket upgrade failed", "error", err)
@@ -53,9 +65,9 @@ func handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateSessionRequest struct {
-	TournamentID string            `json:"tournament_id"`
-	MatchID      string            `json:"match_id"`
-	Players      []PlayerMapping   `json:"players"`
+	TournamentID string          `json:"tournament_id"`
+	MatchID      string          `json:"match_id"`
+	Players      []PlayerMapping `json:"players"`
 }
 
 type PlayerMapping struct {

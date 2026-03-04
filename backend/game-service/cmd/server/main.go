@@ -26,7 +26,7 @@ func main() {
 	tc := tournament.NewHTTPClient(cfg.TournamentServiceURL, cfg.WebhookSharedSecret)
 	slog.Info("tournament client configured", "url", cfg.TournamentServiceURL)
 
-	hub := transport.NewHub(tc)
+	hub := transport.NewHub(tc, cfg)
 	go hub.Run()
 
 	mux := http.NewServeMux()

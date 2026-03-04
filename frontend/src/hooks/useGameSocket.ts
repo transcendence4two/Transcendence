@@ -41,6 +41,9 @@ interface WebSocketMessage {
     payload: Record<string, unknown>
 }
 
+const MAX_RECONNECT_ATTEMPTS = 5
+const BASE_RECONNECT_DELAY_MS = 1000
+
 export function useGameSocket(sessionId: string) {
     const [connected, setConnected] = useState(false)
     const [gameState, setGameState] = useState<GameState | null>(null)
@@ -49,20 +52,30 @@ export function useGameSocket(sessionId: string) {
     const [events, setEvents] = useState<GameEvent[]>([])
     const [playerId, setPlayerId] = useState<string | null>(null)
     const [winningLine, setWinningLine] = useState<WinningCell[] | null>(null)
+    const [reconnecting, setReconnecting] = useState(false)
     const wsRef = useRef<WebSocket | null>(null)
+    const reconnectAttemptRef = useRef(0)
+    const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const intentionalCloseRef = useRef(false)
+    const playerIdRef = useRef<string | null>(null)
 
     const addEvent = useCallback((event: GameEvent) => {
         setEvents((prev) => [...prev.slice(-49), event])
     }, [])
 
-    const connect = useCallback((pid: string) => {
-        if (wsRef.current) return
+    const connectWs = useCallback((pid: string, isReconnect = false) => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) return
 
-        setPlayerId(pid)
-        setError(null)
-        setGameOver(null)
-        setGameState(null)
-        setWinningLine(null)
+        if (!isReconnect) {
+            setPlayerId(pid)
+            playerIdRef.current = pid
+            setError(null)
+            setGameOver(null)
+            setGameState(null)
+            setWinningLine(null)
+            intentionalCloseRef.current = false
+            reconnectAttemptRef.current = 0
+        }
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         const host = window.location.host
@@ -70,7 +83,11 @@ export function useGameSocket(sessionId: string) {
 
         ws.onopen = () => {
             setConnected(true)
-            addEvent({ type: 'system', message: 'Connected' })
+            setReconnecting(false)
+            reconnectAttemptRef.current = 0
+
+            const eventMsg = isReconnect ? 'Reconnected' : 'Connected'
+            addEvent({ type: 'system', message: eventMsg })
 
             ws.send(JSON.stringify({
                 type: 'join',
@@ -102,13 +119,41 @@ export function useGameSocket(sessionId: string) {
 
         ws.onclose = () => {
             setConnected(false)
-            setWinningLine(null)
             wsRef.current = null
-            addEvent({ type: 'system', message: 'Disconnected' })
+
+            // Don't reconnect if the user intentionally closed or the game is over
+            if (intentionalCloseRef.current) {
+                setWinningLine(null)
+                addEvent({ type: 'system', message: 'Disconnected' })
+                return
+            }
+
+            // Attempt auto-reconnect with exponential backoff
+            const currentPid = playerIdRef.current
+            if (currentPid && reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+                const attempt = reconnectAttemptRef.current
+                const delay = BASE_RECONNECT_DELAY_MS * Math.pow(2, attempt)
+
+                setReconnecting(true)
+                addEvent({
+                    type: 'system',
+                    message: `Connection lost. Reconnecting in ${delay / 1000}s (attempt ${attempt + 1}/${MAX_RECONNECT_ATTEMPTS})...`,
+                })
+
+                reconnectTimerRef.current = setTimeout(() => {
+                    reconnectAttemptRef.current++
+                    connectWs(currentPid, true)
+                }, delay)
+            } else {
+                setReconnecting(false)
+                setWinningLine(null)
+                addEvent({ type: 'system', message: 'Disconnected — max reconnect attempts reached' })
+                setError('Connection lost. Please refresh the page.')
+            }
         }
 
         ws.onerror = () => {
-            setError('Connection failed')
+            // onclose will fire after onerror, reconnect logic is handled there
         }
 
         wsRef.current = ws
@@ -123,12 +168,23 @@ export function useGameSocket(sessionId: string) {
     }, [])
 
     const disconnect = useCallback(() => {
+        intentionalCloseRef.current = true
+        if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current)
+            reconnectTimerRef.current = null
+        }
+        setReconnecting(false)
         wsRef.current?.close()
         wsRef.current = null
     }, [])
 
     useEffect(() => {
         return () => {
+            intentionalCloseRef.current = true
+            if (reconnectTimerRef.current) {
+                clearTimeout(reconnectTimerRef.current)
+                reconnectTimerRef.current = null
+            }
             wsRef.current?.close()
             wsRef.current = null
         }
@@ -136,13 +192,14 @@ export function useGameSocket(sessionId: string) {
 
     return {
         connected,
+        reconnecting,
         gameState,
         gameOver,
         error,
         events,
         playerId,
         winningLine,
-        connect,
+        connect: connectWs,
         sendMove,
         disconnect,
     }

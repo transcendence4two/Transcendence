@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"sync"
 
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/config"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/protocol"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/session"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
@@ -13,18 +14,22 @@ import (
 type Hub struct {
 	mu      sync.RWMutex
 	clients map[*Client]bool
+	rooms   map[string]map[*Client]bool // sessionID → set of clients
 
 	register   chan *Client
 	unregister chan *Client
 
 	sessionMgr *session.Manager
+	config     config.Config
 }
 
-func NewHub(tc tournament.Client) *Hub {
+func NewHub(tc tournament.Client, cfg config.Config) *Hub {
 	h := &Hub{
 		clients:    make(map[*Client]bool),
+		rooms:      make(map[string]map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		config:     cfg,
 	}
 	h.sessionMgr = session.NewManager(h.BroadcastToSession, h.NotifyPlayer, tc)
 	return h
@@ -34,6 +39,10 @@ func (h *Hub) SessionManager() *session.Manager {
 	return h.sessionMgr
 }
 
+func (h *Hub) Config() config.Config {
+	return h.config
+}
+
 func (h *Hub) Run() {
 	slog.Info("hub started")
 	for {
@@ -41,6 +50,14 @@ func (h *Hub) Run() {
 		case client := <-h.register:
 			h.mu.Lock()
 			h.clients[client] = true
+			if client.SessionID != "" {
+				room, ok := h.rooms[client.SessionID]
+				if !ok {
+					room = make(map[*Client]bool)
+					h.rooms[client.SessionID] = room
+				}
+				room[client] = true
+			}
 			h.mu.Unlock()
 			slog.Info("client registered", "player", client.PlayerID, "session", client.SessionID)
 
@@ -48,6 +65,14 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
+				if client.SessionID != "" {
+					if room, ok := h.rooms[client.SessionID]; ok {
+						delete(room, client)
+						if len(room) == 0 {
+							delete(h.rooms, client.SessionID)
+						}
+					}
+				}
 				close(client.send)
 			}
 			h.mu.Unlock()
@@ -123,6 +148,8 @@ func (h *Hub) handleMove(client *Client, payload json.RawMessage) {
 	}
 }
 
+// BroadcastToSession sends a message to all clients in a specific session.
+// Uses the rooms index for O(1) lookup instead of scanning all clients.
 func (h *Hub) BroadcastToSession(sessionID string, msg protocol.ServerMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -133,17 +160,21 @@ func (h *Hub) BroadcastToSession(sessionID string, msg protocol.ServerMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	for client := range h.clients {
-		if client.SessionID == sessionID {
-			select {
-			case client.send <- data:
-			default:
-				slog.Warn("client send buffer full, dropping message", "player", client.PlayerID)
-			}
+	room, ok := h.rooms[sessionID]
+	if !ok {
+		return
+	}
+
+	for client := range room {
+		select {
+		case client.send <- data:
+		default:
+			slog.Warn("client send buffer full, dropping message", "player", client.PlayerID)
 		}
 	}
 }
 
+// NotifyPlayer sends a message to a specific player within their session room.
 func (h *Hub) NotifyPlayer(playerID string, msg protocol.ServerMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -154,14 +185,16 @@ func (h *Hub) NotifyPlayer(playerID string, msg protocol.ServerMessage) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	for client := range h.clients {
-		if client.PlayerID == playerID {
-			select {
-			case client.send <- data:
-			default:
-				slog.Warn("client send buffer full, dropping message", "player", playerID)
+	for _, room := range h.rooms {
+		for client := range room {
+			if client.PlayerID == playerID {
+				select {
+				case client.send <- data:
+				default:
+					slog.Warn("client send buffer full, dropping message", "player", playerID)
+				}
+				return
 			}
-			return
 		}
 	}
 }

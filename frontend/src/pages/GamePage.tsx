@@ -28,6 +28,7 @@ export default function GamePage() {
 
     const {
         connected,
+        reconnecting,
         gameState,
         gameOver,
         error,
@@ -81,14 +82,20 @@ export default function GamePage() {
                 <div className="game-container">
                     <h1 className="game-title">Tic Tac Infinity</h1>
 
-                    {!connected ? (
+                    {reconnecting && (
+                        <div className="game-error" style={{ marginBottom: '1rem', background: 'rgba(234, 179, 8, 0.15)', borderColor: 'rgba(234, 179, 8, 0.3)', color: '#fbbf24' }}>
+                            🔄 Connection lost. Reconnecting…
+                        </div>
+                    )}
+
+                    {!connected && !reconnecting ? (
                         <div>
                             <p className="game-session-info">
                                 Session: <code>{sessionId}</code>
                             </p>
                             <p className="game-subtitle">Connecting...</p>
                         </div>
-                    ) : (
+                    ) : connected ? (
                         <>
                             <div className="game-info">
                                 <span className="game-badge game-badge--connected">Connected</span>
@@ -134,7 +141,7 @@ export default function GamePage() {
                                 </div>
                             </details>
                         </>
-                    )}
+                    ) : null}
                 </div>
             </main>
             <Footer />

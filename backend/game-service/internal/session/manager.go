@@ -4,9 +4,17 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/domain"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
+)
+
+const (
+	SessionCleanupInterval = 1 * time.Minute
+	FinishedSessionTTL = 30 * time.Second
+	OrphanSessionTTL = 5 * time.Minute
 )
 
 type Manager struct {
@@ -19,12 +27,14 @@ type Manager struct {
 }
 
 func NewManager(broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client) *Manager {
-	return &Manager{
+	m := &Manager{
 		sessions:   make(map[string]*Session),
 		broadcast:  broadcast,
 		notify:     notify,
 		tournament: tc,
 	}
+	go m.cleanupLoop()
+	return m
 }
 
 func (m *Manager) CreateSession() string {
@@ -92,4 +102,40 @@ func (m *Manager) ListSessionIDs() []string {
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+func (m *Manager) cleanupLoop() {
+	ticker := time.NewTicker(SessionCleanupInterval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		m.cleanup()
+	}
+}
+
+func (m *Manager) cleanup() {
+	now := time.Now()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for id, sess := range m.sessions {
+		sess.mu.Lock()
+		state := sess.State
+		createdAt := sess.CreatedAt
+		sess.mu.Unlock()
+
+		switch state {
+		case domain.StateFinished:
+			if now.Sub(createdAt) > FinishedSessionTTL {
+				delete(m.sessions, id)
+				slog.Info("cleaned up finished session", "session_id", id)
+			}
+		case domain.StateWaiting:
+			if now.Sub(createdAt) > OrphanSessionTTL {
+				delete(m.sessions, id)
+				slog.Info("cleaned up orphan session", "session_id", id)
+			}
+		}
+	}
 }

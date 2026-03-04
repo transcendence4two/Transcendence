@@ -12,6 +12,10 @@ import (
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 )
 
+const (
+	DisconnectGracePeriod = 15 * time.Second
+)
+
 type BroadcastFunc func(sessionID string, msg protocol.ServerMessage)
 type NotifyFunc func(playerID string, msg protocol.ServerMessage)
 
@@ -32,6 +36,8 @@ type Session struct {
 	broadcast   BroadcastFunc
 	notify      NotifyFunc
 	tournament  tournament.Client
+	disconnectedPlayer string
+	disconnectTimer    *time.Timer
 }
 
 func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *SessionConfig) *Session {
@@ -52,6 +58,32 @@ func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tourna
 func (s *Session) Join(playerID string) (*domain.Player, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	// Handle reconnection: if a disconnected player rejoins, cancel the forfeit timer.
+	if s.disconnectedPlayer == playerID {
+		slog.Info("player reconnected", "session", s.ID, "player", playerID)
+		if s.disconnectTimer != nil {
+			s.disconnectTimer.Stop()
+			s.disconnectTimer = nil
+		}
+		s.disconnectedPlayer = ""
+
+		s.broadcast(s.ID, protocol.ServerMessage{
+			Type: protocol.TypePlayerJoined,
+			Payload: protocol.PlayerJoinedPayload{
+				PlayerID: playerID,
+				Symbol:   string(s.getPlayerSymbol(playerID)),
+			},
+		})
+
+		s.broadcastState()
+		// Return existing player info
+		for _, p := range s.Players {
+			if p != nil && p.ID == playerID {
+				return p, nil
+			}
+		}
+	}
 
 	for _, p := range s.Players {
 		if p != nil && p.ID == playerID {
@@ -81,7 +113,7 @@ func (s *Session) Join(playerID string) (*domain.Player, error) {
 		},
 	})
 
-	if s.Players[0] != nil && s.Players[1] != nil {
+	if s.Players[0] != nil && s.Players[1] != nil && s.State == domain.StateWaiting {
 		s.State = domain.StatePlaying
 		s.StartedAt = time.Now()
 		slog.Info("game started", "session", s.ID)
@@ -131,6 +163,8 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 	return nil
 }
 
+// Disconnect handles a player disconnecting. During an active game, instead of
+// immediately forfeiting, a grace period is started to allow reconnection.
 func (s *Session) Disconnect(playerID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -145,14 +179,41 @@ func (s *Session) Disconnect(playerID string) {
 	})
 
 	if s.State == domain.StatePlaying {
-		var winnerID string
-		for _, p := range s.Players {
-			if p != nil && p.ID != playerID {
-				winnerID = p.ID
+		// Start grace period instead of immediate forfeit
+		s.disconnectedPlayer = playerID
+		s.disconnectTimer = time.AfterFunc(DisconnectGracePeriod, func() {
+			s.mu.Lock()
+			defer s.mu.Unlock()
+
+			// Only forfeit if the player is still disconnected
+			if s.disconnectedPlayer != playerID || s.State != domain.StatePlaying {
+				return
 			}
-		}
-		s.finishGame(winnerID, "forfeit", nil)
+
+			slog.Info("grace period expired, forfeiting",
+				"session", s.ID, "player", playerID)
+
+			var winnerID string
+			for _, p := range s.Players {
+				if p != nil && p.ID != playerID {
+					winnerID = p.ID
+				}
+			}
+			s.disconnectedPlayer = ""
+			s.disconnectTimer = nil
+			s.finishGame(winnerID, "forfeit", nil)
+		})
+
+		slog.Info("grace period started",
+			"session", s.ID, "player", playerID,
+			"duration", DisconnectGracePeriod)
 	}
+}
+
+func (s *Session) IsFinished() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.State == domain.StateFinished
 }
 
 func (s *Session) GetStatePayload() protocol.GameStatePayload {
@@ -161,9 +222,25 @@ func (s *Session) GetStatePayload() protocol.GameStatePayload {
 	return s.buildStatePayload()
 }
 
+func (s *Session) getPlayerSymbol(playerID string) domain.Symbol {
+	for _, p := range s.Players {
+		if p != nil && p.ID == playerID {
+			return p.Symbol
+		}
+	}
+	return domain.SymbolEmpty
+}
+
 // finishGame must be called with s.mu held.
 func (s *Session) finishGame(winnerID, reason string, line []domain.Position) {
 	s.State = domain.StateFinished
+
+	// Clean up any pending disconnect timer
+	if s.disconnectTimer != nil {
+		s.disconnectTimer.Stop()
+		s.disconnectTimer = nil
+	}
+	s.disconnectedPlayer = ""
 
 	var loserID string
 	for _, p := range s.Players {
@@ -208,7 +285,7 @@ func (s *Session) reportToTournament(winnerID, loserID string) {
 		s.saveMatchRecordViaWebhook(winnerID, loserID)
 		return
 	}
-	
+
 	winnerParticipant, ok := s.Config.ParticipantMap[winnerID]
 	if !ok {
 		slog.Warn("winner not found in participant map", "winner", winnerID)

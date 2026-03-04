@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -10,6 +11,7 @@ type Config struct {
 	LogLevel             string
 	TournamentServiceURL string
 	WebhookSharedSecret  string
+	AllowedOrigins       []string
 }
 
 func Load() Config {
@@ -18,7 +20,22 @@ func Load() Config {
 		LogLevel:             getEnv("LOG_LEVEL", "info"),
 		TournamentServiceURL: getEnv("TOURNAMENT_SERVICE_URL", "http://tournament-service:8002"),
 		WebhookSharedSecret:  getEnv("WEBHOOK_SHARED_SECRET", "local-webhook-token"),
+		AllowedOrigins:       parseOrigins(getEnv("ALLOWED_ORIGINS", "")),
 	}
+}
+
+func parseOrigins(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	parts := strings.Split(raw, ",")
+	origins := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
+	}
+	return origins
 }
 
 func getEnv(key, fallback string) string {
