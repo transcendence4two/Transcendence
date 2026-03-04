@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import {
-  MoonIcon,
-  SunIcon,
-  PersonFillIcon,
-  ArrowLeftShortIcon,
-  QuestionLgIcon,
-} from "../components/icons/Icons";
+import { useParams } from "react-router-dom";
+import { PersonFillIcon, QuestionLgIcon } from "../components/icons/Icons";
 
+import PageNavbar from "../components/common/PageNavbar";
 import UserStats from "../components/profile/UserStats";
 import MatchHistory from "../components/profile/MatchHistory";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
@@ -20,8 +15,6 @@ type UserProfile = UserStatsData & {
 const ProfilePage = () => {
   const { username } = useParams<{ username: string }>();
 
-  const navigate = useNavigate();
-
   const nick = username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
@@ -32,22 +25,6 @@ const ProfilePage = () => {
 
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
-
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? savedTheme === "dark" : true;
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.remove("light");
-      localStorage.setItem("theme", "dark");
-    } else {
-      root.classList.add("light");
-      localStorage.setItem("theme", "light");
-    }
-  }, [isDarkMode]);
 
   useEffect(() => {
     fetch(`api/users/${nick}`, { credentials: "include" })
@@ -64,32 +41,7 @@ const ProfilePage = () => {
   return (
     <div className="container-main">
       <main className="content-main">
-        <div className="profile-nav-shell">
-          <nav className="profile-nav" aria-label="Profile navigation">
-            <button
-              type="button"
-              onClick={() => navigate("/home")}
-              className="profile-nav-btn"
-              aria-label="Back"
-            >
-              <ArrowLeftShortIcon className="profile-nav-arrow" />
-            </button>
-
-            <h1 className="profile-nav-title">
-              <PersonFillIcon className="profile-nav-icon icon-svg icon-cyan" />
-              User Profile
-            </h1>
-
-            <button
-              type="button"
-              onClick={() => setIsDarkMode((prev) => !prev)}
-              className="profile-theme-btn"
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <SunIcon /> : <MoonIcon />}
-            </button>
-          </nav>
-        </div>
+        <PageNavbar title="User Profile" icon={PersonFillIcon} />
 
         <div className="profile-page-content">
           <div className="profile-page-layout">
