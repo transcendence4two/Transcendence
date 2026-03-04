@@ -58,23 +58,4 @@ clean: down
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all certs certs-clean deploy down logs tests lint format clean game-test run-game-api
-
-# Load .env if it exists
-ifneq (,$(wildcard .env))
-    include .env
-    export
-endif
-
-# Default for local development
-TOURNAMENT_SERVICE_URL ?= http://localhost:8002
-export TOURNAMENT_SERVICE_URL
-
-game-test:
-	@echo "Running tests for game-service..."
-	cd backend/game-service && go test ./... -v -race
-
-run-game-api:
-	@echo "Starting game-service in go..."
-	cd backend/game-service && go run cmd/server/main.go
-
+.PHONY: deps all certs certs-clean deploy down logs tests lint format clean
