@@ -31,6 +31,7 @@ export default function GamePage() {
         reconnecting,
         gameState,
         gameOver,
+        roundOver,
         error,
         events,
         playerId,
@@ -50,11 +51,24 @@ export default function GamePage() {
     const state = gameState?.state || 'waiting'
     const mySymbol = gameState?.players?.find((p) => p.id === playerId)?.symbol
     const isMyTurn = gameState?.current_turn === playerId
+    const round = gameState?.round || 1
+    const score = gameState?.score || [0, 0]
+
+    const getPlayerLabel = (index: number) => {
+        const player = gameState?.players?.[index]
+        if (!player) return `Player ${index + 1}`
+        const isMe = player.id === playerId
+        return isMe ? 'You' : 'Opponent'
+    }
 
     const getStatusText = () => {
         if (gameOver) {
-            if (gameOver.winner_id === playerId) return '🎉 You won!'
-            return `💀 You lost! (${gameOver.reason})`
+            if (gameOver.winner_id === playerId) return '🎉 You won the match!'
+            return `💀 You lost the match! (${gameOver.reason})`
+        }
+        if (roundOver) {
+            if (roundOver.winner_id === playerId) return '✅ You won this round!'
+            return '❌ You lost this round!'
         }
         if (state === 'waiting') return '⏳ Waiting for opponent...'
         if (isMyTurn) return '🟢 Your turn'
@@ -110,14 +124,38 @@ export default function GamePage() {
                                 </button>
                             </div>
 
+                            {/* MD3 Scoreboard */}
+                            {state !== 'waiting' && (
+                                <div className="game-scoreboard">
+                                    <span className="game-scoreboard-player">{getPlayerLabel(0)}</span>
+                                    <span className="game-scoreboard-score">
+                                        {score[0]} — {score[1]}
+                                    </span>
+                                    <span className="game-scoreboard-player">{getPlayerLabel(1)}</span>
+                                    <span className="game-scoreboard-round">Round {round} of 3</span>
+                                </div>
+                            )}
+
                             <div className="game-status">{getStatusText()}</div>
 
                             {error && <div className="game-error">{error}</div>}
 
+                            {/* Round-over overlay */}
+                            {roundOver && !gameOver && (
+                                <div className="game-round-overlay">
+                                    <div className="game-round-overlay-content">
+                                        {roundOver.winner_id === playerId
+                                            ? '✅ Round won!'
+                                            : '❌ Round lost!'}
+                                        <span className="game-round-overlay-sub">Next round starting soon…</span>
+                                    </div>
+                                </div>
+                            )}
+
                             <GameBoard
                                 board={board}
                                 onCellClick={sendMove}
-                                disabled={!!gameOver || state !== 'playing'}
+                                disabled={!!gameOver || !!roundOver || state !== 'playing'}
                                 currentTurn={gameState?.current_turn}
                                 playerId={playerId}
                                 removedPiece={gameState?.removed_piece}

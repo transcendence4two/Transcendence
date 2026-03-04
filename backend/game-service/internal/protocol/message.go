@@ -30,6 +30,7 @@ const (
 	TypeMove         = "move"
 	TypeGameState    = "game_state"
 	TypeGameOver     = "game_over"
+	TypeRoundOver    = "round_over"
 	TypeError        = "error"
 	TypePlayerJoined = "player_joined"
 	TypePlayerLeft   = "player_left"
@@ -42,6 +43,8 @@ type GameStatePayload struct {
 	Players           []PlayerInfo `json:"players"`
 	RemovedPiece      *PositionDTO `json:"removed_piece,omitempty"`
 	NextRemovedPiece  *PositionDTO `json:"next_removed_piece,omitempty"`
+	Round             int          `json:"round"`
+	Score             [2]int       `json:"score"`
 }
 
 type PositionDTO struct {
@@ -59,6 +62,16 @@ type GameOverPayload struct {
 	Reason      string         `json:"reason"`
 	Board       [3][3]string   `json:"board"`
 	WinningLine []PositionDTO  `json:"winning_line,omitempty"`
+	Score       [2]int         `json:"score"`
+}
+
+type RoundOverPayload struct {
+	WinnerID    string         `json:"winner_id"`
+	Reason      string         `json:"reason"`
+	Board       [3][3]string   `json:"board"`
+	WinningLine []PositionDTO  `json:"winning_line,omitempty"`
+	Round       int            `json:"round"`
+	Score       [2]int         `json:"score"`
 }
 
 type ErrorPayload struct {

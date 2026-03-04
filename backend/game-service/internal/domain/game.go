@@ -32,9 +32,12 @@ func (s GameState) String() string {
 }
 
 const (
-	BoardSize       = 3
+	BoardSize          = 3
 	MaxPiecesPerPlayer = 3
+	RoundsToWin        = 2 // MD3: first to 2 round wins takes the match
 )
+
+const RoundResetDelay = 3 * time.Second
 
 type Board [BoardSize][BoardSize]Symbol
 

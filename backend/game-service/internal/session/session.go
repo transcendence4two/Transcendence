@@ -31,6 +31,10 @@ type Session struct {
 	StartedAt   time.Time
 	CreatedAt   time.Time
 
+	// MD3 fields
+	Round int    // current round (1-indexed)
+	Score [2]int // accumulated wins [Player[0], Player[1]]
+
 	Config      *SessionConfig
 	lastRemoved *domain.Position
 	broadcast   BroadcastFunc
@@ -38,6 +42,7 @@ type Session struct {
 	tournament  tournament.Client
 	disconnectedPlayer string
 	disconnectTimer    *time.Timer
+	roundResetTimer    *time.Timer
 }
 
 func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *SessionConfig) *Session {
@@ -48,6 +53,7 @@ func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tourna
 		TurnIndex:   0,
 		MoveHistory: domain.NewMoveHistory(),
 		CreatedAt:   time.Now(),
+		Round:       1,
 		Config:      cfg,
 		broadcast:   broadcast,
 		notify:      notify,
@@ -153,7 +159,7 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 
 	if winner, line := domain.CheckWinner(s.Board); winner != domain.SymbolEmpty {
 		s.broadcastState()
-		s.finishGame(playerID, "checkmate", line)
+		s.finishRound(playerID, "checkmate", line)
 		return nil
 	}
 
@@ -201,7 +207,8 @@ func (s *Session) Disconnect(playerID string) {
 			}
 			s.disconnectedPlayer = ""
 			s.disconnectTimer = nil
-			s.finishGame(winnerID, "forfeit", nil)
+			// Forfeit ends the entire match, not just the round
+			s.finishMatch(winnerID, "forfeit", nil)
 		})
 
 		slog.Info("grace period started",
@@ -231,14 +238,101 @@ func (s *Session) getPlayerSymbol(playerID string) domain.Symbol {
 	return domain.SymbolEmpty
 }
 
-// finishGame must be called with s.mu held.
-func (s *Session) finishGame(winnerID, reason string, line []domain.Position) {
+// playerIndex returns the index (0 or 1) of the given playerID, or -1 if not found.
+func (s *Session) playerIndex(playerID string) int {
+	for i, p := range s.Players {
+		if p != nil && p.ID == playerID {
+			return i
+		}
+	}
+	return -1
+}
+
+// finishRound is called when a player wins a round. It updates the score and
+// either ends the match (if someone reached RoundsToWin) or resets for the
+// next round after a short delay.
+// Must be called with s.mu held.
+func (s *Session) finishRound(winnerID, reason string, line []domain.Position) {
+	winnerIdx := s.playerIndex(winnerID)
+	if winnerIdx >= 0 {
+		s.Score[winnerIdx]++
+	}
+
+	slog.Info("round finished",
+		"session", s.ID,
+		"round", s.Round,
+		"winner", winnerID,
+		"score", s.Score,
+	)
+
+	var winningLine []protocol.PositionDTO
+	for _, p := range line {
+		winningLine = append(winningLine, protocol.PositionDTO{
+			Row: p.Row,
+			Col: p.Col,
+		})
+	}
+
+	// Check if the match is decided
+	if winnerIdx >= 0 && s.Score[winnerIdx] >= domain.RoundsToWin {
+		// Broadcast round_over first so frontend can show the round result
+		s.broadcast(s.ID, protocol.ServerMessage{
+			Type: protocol.TypeRoundOver,
+			Payload: protocol.RoundOverPayload{
+				WinnerID:    winnerID,
+				Reason:      reason,
+				Board:       s.boardToStrings(),
+				WinningLine: winningLine,
+				Round:       s.Round,
+				Score:       s.Score,
+			},
+		})
+		// Then finalize the match
+		s.finishMatch(winnerID, reason, line)
+		return
+	}
+
+	// Round won but match continues — broadcast round_over and schedule reset
+	s.broadcast(s.ID, protocol.ServerMessage{
+		Type: protocol.TypeRoundOver,
+		Payload: protocol.RoundOverPayload{
+			WinnerID:    winnerID,
+			Reason:      reason,
+			Board:       s.boardToStrings(),
+			WinningLine: winningLine,
+			Round:       s.Round,
+			Score:       s.Score,
+		},
+	})
+
+	// Determine who starts next round: the loser of this round
+	nextStarter := 1 - winnerIdx
+
+	s.roundResetTimer = time.AfterFunc(domain.RoundResetDelay, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		if s.State != domain.StatePlaying {
+			return
+		}
+
+		s.resetRound(nextStarter)
+	})
+}
+
+// finishMatch ends the entire MD3 session.
+// Must be called with s.mu held.
+func (s *Session) finishMatch(winnerID, reason string, line []domain.Position) {
 	s.State = domain.StateFinished
 
-	// Clean up any pending disconnect timer
+	// Clean up any pending timers
 	if s.disconnectTimer != nil {
 		s.disconnectTimer.Stop()
 		s.disconnectTimer = nil
+	}
+	if s.roundResetTimer != nil {
+		s.roundResetTimer.Stop()
+		s.roundResetTimer = nil
 	}
 	s.disconnectedPlayer = ""
 
@@ -249,10 +343,11 @@ func (s *Session) finishGame(winnerID, reason string, line []domain.Position) {
 		}
 	}
 
-	slog.Info("game finished",
+	slog.Info("match finished",
 		"session", s.ID,
 		"winner", winnerID,
 		"reason", reason,
+		"score", s.Score,
 	)
 
 	var winningLine []protocol.PositionDTO
@@ -270,10 +365,29 @@ func (s *Session) finishGame(winnerID, reason string, line []domain.Position) {
 			Reason:      reason,
 			Board:       s.boardToStrings(),
 			WinningLine: winningLine,
+			Score:       s.Score,
 		},
 	})
 
 	s.reportToTournament(winnerID, loserID)
+}
+
+// resetRound resets the board for the next round.
+// Must be called with s.mu held.
+func (s *Session) resetRound(nextStarterIndex int) {
+	s.Round++
+	s.Board = domain.NewBoard()
+	s.MoveHistory = domain.NewMoveHistory()
+	s.lastRemoved = nil
+	s.TurnIndex = nextStarterIndex
+
+	slog.Info("round reset",
+		"session", s.ID,
+		"round", s.Round,
+		"starting_player", s.Players[s.TurnIndex].ID,
+	)
+
+	s.broadcastState()
 }
 
 func (s *Session) reportToTournament(winnerID, loserID string) {
@@ -387,6 +501,8 @@ func (s *Session) buildStatePayload() protocol.GameStatePayload {
 	payload := protocol.GameStatePayload{
 		Board: s.boardToStrings(),
 		State: s.State.String(),
+		Round: s.Round,
+		Score: s.Score,
 	}
 
 	if s.lastRemoved != nil {

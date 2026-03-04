@@ -17,6 +17,8 @@ export interface GameState {
     current_turn: string
     removed_piece?: RemovedPiece
     next_removed_piece?: RemovedPiece
+    round: number
+    score: [number, number]
 }
 
 interface WinningCell {
@@ -28,6 +30,15 @@ export interface GameOver {
     winner_id: string
     reason: string
     winning_line?: WinningCell[]
+    score: [number, number]
+}
+
+export interface RoundOver {
+    winner_id: string
+    reason: string
+    winning_line?: WinningCell[]
+    round: number
+    score: [number, number]
 }
 
 interface GameEvent {
@@ -48,6 +59,7 @@ export function useGameSocket(sessionId: string) {
     const [connected, setConnected] = useState(false)
     const [gameState, setGameState] = useState<GameState | null>(null)
     const [gameOver, setGameOver] = useState<GameOver | null>(null)
+    const [roundOver, setRoundOver] = useState<RoundOver | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [events, setEvents] = useState<GameEvent[]>([])
     const [playerId, setPlayerId] = useState<string | null>(null)
@@ -71,6 +83,7 @@ export function useGameSocket(sessionId: string) {
             playerIdRef.current = pid
             setError(null)
             setGameOver(null)
+            setRoundOver(null)
             setGameState(null)
             setWinningLine(null)
             intentionalCloseRef.current = false
@@ -100,9 +113,24 @@ export function useGameSocket(sessionId: string) {
             addEvent({ type: msg.type, data: msg.payload })
 
             switch (msg.type) {
-                case 'game_state':
-                    setGameState(msg.payload as unknown as GameState)
+                case 'game_state': {
+                    const statePayload = msg.payload as unknown as GameState
+                    setGameState(statePayload)
+                    // When we receive a new game_state after a round_over,
+                    // it means the board has been reset for the next round.
+                    // Clear round-over UI and winning line.
+                    setRoundOver(null)
+                    setWinningLine(null)
                     break
+                }
+                case 'round_over': {
+                    const roPayload = msg.payload as unknown as RoundOver
+                    setRoundOver(roPayload)
+                    if (roPayload.winning_line) {
+                        setWinningLine(roPayload.winning_line)
+                    }
+                    break
+                }
                 case 'game_over': {
                     const overPayload = msg.payload as unknown as GameOver
                     setGameOver(overPayload)
@@ -195,6 +223,7 @@ export function useGameSocket(sessionId: string) {
         reconnecting,
         gameState,
         gameOver,
+        roundOver,
         error,
         events,
         playerId,
