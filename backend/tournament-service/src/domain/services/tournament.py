@@ -604,14 +604,22 @@ class TournamentService(TournamentManager):
             raise DatabaseError("Failed to fetch round matches") from database_exception
 
     async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
+        expire_matched = (
+            update(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.user_id == user_id,
+                MatchmakingQueueEntry.status == MatchmakingQueueStatus.MATCHED.value,
+            )
+            .values(status=MatchmakingQueueStatus.EXPIRED.value)
+        )
+        try:
+            await self.session.execute(expire_matched)
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to expire matched entries") from database_exception
+
         statement = select(MatchmakingQueueEntry).where(
             MatchmakingQueueEntry.user_id == user_id,
-            MatchmakingQueueEntry.status.in_(
-                [
-                    MatchmakingQueueStatus.QUEUED.value,
-                    MatchmakingQueueStatus.MATCHED.value,
-                ]
-            ),
+            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
         )
         try:
             query_result = await self.session.execute(statement)
