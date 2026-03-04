@@ -1,12 +1,14 @@
+import logging
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import asc, select, update
+from sqlalchemy import asc, desc, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.contracts import TournamentManager
+from src.domain.contracts import GameServiceClient, TournamentManager
 from src.domain.exceptions import (
+
     DatabaseError,
     MatchmakingQueueError,
     MatchRecordValidationError,
@@ -39,13 +41,21 @@ from src.domain.schemas.tournament import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 class TournamentService(TournamentManager):
     """Service for tournament operations."""
 
     MATCHMAKING_LOCK_NAME = "global_matchmaking_join"
 
-    def __init__(self, session: AsyncSession):
+    def __init__(
+        self,
+        session: AsyncSession,
+        game_client: GameServiceClient | None = None,
+    ):
         self.session = session
+        self._game_client = game_client
 
     @staticmethod
     def _to_utc_naive(timestamp_value: datetime | None) -> datetime | None:
@@ -252,7 +262,12 @@ class TournamentService(TournamentManager):
         acquired_lock = False
 
         try:
-            await self._acquire_matchmaking_transaction_lock()
+            try:
+                await self._acquire_matchmaking_transaction_lock()
+            except DatabaseError:
+                raise MatchmakingQueueError(
+                    "Matchmaking is busy, please try again in a moment"
+                )
             acquired_lock = True
             await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
 
@@ -277,11 +292,22 @@ class TournamentService(TournamentManager):
                 match_timestamp = self._to_utc_naive(datetime.now(timezone.utc))
                 queue_entry.status = MatchmakingQueueStatus.MATCHED.value
                 queue_entry.matched_at = match_timestamp
+
+                game_session_id = await self._create_game_session_for_match(
+                    player1_user_id=matched_opponent.user_id,
+                    player2_user_id=normalized_user_id,
+                )
+                if game_session_id:
+                    queue_entry.game_session_id = game_session_id
+                    matched_opponent.game_session_id = game_session_id
+
             await self._release_matchmaking_transaction_lock()
             acquired_lock = False
             await self.session.commit()
             await self.session.refresh(queue_entry)
             return queue_entry
+        except MatchmakingQueueError:
+            raise
         except IntegrityError as integrity_exception:
             await self.session.rollback()
             raise MatchmakingQueueError("Player is already queued for matchmaking") from (
@@ -801,3 +827,50 @@ class TournamentService(TournamentManager):
         if match_record.status == MatchRecordStatus.FINISHED.value:
             tournament_match.status = MatchStatus.FINISHED.value
             tournament_match.completed_at = match_record.ended_at
+
+    async def _create_game_session_for_match(
+        self,
+        player1_user_id: str,
+        player2_user_id: str,
+    ) -> str | None:
+        if self._game_client is None:
+            logger.warning("No game client configured; skipping session creation")
+            return None
+        try:
+            return await self._game_client.create_session(
+                player1_user_id=player1_user_id,
+                player2_user_id=player2_user_id,
+            )
+        except Exception as exc:
+            logger.error(
+                "Failed to create game session: %s",
+                exc,
+                exc_info=True,
+            )
+            return None
+
+    async def get_matchmaking_status(
+        self,
+        user_id: str,
+    ) -> MatchmakingQueueEntry | None:
+        statement = (
+            select(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.user_id == user_id,
+                MatchmakingQueueEntry.status.in_(
+                    [
+                        MatchmakingQueueStatus.QUEUED.value,
+                        MatchmakingQueueStatus.MATCHED.value,
+                    ]
+                ),
+            )
+            .order_by(desc(MatchmakingQueueEntry.joined_at))
+            .limit(1)
+        )
+        try:
+            query_result = await self.session.execute(statement)
+            return query_result.scalar_one_or_none()
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError(
+                "Failed to fetch matchmaking status"
+            ) from database_exception

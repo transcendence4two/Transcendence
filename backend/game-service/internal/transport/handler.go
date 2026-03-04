@@ -76,8 +76,8 @@ func handleCreateSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.TournamentID == "" || req.MatchID == "" || len(req.Players) != 2 {
-		http.Error(w, `{"error":"tournament_id, match_id, and exactly 2 players are required"}`, http.StatusBadRequest)
+	if len(req.Players) != 2 {
+		http.Error(w, `{"error":"exactly 2 players are required"}`, http.StatusBadRequest)
 		return
 	}
 

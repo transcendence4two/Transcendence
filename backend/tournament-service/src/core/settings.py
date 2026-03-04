@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = None
     TOURNAMENT_DATABASE_URL: str | None = None
     WEBHOOK_SHARED_SECRET: str = "local-webhook-token"
+    GAME_SERVICE_URL: str = "http://game-service:8001"
 
     model_config = {
         "env_file": find_root_env(),

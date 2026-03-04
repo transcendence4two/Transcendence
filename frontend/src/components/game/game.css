@@ -456,3 +456,22 @@
         transform: translate(-50%, -50%) rotate(-45deg) scaleX(1);
     }
 }
+
+/* ---------- Matchmaking ---------- */
+
+.matchmaking-spinner {
+    width: 56px;
+    height: 56px;
+    border: 4px solid #334155;
+    border-top-color: #818cf8;
+    border-right-color: #f472b6;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: matchmaking-spin 1s linear infinite;
+}
+
+@keyframes matchmaking-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

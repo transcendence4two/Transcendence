@@ -122,7 +122,7 @@ const DashboardPage = () => {
                         <Button
                             className='w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30
                                 flex items-center justify-center gap-2'
-                            onClick={() => navigate('/game')}
+                            onClick={() => navigate('/matchmaking')}
                         >
                             <span>🎮</span> Play
                         </Button>
