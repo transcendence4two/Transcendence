@@ -58,7 +58,7 @@ clean: down
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all certs certs-clean deploy down logs tests lint format clean game-test game-dev run-game-api run-game-web
+.PHONY: deps all certs certs-clean deploy down logs tests lint format clean game-test run-game-api
 
 # Load .env if it exists
 ifneq (,$(wildcard .env))
@@ -78,10 +78,3 @@ run-game-api:
 	@echo "Starting game-service in go..."
 	cd backend/game-service && go run cmd/server/main.go
 
-run-game-web:
-	@echo "Starting web mock for game..."
-	cd backend/game-service/web && bun install && bun run dev
-
-game-dev:
-	@echo "Starting game-service and web mock..."
-	$(MAKE) -j2 run-game-api run-game-web

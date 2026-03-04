@@ -62,7 +62,7 @@ export default function GamePage() {
 
     const handleDisconnect = () => {
         disconnect()
-        navigate('/game')
+        navigate('/home')
     }
 
     const copyLink = () => {
@@ -70,7 +70,7 @@ export default function GamePage() {
     }
 
     if (!sessionId) {
-        navigate('/game')
+        navigate('/home')
         return null
     }
 
