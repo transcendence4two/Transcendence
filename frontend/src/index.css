@@ -1,9 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 /* Fix overscroll background color */
 html,
 body {
   background-color: #1e293b;
+  font-family: "DM Sans", sans-serif;
+  min-width: max-content;
   margin: 0;
   padding: 0;
 }
@@ -51,7 +56,19 @@ html.light body {
   }
 
   .footer-main {
-    @apply bg-transparent text-gray-300 py-4 text-center;
+    @apply mt-20 sm:mt-28 border-t border-slate-700/50 bg-slate-900/55 text-slate-300 backdrop-blur-sm;
+  }
+
+  .footer-content {
+    @apply mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 px-4 py-4 sm:px-6 md:flex-row;
+  }
+
+  .footer-copy {
+    @apply text-slate-300/85;
+  }
+
+  .footer-links {
+    @apply flex items-center gap-6 text-slate-300/90;
   }
 
   .main-bg {
@@ -87,7 +104,7 @@ html.light body {
   }
 
   .content-main {
-    @apply flex-1;
+    @apply flex-1 pb-24 sm:pb-32;
   }
 
   .btn-hero {
@@ -118,16 +135,24 @@ html.light body {
     @apply w-6 h-6;
   }
 
+  .hamburger-trigger {
+    @apply relative z-10 flex h-9 w-9 items-center justify-center cursor-pointer rounded-xl border border-cyan-300/50 bg-linear-to-br from-sky-500 to-blue-700 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70;
+  }
+
+  .hamburger-trigger > svg {
+    @apply h-5 w-5;
+  }
+
   .profile-page-content {
     @apply px-4 sm:px-6 py-8 sm:py-10;
   }
 
   .profile-page-layout {
-    @apply mx-auto w-full max-w-2xl space-y-6;
+    @apply mx-auto w-full min-w-max max-w-2xl space-y-6;
   }
 
   .profile-page-user-card {
-    @apply border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center space-y-4;
+    @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 text-center space-y-8;
   }
 
   .profile-page-avatar-wrap {
@@ -147,7 +172,7 @@ html.light body {
   }
 
   .profile-page-section-card {
-    @apply border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-6 space-y-4;
+    @apply in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80;
   }
 
   .dashboard-main {
@@ -155,19 +180,19 @@ html.light body {
   }
 
   .dashboard-layout {
-    @apply w-full max-w-2xl space-y-6;
+    @apply w-full min-w-max max-w-2xl space-y-6;
   }
 
   .dashboard-card {
-    @apply relative z-10 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl;
+    @apply mt-2 relative z-10 border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl;
   }
 
   .dashboard-profile-card {
-    @apply p-8 text-center space-y-4;
+    @apply p-8 text-center bg-slate-900/40 border border-slate-700/50;
   }
 
   .dashboard-card-content {
-    @apply relative z-10;
+    @apply relative z-10 space-y-6;
   }
 
   .dashboard-avatar-wrap {
@@ -183,7 +208,11 @@ html.light body {
   }
 
   .dashboard-user-email {
-    @apply text-sm text-slate-400 in-[.light]:text-gray-500;
+    @apply text-sm text-slate-400;
+  }
+
+  .dashboard-game-card {
+    @apply relative overflow-hidden p-6 space-y-4 border border-transparent;
   }
 
   .dashboard-game-card {
@@ -200,22 +229,34 @@ html.light body {
 
   .dashboard-game-title {
     @apply flex items-center gap-2 text-lg font-semibold text-white in-[.light]:text-gray-900;
+    font-family: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .dashboard-game-icon {
+    @apply h-5 w-5 shrink-0;
   }
 
   .dashboard-game-text {
-    @apply mt-1 text-sm text-slate-400 in-[.light]:text-gray-500;
+    @apply mt-1 text-left text-sm text-slate-400 in-[.light]:text-gray-500;
+    font-family: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.01em;
   }
 
   .dashboard-play-btn {
-    @apply relative z-10 w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2;
+    @apply rounded-xl relative z-10 w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2;
+    font-family: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: 0.03em;
   }
 
   .profile-nav-btn {
-    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
+    @apply inline-flex h-9 w-9 mr-0.5 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
   }
 
   .profile-nav-title {
     @apply flex items-center justify-start justify-self-start gap-2 text-lg sm:text-xl font-semibold text-white;
+    font-family: "DM Sans";
+    font-weight: 650;
   }
 
   .profile-nav-arrow {
@@ -248,7 +289,7 @@ html.light body {
   }
 
   .profile-section-title {
-    @apply mb-4 text-sm sm:text-base font-semibold uppercase tracking-[0.14em] text-gray-400;
+    @apply mb-3 text-left sm:text-base font-semibold uppercase tracking-[0.14em] text-gray-400;
   }
 
   .profile-help-fab {
@@ -271,7 +312,7 @@ html.light body {
   }
 
   .stat-card {
-    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-5 text-center flex flex-col items-center gap-2;
+    @apply rounded-xl border border-cyan-800/40 bg-slate-700/20 px-12 py-4 text-center flex flex-col items-center gap-2;
   }
 
   .stat-icon {
@@ -291,7 +332,7 @@ html.light body {
   }
 
   .history-item {
-    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-3 flex items-center justify-between gap-4 transition-all duration-200 hover:border-slate-500/70 hover:bg-slate-900/60;
+    @apply rounded-xl border border-cyan-800/40 bg-slate-700/20 px-4 py-3 flex items-center justify-between gap-4 transition-all duration-200 hover:border-slate-500/70 hover:bg-slate-900/60;
   }
 
   .history-icon {
@@ -311,11 +352,11 @@ html.light body {
   }
 
   .history-text {
-    @apply flex-1 text-sm sm:text-base text-white;
+    @apply flex-1 text-sm sm:text-base text-white text-left;
   }
 
   .history-score {
-    @apply text-sm font-semibold px-2.5 py-1 rounded-md bg-slate-950/50 border border-slate-700/60 min-w-[4.5rem] text-center;
+    @apply text-sm font-semibold px-2.5 py-1 rounded-md bg-slate-900/50 border border-slate-700/60 min-w-[4.5rem] text-center;
   }
 
   .history-score-win {
@@ -426,7 +467,15 @@ html.light body {
 }
 
 .light .footer-main {
-  @apply bg-transparent text-gray-700;
+  @apply border-gray-300 bg-white/85 text-gray-700;
+}
+
+.light .footer-copy {
+  @apply text-gray-700;
+}
+
+.light .footer-links {
+  @apply text-gray-700;
 }
 
 .light .container-main {
@@ -450,15 +499,35 @@ html.light body {
 }
 
 .light .profile-nav-btn {
-  @apply border-blue-400 from-sky-400 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(37,99,235,0.45)] hover:shadow-[0_12px_20px_-12px_rgba(37,99,235,0.55)];
+  @apply bg-white from-white to-white border-gray-300 hover:brightness-98 shadow-none;
+}
+
+.light .profile-nav-arrow {
+  filter: brightness(0); /* makes it black */
+}
+
+.light .profile-nav-icon.icon-cyan {
+  filter: brightness(0);
 }
 
 .light .profile-nav-title {
   @apply text-gray-900;
 }
 
-.light .profile-nav-menu-wrap button {
+.light .profile-nav-menu-wrap button:not(.hamburger-trigger) {
   @apply text-gray-900;
+}
+
+.light .dashboard-card {
+  @apply bg-white border-gray-400;
+}
+
+.light .dashboard-game-card {
+  @apply border-gray-300;
+}
+
+.light .dashboard-user-email {
+  @apply text-gray-700;
 }
 
 .light .profile-theme-btn {
@@ -503,7 +572,7 @@ html.light body {
 }
 
 .light .profile-page-user-card {
-  @apply border-gray-300 bg-white shadow-md;
+  @apply border-gray-400;
 }
 
 .light .profile-page-section-card {

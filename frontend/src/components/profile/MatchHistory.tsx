@@ -53,7 +53,7 @@ const MatchHistory = (props: MatchHistoryProps) => {
 
   return (
     <section className={props.className}>
-      {heading && <h3 className="profile-section-title">{heading}</h3>}
+      {heading && <h3 className="profile-section-title text-sm">{heading}</h3>}
       <dl
         aria-label={`${props.username} match history`}
         className="history-list"
