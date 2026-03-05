@@ -17,7 +17,7 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<TFAPage />} />
         <Route path="/home" element={<DashboardPage />} />
-        <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   );
