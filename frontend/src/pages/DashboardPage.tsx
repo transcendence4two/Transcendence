@@ -5,10 +5,10 @@ import Button from "../components/common/Button";
 import StatGrid from "../components/common/StatGrid";
 import PageNavbar from "../components/common/PageNavbar";
 import {
-  TrophyIcon,
-  CrosshairIcon,
-  TrendingUpIcon,
-  GamepadIcon,
+  TrophyFillIcon,
+  BullseyeFillIcon,
+  GraphUpArrowFillIcon,
+  ControllerFillIcon,
 } from "../components/icons/Icons";
 
 interface UserData {
@@ -76,28 +76,28 @@ const DashboardPage = () => {
 
   const statItems = [
     {
-      icon: <TrophyIcon className="w-6 h-6" />,
+      icon: <TrophyFillIcon className="stat-icon icon-svg icon-emerald" />,
       value: wins !== null ? String(wins) : "N/A",
       label: "Wins",
       color: "text-emerald-400",
     },
     {
-      icon: <CrosshairIcon className="w-6 h-6" />,
+      icon: <BullseyeFillIcon className="stat-icon icon-svg icon-rose" />,
       value: losses !== null ? String(losses) : "N/A",
       label: "Losses",
-      color: "text-red-400",
+      color: "text-rose-400",
     },
     {
-      icon: <TrendingUpIcon className="w-6 h-6" />,
+      icon: <GraphUpArrowFillIcon className="stat-icon icon-svg icon-blue" />,
       value: winRate ?? "N/A",
       label: "Win Rate",
-      color: "text-cyan-400",
+      color: "text-blue-400",
     },
     {
-      icon: <GamepadIcon className="w-6 h-6" />,
+      icon: <ControllerFillIcon className="stat-icon icon-svg icon-cyan" />,
       value: total !== null ? String(total) : "N/A",
       label: "Total Games",
-      color: "text-blue-400",
+      color: "text-cyan-400",
     },
   ];
 
