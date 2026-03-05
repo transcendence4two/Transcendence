@@ -10,6 +10,8 @@ export type MatchHistoryItem = {
 type MatchHistoryProps = {
   username: string;
   matches: MatchHistoryItem[];
+  title?: string;
+  className?: string;
 };
 
 const fallbackMatches: MatchHistoryItem[] = [
@@ -47,35 +49,39 @@ const getMatchScore = (match: MatchHistoryItem) => {
 
 const MatchHistory = (props: MatchHistoryProps) => {
   const history = props.matches.length > 0 ? props.matches : fallbackMatches;
+  const heading = props.title;
 
   return (
-    <dl
-      aria-label={`${props.username} match history`}
-      className="history-list"
-    >
-      {history.map((match, index) => (
-        <div key={index} className="history-item">
-          <span
-            className={`history-icon-badge ${match.result === "win" ? "history-icon-badge-win" : "history-icon-badge-loss"}`}
-          >
-            {match.result === "win" ? (
-              <TrophyFillIcon className="history-icon icon-svg icon-emerald" />
-            ) : (
-              <BullseyeFillIcon className="history-icon icon-svg icon-rose" />
-            )}
-          </span>
-          <dt className="history-text">
-            {match.result === "win" ? "Win" : "Loss"} vs{" "}
-            {getOpponentName(match.opponent)}
-          </dt>
-          <dd
-            className={`history-score ${match.result === "win" ? "history-score-win" : "history-score-loss"}`}
-          >
-            {getMatchScore(match)}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <section className={props.className}>
+      {heading && <h3 className="profile-section-title">{heading}</h3>}
+      <dl
+        aria-label={`${props.username} match history`}
+        className="history-list"
+      >
+        {history.map((match, index) => (
+          <div key={index} className="history-item">
+            <span
+              className={`history-icon-badge ${match.result === "win" ? "history-icon-badge-win" : "history-icon-badge-loss"}`}
+            >
+              {match.result === "win" ? (
+                <TrophyFillIcon className="history-icon icon-svg icon-emerald" />
+              ) : (
+                <BullseyeFillIcon className="history-icon icon-svg icon-rose" />
+              )}
+            </span>
+            <dt className="history-text">
+              {match.result === "win" ? "Win" : "Loss"} vs{" "}
+              {getOpponentName(match.opponent)}
+            </dt>
+            <dd
+              className={`history-score ${match.result === "win" ? "history-score-win" : "history-score-loss"}`}
+            >
+              {getMatchScore(match)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 };
 
