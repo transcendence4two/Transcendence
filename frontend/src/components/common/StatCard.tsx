@@ -1,9 +1,18 @@
+import { cloneElement, isValidElement, type ReactNode } from "react";
+
 interface StatCardProps {
-    icon: React.ReactNode
+    icon: ReactNode
     value: string
     label: string
     color?: string
     className?: string
+}
+
+const resolveIconColorClass = (color: string) => {
+    if (color.includes("emerald")) return "icon-emerald"
+    if (color.includes("rose") || color.includes("red")) return "icon-rose"
+    if (color.includes("blue")) return "icon-blue"
+    return "icon-cyan"
 }
 
 const StatCard = ({
@@ -13,15 +22,20 @@ const StatCard = ({
     color = 'text-cyan-400',
     className = '',
 }: StatCardProps) => {
+    const iconColorClass = resolveIconColorClass(color)
+    const styledIcon = isValidElement<{ className?: string }>(icon)
+        ? cloneElement(icon, {
+              className: `${icon.props.className ?? ""} stat-icon icon-svg ${iconColorClass}`.trim(),
+          })
+        : icon
+
     return (
         <div
-            className={`border border-slate-700/50 in-[.light]:border-gray-200
-                bg-slate-800/50 in-[.light]:bg-white/80
-                backdrop-blur-sm rounded-xl p-4 text-center space-y-1 ${className}`}
+            className={`stat-card ${className}`}
         >
-            <span className='flex justify-center text-slate-400 in-[.light]:text-gray-500'>{icon}</span>
-            <p className={`text-2xl font-bold ${color}`}>{value}</p>
-            <p className='text-xs text-slate-400 in-[.light]:text-gray-500'>{label}</p>
+            {styledIcon}
+            <p className='stat-value text-white'>{value}</p>
+            <p className='stat-label'>{label}</p>
         </div>
     )
 }
