@@ -103,11 +103,19 @@ html.light body {
   }
 
   .profile-nav-shell {
-    @apply w-full border-b border-slate-700/50 bg-slate-900/60 backdrop-blur-sm;
+    @apply relative z-[200] w-full border-b border-slate-700/50 bg-slate-900/60 backdrop-blur-sm;
   }
 
   .profile-nav {
     @apply mx-auto w-full max-w-6xl grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 sm:px-6 py-4;
+  }
+
+  .profile-nav-menu-wrap button {
+    @apply text-white;
+  }
+
+  .profile-nav-menu-wrap button > svg {
+    @apply w-6 h-6;
   }
 
   .profile-page-content {
@@ -203,7 +211,7 @@ html.light body {
   }
 
   .stat-card {
-    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-5 text-center flex flex-col items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-500/70 hover:bg-slate-900/60;
+    @apply rounded-xl border border-slate-700/50 bg-slate-900/40 px-4 py-5 text-center flex flex-col items-center gap-2;
   }
 
   .stat-icon {
@@ -328,6 +336,10 @@ html.light body {
   @apply text-gray-900;
 }
 
+.light .profile-nav-menu-wrap button {
+  @apply text-gray-900;
+}
+
 .light .profile-theme-btn {
   @apply border-blue-300 text-blue-700 hover:text-blue-800 hover:bg-blue-50;
 }
@@ -377,7 +389,7 @@ html.light body {
 }
 
 .light .stat-card {
-  @apply border-gray-300 bg-white hover:border-gray-400;
+  @apply border-gray-300 bg-white;
 }
 
 .light .stat-value {
