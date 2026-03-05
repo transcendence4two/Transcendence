@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import Button from "../components/common/Button";
 import StatGrid from "../components/common/StatGrid";
+import PageNavbar from "../components/common/PageNavbar";
 import {
   TrophyIcon,
   CrosshairIcon,
@@ -103,7 +103,7 @@ const DashboardPage = () => {
 
   return (
     <div className="container-main">
-      <Header />
+      <PageNavbar />
       <main className="content-main flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-2xl space-y-6">
           {/* Profile Card */}
