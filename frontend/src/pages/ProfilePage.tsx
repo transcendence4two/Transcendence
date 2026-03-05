@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PersonFillIcon,
-  QuestionLgIcon,
   TrophyFillIcon,
   BullseyeFillIcon,
   GraphUpArrowFillIcon,
@@ -12,6 +11,7 @@ import {
 import PageNavbar from "../components/common/PageNavbar";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
+import ProfileHelpFab from "../components/common/ProfileHelpFab";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
 
 type UserData = {
@@ -138,26 +138,18 @@ const ProfilePage = () => {
                 <h2 className="profile-page-name">{nick}</h2>
                 <p className="profile-page-email">{user.email}</p>
               </div>
+
+              <StatGrid title="STATS" stats={statItems} columns={4} />
+
+              <MatchHistory
+                title="RECENT HISTORY"
+                username={nick}
+                matches={matches}
+              />
             </div>
-
-            <StatGrid
-              title="STATS"
-              className="profile-page-section-card"
-              stats={statItems}
-              columns={4}
-            />
-
-            <MatchHistory
-              className="profile-page-section-card"
-              title="RECENT HISTORY"
-              username={nick}
-              matches={matches}
-            />
           </div>
 
-          <button type="button" className="profile-help-fab" aria-label="Help">
-            <QuestionLgIcon className="profile-help-icon icon-white" />
-          </button>
+          <ProfileHelpFab />
         </div>
       </main>
     </div>
