@@ -136,13 +136,12 @@ const ProfilePage = () => {
 
               <div>
                 <h2 className="profile-page-name">{nick}</h2>
-                <p className="profile-page-email">
-                  {user.email}
-                </p>
+                <p className="profile-page-email">{user.email}</p>
               </div>
             </div>
 
             <StatGrid
+              title="STATS"
               className="profile-page-section-card"
               stats={statItems}
               columns={4}
