@@ -150,6 +150,66 @@ html.light body {
     @apply border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-6 space-y-4;
   }
 
+  .dashboard-main {
+    @apply flex items-center justify-center p-4 sm:p-8;
+  }
+
+  .dashboard-layout {
+    @apply w-full max-w-2xl space-y-6;
+  }
+
+  .dashboard-card {
+    @apply relative z-10 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl;
+  }
+
+  .dashboard-profile-card {
+    @apply p-8 text-center space-y-4;
+  }
+
+  .dashboard-card-content {
+    @apply relative z-10;
+  }
+
+  .dashboard-avatar-wrap {
+    @apply flex justify-center;
+  }
+
+  .dashboard-avatar {
+    @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
+  }
+
+  .dashboard-user-name {
+    @apply text-xl font-bold text-white in-[.light]:text-gray-900;
+  }
+
+  .dashboard-user-email {
+    @apply text-sm text-slate-400 in-[.light]:text-gray-500;
+  }
+
+  .dashboard-game-card {
+    @apply relative overflow-hidden p-6 space-y-4;
+  }
+
+  .dashboard-game-animation-bg {
+    @apply absolute inset-0 pointer-events-none opacity-55;
+  }
+
+  .dashboard-game-content {
+    @apply relative z-10;
+  }
+
+  .dashboard-game-title {
+    @apply flex items-center gap-2 text-lg font-semibold text-white in-[.light]:text-gray-900;
+  }
+
+  .dashboard-game-text {
+    @apply mt-1 text-sm text-slate-400 in-[.light]:text-gray-500;
+  }
+
+  .dashboard-play-btn {
+    @apply relative z-10 w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2;
+  }
+
   .profile-nav-btn {
     @apply inline-flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
   }
@@ -266,6 +326,67 @@ html.light body {
     @apply text-rose-400;
   }
 
+  .play-game-bg {
+    @apply pointer-events-none absolute inset-0 overflow-hidden;
+  }
+
+  .play-game-mark {
+    @apply absolute select-none font-black;
+    color: rgba(34, 211, 238, 0.2);
+    text-shadow: 0 0 14px rgba(34, 211, 238, 0.24);
+    animation-name: play-mark-float;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .play-game-mark-1 {
+    left: 10%;
+    top: 78%;
+    font-size: 1.05rem;
+    animation-duration: 10s;
+    animation-delay: -2s;
+  }
+
+  .play-game-mark-2 {
+    left: 28%;
+    top: 86%;
+    font-size: 0.95rem;
+    animation-duration: 12s;
+    animation-delay: -6s;
+  }
+
+  .play-game-mark-3 {
+    left: 44%;
+    top: 80%;
+    font-size: 1.15rem;
+    animation-duration: 11s;
+    animation-delay: -4s;
+  }
+
+  .play-game-mark-4 {
+    left: 62%;
+    top: 88%;
+    font-size: 0.9rem;
+    animation-duration: 13s;
+    animation-delay: -8s;
+  }
+
+  .play-game-mark-5 {
+    left: 76%;
+    top: 84%;
+    font-size: 1rem;
+    animation-duration: 9s;
+    animation-delay: -3s;
+  }
+
+  .play-game-mark-6 {
+    left: 88%;
+    top: 90%;
+    font-size: 1.2rem;
+    animation-duration: 14s;
+    animation-delay: -7s;
+  }
+
   .icon-svg {
     opacity: 0.95;
   }
@@ -342,6 +463,11 @@ html.light body {
 
 .light .profile-theme-btn {
   @apply border-blue-300 text-blue-700 hover:text-blue-800 hover:bg-blue-50;
+}
+
+.light .play-game-mark {
+  color: rgba(14, 116, 144, 0.18);
+  text-shadow: 0 0 12px rgba(14, 116, 144, 0.18);
 }
 
 .light .profile-initials {
@@ -488,4 +614,21 @@ html.light body {
 
 .light .border-slate-700\/50 {
   @apply border-gray-200;
+}
+
+@keyframes play-mark-float {
+  0% {
+    transform: translateY(12px) rotate(-8deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(-140px) rotate(10deg);
+    opacity: 0;
+  }
 }

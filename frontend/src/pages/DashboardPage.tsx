@@ -4,6 +4,7 @@ import Footer from "../components/layout/Footer";
 import Button from "../components/common/Button";
 import StatGrid from "../components/common/StatGrid";
 import PageNavbar from "../components/common/PageNavbar";
+import TicTacToeAnimation from "../components/common/TicTacToeAnimation";
 import {
   TrophyFillIcon,
   BullseyeFillIcon,
@@ -104,58 +105,53 @@ const DashboardPage = () => {
   return (
     <div className="container-main">
       <PageNavbar />
-      <main className="content-main flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-2xl space-y-6">
+      <main className="content-main dashboard-main">
+        <div className="dashboard-layout">
           {/* Profile Card */}
-          <div
-            className="border border-slate-700/50 in-[.light]:border-gray-200
-                        bg-slate-800/50 in-[.light]:bg-white/80
-                        backdrop-blur-sm rounded-2xl p-8 text-center space-y-4"
-          >
-            {/* Avatar */}
-            <div className="flex justify-center">
-              <div
-                className="w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600
-                                flex items-center justify-center text-white text-2xl font-bold shadow-lg"
-              >
-                {initials}
+          <div className="dashboard-card dashboard-profile-card">
+            <div className="dashboard-card-content">
+              {/* Avatar */}
+              <div className="dashboard-avatar-wrap">
+                <div className="dashboard-avatar">
+                  {initials}
+                </div>
               </div>
-            </div>
 
-            {/* User Info */}
-            <div>
-              <h2 className="text-xl font-bold text-white in-[.light]:text-gray-900">
-                {user.username}
-              </h2>
-              <p className="text-sm text-slate-400 in-[.light]:text-gray-500">
-                {user.email}
-              </p>
+              {/* User Info */}
+              <div>
+                <h2 className="dashboard-user-name">
+                  {user.username}
+                </h2>
+                <p className="dashboard-user-email">
+                  {user.email}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Start Game Card */}
-          <div
-            className="border border-slate-700/50 in-[.light]:border-gray-200
-                        bg-slate-800/50 in-[.light]:bg-white/80
-                        backdrop-blur-sm rounded-2xl p-6 space-y-4"
-          >
-            <div>
-              <h3 className="text-lg font-semibold text-white in-[.light]:text-gray-900 flex items-center gap-2">
+          <div className="dashboard-card dashboard-game-card">
+            <div className="dashboard-game-animation-bg">
+              <TicTacToeAnimation />
+            </div>
+
+            <div className="dashboard-game-content">
+              <h3 className="dashboard-game-title">
                 <span>🎮</span> Play a Game
               </h3>
-              <p className="text-sm text-slate-400 in-[.light]:text-gray-500 mt-1">
+              <p className="dashboard-game-text">
                 Ready for a match?
               </p>
             </div>
 
             <Button
-              className="w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30
-                                flex items-center justify-center gap-2"
+              className="dashboard-play-btn"
               onClick={() => alert("Game feature coming soon!")}
             >
               <span>🎮</span> Play
             </Button>
           </div>
+
           <StatGrid title="Stats" stats={statItems} columns={4} />
         </div>
       </main>
