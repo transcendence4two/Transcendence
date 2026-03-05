@@ -1,10 +1,10 @@
-import Header from '../components/layout/Header'
+import PageNavbar from '../components/common/PageNavbar'
 import Footer from '../components/layout/Footer'
 
 const PrivacyPolicy = () => {
     return (
         <div className='container-main'>
-            <Header />
+            <PageNavbar />
             <main className='content-main p-8'>
                 <div className='max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50'>
                     <h1 className='heading-1'>Privacy Policy</h1>
