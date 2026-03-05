@@ -1,22 +1,31 @@
 import { useEffect, useState, type ComponentType } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeftShortIcon,
   MoonIcon,
   SunIcon,
   type IconProps,
 } from "../icons/Icons";
+import HamburgerMenu from "./HamburgerMenu";
 
 interface PageNavbarProps {
-  title: string;
-  icon: ComponentType<IconProps>;
+  title?: string;
+  icon?: ComponentType<IconProps>;
+  backTo?: string;
 }
 
-const PageNavbar = ({ title, icon: Icon }: PageNavbarProps) => {
+const PageNavbar = ({
+  title,
+  icon: Icon,
+  backTo = "/home",
+}: PageNavbarProps) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isHome = pathname === "/home";
+  const isRoot = pathname === "/";
+  const hasHeading = Boolean(title || Icon);
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? savedTheme === "dark" : true;
+    return localStorage.getItem("theme") !== "light";
   });
 
   useEffect(() => {
@@ -32,20 +41,34 @@ const PageNavbar = ({ title, icon: Icon }: PageNavbarProps) => {
 
   return (
     <div className="profile-nav-shell">
-      <nav className="profile-nav" aria-label="Profile navigation">
-        <button
-          type="button"
-          onClick={() => navigate("/home")}
-          className="profile-nav-btn"
-          aria-label="Back"
-        >
-          <ArrowLeftShortIcon className="profile-nav-arrow" />
-        </button>
+      <nav className="profile-nav" aria-label="Page navigation">
+        {isHome ? (
+          <div className="profile-nav-menu-wrap">
+            <HamburgerMenu />
+          </div>
+        ) : isRoot ? (
+          <span className="inline-flex h-10 w-10" aria-hidden="true" />
+        ) : (
+          <button
+            type="button"
+            onClick={() => navigate(backTo)}
+            className="profile-nav-btn"
+            aria-label="Back"
+          >
+            <ArrowLeftShortIcon className="profile-nav-arrow" />
+          </button>
+        )}
 
-        <h1 className="profile-nav-title">
-          <Icon className="profile-nav-icon icon-svg icon-cyan" />
-          {title}
-        </h1>
+        {hasHeading ? (
+          <h1 className="profile-nav-title">
+            {Icon ? (
+              <Icon className="profile-nav-icon icon-svg icon-cyan" />
+            ) : null}
+            {title ?? ""}
+          </h1>
+        ) : (
+          <span className="inline-flex" aria-hidden="true" />
+        )}
 
         <button
           type="button"
