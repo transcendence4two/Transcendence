@@ -29,16 +29,15 @@ const StatGrid = ({
     return (
         <div className={`space-y-3 ${className}`}>
             {title && (
-                <h3 className='text-xs font-semibold tracking-widest uppercase
-                    text-slate-400 in-[.light]:text-gray-500 px-1'>
+                <h3 className='profile-section-title'>
                     {title}
                 </h3>
             )}
 
             <div className={`grid ${columnClasses[columns]} gap-3`}>
-                {stats.map((stat) => (
+                {stats.map((stat, index) => (
                     <StatCard
-                        key={stat.label}
+                        key={`${stat.label}-${index}`}
                         icon={stat.icon}
                         value={stat.value}
                         label={stat.label}
