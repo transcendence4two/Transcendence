@@ -10,6 +10,7 @@ import {
   BullseyeFillIcon,
   GraphUpArrowFillIcon,
   ControllerFillIcon,
+  GamepadPlayIcon,
 } from "../components/icons/Icons";
 
 interface UserData {
@@ -112,47 +113,40 @@ const DashboardPage = () => {
             <div className="dashboard-card-content">
               {/* Avatar */}
               <div className="dashboard-avatar-wrap">
-                <div className="dashboard-avatar">
-                  {initials}
-                </div>
+                <div className="dashboard-avatar">{initials}</div>
               </div>
 
               {/* User Info */}
               <div>
-                <h2 className="dashboard-user-name">
-                  {user.username}
-                </h2>
-                <p className="dashboard-user-email">
-                  {user.email}
-                </p>
+                <h2 className="dashboard-user-name">{user.username}</h2>
+                <p className="dashboard-user-email">{user.email}</p>
               </div>
+
+              {/* Start Game Card */}
+              <div className="dashboard-card dashboard-game-card">
+                <div className="dashboard-game-animation-bg">
+                  <TicTacToeAnimation />
+                </div>
+
+                <div className="dashboard-game-content">
+                  <h3 className="dashboard-game-title">
+                    <GamepadPlayIcon className="dashboard-game-icon" /> Play a
+                    Game
+                  </h3>
+                  <p className="dashboard-game-text">Ready for a match?</p>
+                </div>
+
+                <Button
+                  className="dashboard-play-btn"
+                  onClick={() => alert("Game feature coming soon!")}
+                >
+                  <GamepadPlayIcon className="dashboard-game-icon" /> Play
+                </Button>
+              </div>
+
+              <StatGrid title="Stats" stats={statItems} columns={4} />
             </div>
           </div>
-
-          {/* Start Game Card */}
-          <div className="dashboard-card dashboard-game-card">
-            <div className="dashboard-game-animation-bg">
-              <TicTacToeAnimation />
-            </div>
-
-            <div className="dashboard-game-content">
-              <h3 className="dashboard-game-title">
-                <span>🎮</span> Play a Game
-              </h3>
-              <p className="dashboard-game-text">
-                Ready for a match?
-              </p>
-            </div>
-
-            <Button
-              className="dashboard-play-btn"
-              onClick={() => alert("Game feature coming soon!")}
-            >
-              <span>🎮</span> Play
-            </Button>
-          </div>
-
-          <StatGrid title="Stats" stats={statItems} columns={4} />
         </div>
       </main>
       <Footer />
