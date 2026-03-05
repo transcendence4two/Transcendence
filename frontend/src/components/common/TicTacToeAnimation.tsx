@@ -126,11 +126,31 @@ const TicTacToeAnimation = ({ phaseShift = 0 }: TicTacToeAnimationProps) => {
             opacity: 0;
           }
         }
+
+        @keyframes floatDiagonalReverse {
+          0% {
+            transform: translate(0, 120vh) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            transform: translate(100px, -120vh) rotate(-360deg);
+            opacity: 0;
+          }
+        }
       `}</style>
 
       {floatingItems.map((item, index) => {
         const { Icon, delay, duration, size, left, color } = item;
         const phaseOffset = (delay + phaseShift) % duration;
+        const isGrid = Icon === Grid3x3Icon;
+        const animationName =
+          isGrid && index % 2 !== 0 ? "floatDiagonalReverse" : "floatDiagonal";
         return (
           <div
             key={index}
@@ -139,7 +159,7 @@ const TicTacToeAnimation = ({ phaseShift = 0 }: TicTacToeAnimationProps) => {
               left,
               bottom: "-100px",
               color,
-              animationName: "floatDiagonal",
+              animationName,
               animationDuration: `${duration}s`,
               animationTimingFunction: "linear",
               animationIterationCount: "infinite",
