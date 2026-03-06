@@ -1,45 +1,55 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/layout/Footer";
-import Button from "../components/common/Button";
-import StatGrid from "../components/common/StatGrid";
-import PageNavbar from "../components/common/PageNavbar";
-import TicTacToeAnimation from "../components/common/TicTacToeAnimation";
 import {
+  PersonFillIcon,
   TrophyFillIcon,
   BullseyeFillIcon,
   GraphUpArrowFillIcon,
   ControllerFillIcon,
-  GamepadPlayIcon,
 } from "../components/icons/Icons";
 
-interface UserData {
+import PageNavbar from "../components/common/PageNavbar";
+import StatGrid from "../components/common/StatGrid";
+import MatchHistory from "../components/profile/MatchHistory";
+import ProfileHelpFab from "../components/common/ProfileHelpFab";
+import type { MatchHistoryItem } from "../components/profile/MatchHistory";
+
+type UserData = {
   id: string;
   username: string;
   email: string;
-}
+};
 
-interface PlayerStats {
+type PlayerStats = {
   wins: number;
   losses: number;
   matches_played: number;
-}
+};
 
 function getInitialUser(): UserData | null {
   const token = localStorage.getItem("access_token");
   const userData = localStorage.getItem("user");
   if (!token || !userData) return null;
   try {
-    return JSON.parse(userData);
+    return JSON.parse(userData) as UserData;
   } catch {
     return null;
   }
 }
 
-const DashboardPage = () => {
+const ProfilePage = () => {
   const navigate = useNavigate();
   const [user] = useState<UserData | null>(getInitialUser);
+  const nick = user?.username ?? "player";
+  const initials = nick
+    .split(/[\s._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -50,21 +60,25 @@ const DashboardPage = () => {
   useEffect(() => {
     if (!user) return;
     const token = localStorage.getItem("access_token");
+
     fetch(`/api/tournaments/stats/players/${user.id}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data: PlayerStats) => setStats(data))
       .catch(() => setStats(null));
+
+    fetch(`/api/users/${user.username}/matches`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: unknown) =>
+        setMatches(Array.isArray(data) ? (data as MatchHistoryItem[]) : []),
+      )
+      .catch(() => setMatches([]));
   }, [user]);
 
   if (!user) return null;
-
-  const initials = user.username
-    .split(/[\s_-]/)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("")
-    .slice(0, 2);
 
   const wins = stats?.wins ?? null;
   const losses = stats?.losses ?? null;
@@ -105,53 +119,41 @@ const DashboardPage = () => {
 
   return (
     <div className="container-main">
-      <PageNavbar />
-      <main className="content-main dashboard-main">
-        <div className="dashboard-layout">
-          {/* Profile Card */}
-          <div className="dashboard-card dashboard-profile-card">
-            <div className="dashboard-card-content">
-              {/* Avatar */}
-              <div className="dashboard-avatar-wrap">
-                <div className="dashboard-avatar">{initials}</div>
-              </div>
+      <main className="content-main">
+        <PageNavbar title="User Profile" icon={PersonFillIcon} />
 
-              {/* User Info */}
-              <div>
-                <h2 className="dashboard-user-name">{user.username}</h2>
-                <p className="dashboard-user-email">{user.email}</p>
-              </div>
-
-              {/* Start Game Card */}
-              <div className="dashboard-card dashboard-game-card">
-                <div className="dashboard-game-animation-bg">
-                  <TicTacToeAnimation />
-                </div>
-
-                <div className="dashboard-game-content">
-                  <h3 className="dashboard-game-title">
-                    <GamepadPlayIcon className="dashboard-game-icon" /> Play a
-                    Game
-                  </h3>
-                  <p className="dashboard-game-text">Ready for a match?</p>
-                </div>
-
-                <Button
-                  className="dashboard-play-btn"
-                  onClick={() => alert("Game feature coming soon!")}
+        <div className="profile-page-content">
+          <div className="profile-page-layout">
+            <div className="profile-page-user-card">
+              <div className="profile-page-avatar-wrap">
+                <div
+                  className="profile-page-avatar"
+                  aria-label={`Avatar of ${nick}`}
                 >
-                  <GamepadPlayIcon className="dashboard-game-icon" /> Play
-                </Button>
+                  {initials || "JG"}
+                </div>
               </div>
 
-              <StatGrid title="Stats" stats={statItems} columns={4} />
+              <div>
+                <h2 className="profile-page-name">{nick}</h2>
+                <p className="profile-page-email">{user.email}</p>
+              </div>
+
+              <StatGrid title="STATS" stats={statItems} columns={4} />
+
+              <MatchHistory
+                title="RECENT HISTORY"
+                username={nick}
+                matches={matches}
+              />
             </div>
           </div>
+
+          <ProfileHelpFab />
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
 
-export default DashboardPage;
+export default ProfilePage;
