@@ -1,4 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap");
 @import "tailwindcss";
@@ -245,18 +247,18 @@ html.light body {
 
   .dashboard-play-btn {
     @apply rounded-xl relative z-10 w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2;
-    font-family: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-family: "DM Sans", sans-serif;
     letter-spacing: 0.03em;
   }
 
   .profile-nav-btn {
-    @apply inline-flex h-9 w-9 mr-0.5 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
+    @apply inline-flex h-9 w-9 mr-0.5 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white cursor-pointer shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
   }
 
   .profile-nav-title {
-    @apply flex items-center justify-start justify-self-start gap-2 text-lg sm:text-xl font-semibold text-white;
-    font-family: "DM Sans";
-    font-weight: 650;
+    @apply flex items-center justify-start justify-self-start gap-2 sm:text-xl font-semibold text-white;
+    font-family: "Outfit", sans-serif;
+    font-weight: bold;
   }
 
   .profile-nav-arrow {

@@ -60,7 +60,7 @@ const PageNavbar = ({
         )}
 
         {hasHeading ? (
-          <h1 className="profile-nav-title">
+          <h1 className="profile-nav-title text-[1.12rem] items-center leading-none">
             {Icon ? (
               <Icon className="profile-nav-icon icon-svg icon-cyan" />
             ) : null}
