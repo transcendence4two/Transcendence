@@ -85,4 +85,5 @@ type PlayerJoinedPayload struct {
 
 type PlayerLeftPayload struct {
 	PlayerID string `json:"player_id"`
+	Reason   string `json:"reason"`
 }

@@ -181,6 +181,7 @@ func (s *Session) Disconnect(playerID string) {
 		Type: protocol.TypePlayerLeft,
 		Payload: protocol.PlayerLeftPayload{
 			PlayerID: playerID,
+			Reason:   "disconnect",
 		},
 	})
 

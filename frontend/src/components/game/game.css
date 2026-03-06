@@ -486,3 +486,28 @@
         transform: scale(1);
     }
 }
+
+/* ---------- Opponent Disconnected Banner ---------- */
+
+.game-opponent-disconnected {
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    color: #fbbf24;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    animation: game-disconnect-pulse 2s ease-in-out infinite;
+}
+
+@keyframes game-disconnect-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(234, 179, 8, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 12px 3px rgba(234, 179, 8, 0.25);
+    }
+}

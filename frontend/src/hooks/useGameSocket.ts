@@ -65,6 +65,7 @@ export function useGameSocket(sessionId: string) {
     const [playerId, setPlayerId] = useState<string | null>(null)
     const [winningLine, setWinningLine] = useState<WinningCell[] | null>(null)
     const [reconnecting, setReconnecting] = useState(false)
+    const [opponentDisconnected, setOpponentDisconnected] = useState(false)
     const wsRef = useRef<WebSocket | null>(null)
     const reconnectAttemptRef = useRef(0)
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -86,6 +87,7 @@ export function useGameSocket(sessionId: string) {
             setRoundOver(null)
             setGameState(null)
             setWinningLine(null)
+            setOpponentDisconnected(false)
             intentionalCloseRef.current = false
             reconnectAttemptRef.current = 0
         }
@@ -136,6 +138,20 @@ export function useGameSocket(sessionId: string) {
                     setGameOver(overPayload)
                     if (overPayload.winning_line) {
                         setWinningLine(overPayload.winning_line)
+                    }
+                    break
+                }
+                case 'player_left': {
+                    const leftPayload = msg.payload as { player_id: string; reason?: string }
+                    if (leftPayload.player_id !== playerIdRef.current) {
+                        setOpponentDisconnected(true)
+                    }
+                    break
+                }
+                case 'player_joined': {
+                    const joinedPayload = msg.payload as { player_id: string }
+                    if (joinedPayload.player_id !== playerIdRef.current) {
+                        setOpponentDisconnected(false)
                     }
                     break
                 }
@@ -221,6 +237,7 @@ export function useGameSocket(sessionId: string) {
     return {
         connected,
         reconnecting,
+        opponentDisconnected,
         gameState,
         gameOver,
         roundOver,
