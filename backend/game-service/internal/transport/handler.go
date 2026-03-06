@@ -41,6 +41,13 @@ func RegisterRoutes(mux *http.ServeMux, hub *Hub) {
 		}
 		handleCreateSession(hub, w, r)
 	})
+	mux.HandleFunc("/api/sessions/active", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+			return
+		}
+		handleActiveSession(hub, w, r)
+	})
 }
 
 func handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
@@ -123,5 +130,34 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"status":  "ok",
 		"service": "game-service",
+	})
+}
+
+type ActiveSessionResponse struct {
+	SessionID string `json:"session_id"`
+	State     string `json:"state"`
+}
+
+// handleActiveSession looks up an active (playing) session for a given player.
+func handleActiveSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	playerID := r.URL.Query().Get("player_id")
+	if playerID == "" {
+		http.Error(w, `{"error":"player_id query parameter is required"}`, http.StatusBadRequest)
+		return
+	}
+
+	sess := hub.SessionManager().FindActiveSessionByPlayer(playerID)
+	if sess == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "no active session"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(ActiveSessionResponse{
+		SessionID: sess.ID,
+		State:     "playing",
 	})
 }

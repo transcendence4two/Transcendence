@@ -104,6 +104,29 @@ func (m *Manager) ListSessionIDs() []string {
 	return ids
 }
 
+func (m *Manager) FindActiveSessionByPlayer(playerID string) *Session {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for _, sess := range m.sessions {
+		sess.mu.Lock()
+		state := sess.State
+		var isPlayer bool
+		for _, p := range sess.Players {
+			if p != nil && p.ID == playerID {
+				isPlayer = true
+				break
+			}
+		}
+		sess.mu.Unlock()
+
+		if isPlayer && state == domain.StatePlaying {
+			return sess
+		}
+	}
+	return nil
+}
+
 func (m *Manager) cleanupLoop() {
 	ticker := time.NewTicker(SessionCleanupInterval)
 	defer ticker.Stop()

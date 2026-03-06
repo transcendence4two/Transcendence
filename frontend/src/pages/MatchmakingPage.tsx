@@ -70,6 +70,18 @@ export default function MatchmakingPage() {
         setErrorMessage(null)
 
         try {
+            const activeRes = await fetch(
+                `/api/sessions/active?player_id=${user.current.id}`,
+            )
+            if (activeRes.ok) {
+                const activeData = await activeRes.json()
+                if (activeData.session_id) {
+                    setState('matched')
+                    setTimeout(() => navigate(`/game/${activeData.session_id}`), 600)
+                    return
+                }
+            }
+
             const res = await fetch('/api/tournaments/join', {
                 method: 'POST',
                 headers: {
