@@ -22,8 +22,6 @@ func ValidateMove(board Board, move Move) error {
 	return nil
 }
 
-// ApplyMoveInfinity places a piece and removes the oldest if the player exceeds MaxPiecesPerPlayer.
-// Returns the updated board, updated history, and the removed position (nil if none).
 func ApplyMoveInfinity(board Board, row, col int, symbol Symbol, history MoveHistory) (Board, MoveHistory, *Position) {
 	board[row][col] = symbol
 	history[symbol] = append(history[symbol], Position{Row: row, Col: col})

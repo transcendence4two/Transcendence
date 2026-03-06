@@ -118,9 +118,6 @@ export function useGameSocket(sessionId: string) {
                 case 'game_state': {
                     const statePayload = msg.payload as unknown as GameState
                     setGameState(statePayload)
-                    // When we receive a new game_state after a round_over,
-                    // it means the board has been reset for the next round.
-                    // Clear round-over UI and winning line.
                     setRoundOver(null)
                     setWinningLine(null)
                     break
@@ -165,14 +162,12 @@ export function useGameSocket(sessionId: string) {
             setConnected(false)
             wsRef.current = null
 
-            // Don't reconnect if the user intentionally closed or the game is over
             if (intentionalCloseRef.current) {
                 setWinningLine(null)
                 addEvent({ type: 'system', message: 'Disconnected' })
                 return
             }
 
-            // Attempt auto-reconnect with exponential backoff
             const currentPid = playerIdRef.current
             if (currentPid && reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
                 const attempt = reconnectAttemptRef.current
@@ -196,9 +191,7 @@ export function useGameSocket(sessionId: string) {
             }
         }
 
-        ws.onerror = () => {
-            // onclose will fire after onerror, reconnect logic is handled there
-        }
+        ws.onerror = () => {}
 
         wsRef.current = ws
     }, [sessionId, addEvent])

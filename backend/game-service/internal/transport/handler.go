@@ -86,8 +86,6 @@ type CreateSessionResponse struct {
 	SessionID string `json:"session_id"`
 }
 
-// handleCreateSession is called by tournament-service to pre-create a game session
-// with tournament context before players connect via WebSocket.
 func handleCreateSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	var req CreateSessionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -138,7 +136,6 @@ type ActiveSessionResponse struct {
 	State     string `json:"state"`
 }
 
-// handleActiveSession looks up an active (playing) session for a given player.
 func handleActiveSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	playerID := r.URL.Query().Get("player_id")
 	if playerID == "" {

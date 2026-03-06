@@ -148,8 +148,6 @@ func (h *Hub) handleMove(client *Client, payload json.RawMessage) {
 	}
 }
 
-// BroadcastToSession sends a message to all clients in a specific session.
-// Uses the rooms index for O(1) lookup instead of scanning all clients.
 func (h *Hub) BroadcastToSession(sessionID string, msg protocol.ServerMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -174,7 +172,6 @@ func (h *Hub) BroadcastToSession(sessionID string, msg protocol.ServerMessage) {
 	}
 }
 
-// NotifyPlayer sends a message to a specific player within their session room.
 func (h *Hub) NotifyPlayer(playerID string, msg protocol.ServerMessage) {
 	data, err := json.Marshal(msg)
 	if err != nil {

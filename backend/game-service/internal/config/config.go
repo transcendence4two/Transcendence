@@ -10,18 +10,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-	// Locate the project root .env relative to this source file.
-	// This works both with `go run` and compiled binaries launched from the
-	// game-service directory (../../.env).
+func init() {.
 	_, thisFile, _, ok := runtime.Caller(0)
 	if ok {
 		root := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..")
 		_ = godotenv.Load(filepath.Join(root, ".env"))
 	}
 
-	// Also try ../../.env relative to the working directory (covers `go run`
-	// from backend/game-service/).
 	_ = godotenv.Load("../../.env")
 }
 

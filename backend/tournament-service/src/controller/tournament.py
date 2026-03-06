@@ -96,8 +96,6 @@ async def save_match_record_from_game_webhook(
     )
 
 
-# --- Fixed-prefix routes MUST come before /{tournament_id} ---
-
 
 @router.get(
     "/stats/players/{user_id}",
@@ -143,9 +141,6 @@ async def get_matchmaking_status(
         status=queue_entry.status,
         game_session_id=queue_entry.game_session_id,
     )
-
-
-# --- Dynamic /{tournament_id} routes come last ---
 
 
 @router.get(
