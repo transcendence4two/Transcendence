@@ -87,63 +87,63 @@ func (h *Hub) Run() {
 	}
 }
 
-func (h *Hub) HandleMessage(client *Client, raw []byte) {
+func HandleMessage(hub *Hub, client *Client, raw []byte) {
 	var msg protocol.ClientMessage
 	if err := json.Unmarshal(raw, &msg); err != nil {
 		slog.Warn("invalid message format", "error", err, "player", client.PlayerID)
-		h.sendError(client, "invalid message format")
+		hub.SendError(client, "invalid message format")
 		return
 	}
 
 	switch msg.Type {
 	case protocol.TypeJoin:
-		h.handleJoin(client, msg.Payload)
+		handleJoin(hub, client, msg.Payload)
 	case protocol.TypeMove:
-		h.handleMove(client, msg.Payload)
+		handleMove(hub, client, msg.Payload)
 	default:
 		slog.Warn("unknown message type", "type", msg.Type, "player", client.PlayerID)
-		h.sendError(client, "unknown message type: "+msg.Type)
+		hub.SendError(client, "unknown message type: "+msg.Type)
 	}
 }
 
-func (h *Hub) handleJoin(client *Client, payload json.RawMessage) {
+func handleJoin(hub *Hub, client *Client, payload json.RawMessage) {
 	var join protocol.JoinPayload
 	if err := json.Unmarshal(payload, &join); err != nil {
-		h.sendError(client, "invalid join payload")
+		hub.SendError(client, "invalid join payload")
 		return
 	}
 
 	if join.PlayerID == "" {
-		h.sendError(client, "player_id is required")
+		hub.SendError(client, "player_id is required")
 		return
 	}
 
 	client.PlayerID = join.PlayerID
 
-	sess := h.sessionMgr.GetOrCreateSession(client.SessionID)
+	sess := hub.SessionManager().GetOrCreateSession(client.SessionID)
 	if _, err := sess.Join(join.PlayerID); err != nil {
-		h.sendError(client, err.Error())
+		hub.SendError(client, err.Error())
 		return
 	}
 
 	slog.Info("player joined session", "player", join.PlayerID, "session", client.SessionID)
 }
 
-func (h *Hub) handleMove(client *Client, payload json.RawMessage) {
+func handleMove(hub *Hub, client *Client, payload json.RawMessage) {
 	var move protocol.MovePayload
 	if err := json.Unmarshal(payload, &move); err != nil {
-		h.sendError(client, "invalid move payload")
+		hub.SendError(client, "invalid move payload")
 		return
 	}
 
-	sess, err := h.sessionMgr.GetSession(client.SessionID)
+	sess, err := hub.SessionManager().GetSession(client.SessionID)
 	if err != nil {
-		h.sendError(client, err.Error())
+		hub.SendError(client, err.Error())
 		return
 	}
 
 	if err := sess.HandleMove(client.PlayerID, move.Row, move.Col); err != nil {
-		h.sendError(client, err.Error())
+		hub.SendError(client, err.Error())
 		return
 	}
 }
@@ -196,7 +196,7 @@ func (h *Hub) NotifyPlayer(playerID string, msg protocol.ServerMessage) {
 	}
 }
 
-func (h *Hub) sendError(client *Client, message string) {
+func (h *Hub) SendError(client *Client, message string) {
 	msg := protocol.ServerMessage{
 		Type:    protocol.TypeError,
 		Payload: protocol.ErrorPayload{Message: message},

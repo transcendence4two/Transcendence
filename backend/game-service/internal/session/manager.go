@@ -41,7 +41,7 @@ func (m *Manager) CreateSession() string {
 	return m.CreateSessionWithConfig(nil)
 }
 
-func (m *Manager) CreateSessionWithConfig(cfg *SessionConfig) string {
+func (m *Manager) CreateSessionWithConfig(cfg *Config) string {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

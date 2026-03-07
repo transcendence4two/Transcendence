@@ -1,7 +1,6 @@
 package session
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -12,9 +11,7 @@ import (
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 )
 
-const (
-	DisconnectGracePeriod = 15 * time.Second
-)
+const DisconnectGracePeriod = 15 * time.Second
 
 type BroadcastFunc func(sessionID string, msg protocol.ServerMessage)
 type NotifyFunc func(playerID string, msg protocol.ServerMessage)
@@ -31,20 +28,19 @@ type Session struct {
 	StartedAt   time.Time
 	CreatedAt   time.Time
 
-	// MD3 fields
-	Round int    // current round (1-indexed)
-	Score [2]int // accumulated wins [Player[0], Player[1]]
+	Round int
+	Score domain.MatchScore
 
-	Config              *SessionConfig
+	Config              *Config
 	lastRemoved         *domain.Position
 	broadcast           BroadcastFunc
 	notify              NotifyFunc
 	tournament          tournament.Client
-	disconnectedPlayers map[string]*time.Timer // playerID -> forfeit timer
+	disconnectedPlayers map[string]*time.Timer
 	roundResetTimer     *time.Timer
 }
 
-func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *SessionConfig) *Session {
+func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *Config) *Session {
 	return &Session{
 		ID:                  id,
 		Board:               domain.NewBoard(),
@@ -65,7 +61,6 @@ func (s *Session) Join(playerID string) (*domain.Player, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Handle reconnection: if a disconnected player rejoins, cancel their forfeit timer.
 	if timer, ok := s.disconnectedPlayers[playerID]; ok {
 		slog.Info("player reconnected", "session", s.ID, "player", playerID)
 		if timer != nil {
@@ -167,8 +162,6 @@ func (s *Session) HandleMove(playerID string, row, col int) error {
 	return nil
 }
 
-// Disconnect handles a player disconnecting. During an active game, instead of
-// immediately forfeiting, a grace period is started to allow reconnection.
 func (s *Session) Disconnect(playerID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -183,39 +176,39 @@ func (s *Session) Disconnect(playerID string) {
 		},
 	})
 
-	if s.State == domain.StatePlaying {
-		// Stop any existing timer for this player (e.g. double-disconnect)
-		if existing, ok := s.disconnectedPlayers[playerID]; ok && existing != nil {
-			existing.Stop()
+	if s.State != domain.StatePlaying {
+		return
+	}
+
+	if existing, ok := s.disconnectedPlayers[playerID]; ok && existing != nil {
+		existing.Stop()
+	}
+
+	timer := time.AfterFunc(DisconnectGracePeriod, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
+		if _, stillDisconnected := s.disconnectedPlayers[playerID]; !stillDisconnected || s.State != domain.StatePlaying {
+			return
 		}
 
-		timer := time.AfterFunc(DisconnectGracePeriod, func() {
-			s.mu.Lock()
-			defer s.mu.Unlock()
+		slog.Info("grace period expired, forfeiting",
+			"session", s.ID, "player", playerID)
 
-			// Only forfeit if the player is still disconnected and game is active
-			if _, stillDisconnected := s.disconnectedPlayers[playerID]; !stillDisconnected || s.State != domain.StatePlaying {
-				return
+		var winnerID string
+		for _, p := range s.Players {
+			if p != nil && p.ID != playerID {
+				winnerID = p.ID
 			}
+		}
+		delete(s.disconnectedPlayers, playerID)
+		s.finishMatch(winnerID, "forfeit", nil)
+	})
+	s.disconnectedPlayers[playerID] = timer
 
-			slog.Info("grace period expired, forfeiting",
-				"session", s.ID, "player", playerID)
-
-			var winnerID string
-			for _, p := range s.Players {
-				if p != nil && p.ID != playerID {
-					winnerID = p.ID
-				}
-			}
-			delete(s.disconnectedPlayers, playerID)
-			s.finishMatch(winnerID, "forfeit", nil)
-		})
-		s.disconnectedPlayers[playerID] = timer
-
-		slog.Info("grace period started",
-			"session", s.ID, "player", playerID,
-			"duration", DisconnectGracePeriod)
-	}
+	slog.Info("grace period started",
+		"session", s.ID, "player", playerID,
+		"duration", DisconnectGracePeriod)
 }
 
 func (s *Session) IsFinished() bool {
@@ -239,7 +232,6 @@ func (s *Session) getPlayerSymbol(playerID string) domain.Symbol {
 	return domain.SymbolEmpty
 }
 
-// playerIndex returns the index (0 or 1) of the given playerID, or -1 if not found.
 func (s *Session) playerIndex(playerID string) int {
 	for i, p := range s.Players {
 		if p != nil && p.ID == playerID {
@@ -247,311 +239,4 @@ func (s *Session) playerIndex(playerID string) int {
 		}
 	}
 	return -1
-}
-
-// finishRound is called when a player wins a round. It updates the score and
-// either ends the match (if someone reached RoundsToWin) or resets for the
-// next round after a short delay.
-// Must be called with s.mu held.
-func (s *Session) finishRound(winnerID, reason string, line []domain.Position) {
-	winnerIdx := s.playerIndex(winnerID)
-	if winnerIdx >= 0 {
-		s.Score[winnerIdx]++
-	}
-
-	slog.Info("round finished",
-		"session", s.ID,
-		"round", s.Round,
-		"winner", winnerID,
-		"score", s.Score,
-	)
-
-	var winningLine []protocol.PositionDTO
-	for _, p := range line {
-		winningLine = append(winningLine, protocol.PositionDTO{
-			Row: p.Row,
-			Col: p.Col,
-		})
-	}
-
-	// Check if the match is decided
-	if winnerIdx >= 0 && s.Score[winnerIdx] >= domain.RoundsToWin {
-		// Broadcast round_over first so frontend can show the round result
-		s.broadcast(s.ID, protocol.ServerMessage{
-			Type: protocol.TypeRoundOver,
-			Payload: protocol.RoundOverPayload{
-				WinnerID:    winnerID,
-				Reason:      reason,
-				Board:       s.boardToStrings(),
-				WinningLine: winningLine,
-				Round:       s.Round,
-				Score:       s.Score,
-			},
-		})
-		// Then finalize the match
-		s.finishMatch(winnerID, reason, line)
-		return
-	}
-
-	// Round won but match continues — broadcast round_over and schedule reset
-	s.broadcast(s.ID, protocol.ServerMessage{
-		Type: protocol.TypeRoundOver,
-		Payload: protocol.RoundOverPayload{
-			WinnerID:    winnerID,
-			Reason:      reason,
-			Board:       s.boardToStrings(),
-			WinningLine: winningLine,
-			Round:       s.Round,
-			Score:       s.Score,
-		},
-	})
-
-	// Determine who starts next round: the loser of this round
-	nextStarter := 1 - winnerIdx
-
-	s.roundResetTimer = time.AfterFunc(domain.RoundResetDelay, func() {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-
-		if s.State != domain.StatePlaying {
-			return
-		}
-
-		s.resetRound(nextStarter)
-	})
-}
-
-// finishMatch ends the entire MD3 session.
-// Must be called with s.mu held.
-func (s *Session) finishMatch(winnerID, reason string, line []domain.Position) {
-	s.State = domain.StateFinished
-
-	// Clean up any pending disconnect timers
-	for pid, timer := range s.disconnectedPlayers {
-		if timer != nil {
-			timer.Stop()
-		}
-		delete(s.disconnectedPlayers, pid)
-	}
-	if s.roundResetTimer != nil {
-		s.roundResetTimer.Stop()
-		s.roundResetTimer = nil
-	}
-
-	var loserID string
-	for _, p := range s.Players {
-		if p != nil && p.ID != winnerID {
-			loserID = p.ID
-		}
-	}
-
-	slog.Info("match finished",
-		"session", s.ID,
-		"winner", winnerID,
-		"reason", reason,
-		"score", s.Score,
-	)
-
-	var winningLine []protocol.PositionDTO
-	for _, p := range line {
-		winningLine = append(winningLine, protocol.PositionDTO{
-			Row: p.Row,
-			Col: p.Col,
-		})
-	}
-
-	s.broadcast(s.ID, protocol.ServerMessage{
-		Type: protocol.TypeGameOver,
-		Payload: protocol.GameOverPayload{
-			WinnerID:    winnerID,
-			Reason:      reason,
-			Board:       s.boardToStrings(),
-			WinningLine: winningLine,
-			Score:       s.Score,
-		},
-	})
-
-	s.reportToTournament(winnerID, loserID)
-}
-
-// resetRound resets the board for the next round.
-// Must be called with s.mu held.
-func (s *Session) resetRound(nextStarterIndex int) {
-	s.Round++
-	s.Board = domain.NewBoard()
-	s.MoveHistory = domain.NewMoveHistory()
-	s.lastRemoved = nil
-	s.TurnIndex = nextStarterIndex
-
-	slog.Info("round reset",
-		"session", s.ID,
-		"round", s.Round,
-		"starting_player", s.Players[s.TurnIndex].ID,
-	)
-
-	s.broadcastState()
-}
-
-func (s *Session) reportToTournament(winnerID, loserID string) {
-	if s.tournament == nil {
-		return
-	}
-
-	if s.Config == nil || (s.Config.TournamentID == "" && s.Config.MatchID == "") {
-		s.saveMatchRecordViaWebhook(winnerID, loserID)
-		return
-	}
-
-	winnerParticipant, ok := s.Config.ParticipantMap[winnerID]
-	if !ok {
-		slog.Warn("winner not found in participant map", "winner", winnerID)
-		return
-	}
-
-	winnerScore, loserScore := 1, 0
-
-	// Determine player order to match tournament's player_one/player_two
-	p1Score, p2Score := winnerScore, loserScore
-	if s.Players[1] != nil && s.Players[1].ID == winnerID {
-		p1Score, p2Score = loserScore, winnerScore
-	}
-
-	payload := tournament.MatchResultPayload{
-		WinnerParticipantID: winnerParticipant,
-		PlayerOneScore:      p1Score,
-		PlayerTwoScore:      p2Score,
-	}
-
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := s.tournament.ReportResult(ctx, s.Config.TournamentID, s.Config.MatchID, payload); err != nil {
-			slog.Error("failed to report result to tournament",
-				"session", s.ID,
-				"error", err,
-			)
-		}
-	}()
-}
-
-func (s *Session) saveMatchRecordViaWebhook(winnerID, loserID string) {
-	now := time.Now().UTC()
-	duration := int(now.Sub(s.StartedAt).Seconds())
-	startedAt := s.StartedAt.UTC()
-
-	var players []tournament.MatchPlayerSnapshot
-
-	for i, p := range s.Players {
-		if p == nil {
-			continue
-		}
-		side := "X"
-		if i == 1 {
-			side = "O"
-		}
-		score := 0
-		isWinner := false
-		if p.ID == winnerID {
-			score = 1
-			isWinner = true
-		}
-		players = append(players, tournament.MatchPlayerSnapshot{
-			UserID:      p.ID,
-			DisplayName: p.ID, // user_id as fallback display name
-			PlayerSide:  side,
-			Score:       score,
-			IsWinner:    isWinner,
-		})
-	}
-
-	payload := tournament.MatchRecordPayload{
-		GameServiceMatchID: s.ID,
-		GameMode:           "tic_tac_toe",
-		Status:             "finished",
-		WinnerUserID:       winnerID,
-		WinningReason:      "checkmate",
-		StartedAt:          &startedAt,
-		EndedAt:            &now,
-		DurationSeconds:    &duration,
-		Players:            players,
-	}
-
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := s.tournament.SaveMatchRecord(ctx, payload); err != nil {
-			slog.Error("failed to save match record via webhook",
-				"session", s.ID,
-				"error", err,
-			)
-		}
-	}()
-}
-
-// broadcastState must be called with s.mu held.
-func (s *Session) broadcastState() {
-	s.broadcast(s.ID, protocol.ServerMessage{
-		Type:    protocol.TypeGameState,
-		Payload: s.buildStatePayload(),
-	})
-}
-
-// buildStatePayload must be called with s.mu held.
-func (s *Session) buildStatePayload() protocol.GameStatePayload {
-	payload := protocol.GameStatePayload{
-		Board: s.boardToStrings(),
-		State: s.State.String(),
-		Round: s.Round,
-		Score: s.Score,
-	}
-
-	if s.lastRemoved != nil {
-		payload.RemovedPiece = &protocol.PositionDTO{
-			Row: s.lastRemoved.Row,
-			Col: s.lastRemoved.Col,
-		}
-	}
-
-	if s.State == domain.StatePlaying && s.Players[s.TurnIndex] != nil {
-		currentPlayer := s.Players[s.TurnIndex]
-		payload.CurrentTurn = currentPlayer.ID
-
-		// If the current player already has MaxPiecesPerPlayer pieces, their
-		// oldest piece will be removed when they play next. Show it in advance.
-		history := s.MoveHistory[currentPlayer.Symbol]
-		if len(history) >= domain.MaxPiecesPerPlayer {
-			oldest := history[0]
-			payload.NextRemovedPiece = &protocol.PositionDTO{
-				Row: oldest.Row,
-				Col: oldest.Col,
-			}
-		}
-	}
-
-	for _, p := range s.Players {
-		if p != nil {
-			payload.Players = append(payload.Players, protocol.PlayerInfo{
-				ID:     p.ID,
-				Symbol: string(p.Symbol),
-			})
-		}
-	}
-
-	for pid := range s.disconnectedPlayers {
-		payload.DisconnectedPlayers = append(payload.DisconnectedPlayers, pid)
-	}
-
-	return payload
-}
-
-func (s *Session) boardToStrings() [3][3]string {
-	var out [3][3]string
-	for i := 0; i < domain.BoardSize; i++ {
-		for j := 0; j < domain.BoardSize; j++ {
-			out[i][j] = string(s.Board[i][j])
-		}
-	}
-	return out
 }

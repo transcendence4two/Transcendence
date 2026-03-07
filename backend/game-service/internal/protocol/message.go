@@ -1,8 +1,10 @@
 package protocol
 
-import "encoding/json"
+import (
+	"encoding/json"
 
-// Client → Server
+	"github.com/transcendence4two/Transcendence/backend/game-service/internal/domain"
+)
 
 type ClientMessage struct {
 	Type    string          `json:"type"`
@@ -17,8 +19,6 @@ type MovePayload struct {
 	Row int `json:"row"`
 	Col int `json:"col"`
 }
-
-// Server → Client
 
 type ServerMessage struct {
 	Type    string      `json:"type"`
@@ -59,20 +59,20 @@ type PlayerInfo struct {
 }
 
 type GameOverPayload struct {
-	WinnerID    string         `json:"winner_id"`
-	Reason      string         `json:"reason"`
-	Board       [3][3]string   `json:"board"`
-	WinningLine []PositionDTO  `json:"winning_line,omitempty"`
-	Score       [2]int         `json:"score"`
+	WinnerID    string        `json:"winner_id"`
+	Reason      string        `json:"reason"`
+	Board       [3][3]string  `json:"board"`
+	WinningLine []PositionDTO `json:"winning_line,omitempty"`
+	Score       [2]int        `json:"score"`
 }
 
 type RoundOverPayload struct {
-	WinnerID    string         `json:"winner_id"`
-	Reason      string         `json:"reason"`
-	Board       [3][3]string   `json:"board"`
-	WinningLine []PositionDTO  `json:"winning_line,omitempty"`
-	Round       int            `json:"round"`
-	Score       [2]int         `json:"score"`
+	WinnerID    string        `json:"winner_id"`
+	Reason      string        `json:"reason"`
+	Board       [3][3]string  `json:"board"`
+	WinningLine []PositionDTO `json:"winning_line,omitempty"`
+	Round       int           `json:"round"`
+	Score       [2]int        `json:"score"`
 }
 
 type ErrorPayload struct {
@@ -87,4 +87,15 @@ type PlayerJoinedPayload struct {
 type PlayerLeftPayload struct {
 	PlayerID string `json:"player_id"`
 	Reason   string `json:"reason"`
+}
+
+func ToPositionDTOs(positions []domain.Position) []PositionDTO {
+	if positions == nil {
+		return nil
+	}
+	dtos := make([]PositionDTO, len(positions))
+	for i, p := range positions {
+		dtos[i] = PositionDTO{Row: p.Row, Col: p.Col}
+	}
+	return dtos
 }

@@ -103,7 +103,7 @@ func handleCreateSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		participantMap[p.UserID] = p.ParticipantID
 	}
 
-	cfg := &session.SessionConfig{
+	cfg := &session.Config{
 		TournamentID:   req.TournamentID,
 		MatchID:        req.MatchID,
 		ParticipantMap: participantMap,

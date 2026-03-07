@@ -54,7 +54,7 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
-		c.hub.HandleMessage(c, message)
+		HandleMessage(c.hub, c, message)
 	}
 }
 

@@ -34,15 +34,22 @@ func (s GameState) String() string {
 const (
 	BoardSize          = 3
 	MaxPiecesPerPlayer = 3
-	RoundsToWin        = 2 // MD3: first to 2 round wins takes the match
 )
-
-const RoundResetDelay = 3 * time.Second
 
 type Board [BoardSize][BoardSize]Symbol
 
 func NewBoard() Board {
 	return Board{}
+}
+
+func (b Board) ToStrings() [BoardSize][BoardSize]string {
+	var out [BoardSize][BoardSize]string
+	for i := 0; i < BoardSize; i++ {
+		for j := 0; j < BoardSize; j++ {
+			out[i][j] = string(b[i][j])
+		}
+	}
+	return out
 }
 
 type Position struct {
@@ -61,7 +68,6 @@ type Move struct {
 	Col      int    `json:"col"`
 }
 
-// MoveHistory tracks placement order per symbol (FIFO queue).
 type MoveHistory map[Symbol][]Position
 
 func NewMoveHistory() MoveHistory {
