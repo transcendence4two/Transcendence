@@ -27,7 +27,9 @@ function leaveQueueBeacon(userId: string): void {
     const url = `/api/tournaments/matchmaking/leave/${userId}`
     try {
         navigator.sendBeacon(url)
-    } catch { }
+    } catch {
+        // ignore
+    }
 }
 
 function leaveQueueFetch(userId: string): void {
@@ -38,7 +40,9 @@ function leaveQueueFetch(userId: string): void {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         keepalive: true,
-    }).catch(() => { })
+    }).catch(() => {
+        // ignore
+    })
 }
 
 export default function MatchmakingPage() {
@@ -74,7 +78,9 @@ export default function MatchmakingPage() {
                 setState('matched')
                 setTimeout(() => navigate(`/game/${data.game_session_id}`), 600)
             }
-        } catch { }
+        } catch {
+            // ignore
+        }
     }, [navigate, stopPolling])
 
     const joinQueue = useCallback(async () => {
@@ -154,11 +160,13 @@ export default function MatchmakingPage() {
         }
         window.addEventListener('beforeunload', handleBeforeUnload)
 
+        const currentUser = user.current
+
         return () => {
             stopPolling()
             window.removeEventListener('beforeunload', handleBeforeUnload)
-            if (!matchedRef.current && user.current) {
-                leaveQueueFetch(user.current.id)
+            if (!matchedRef.current && currentUser) {
+                leaveQueueFetch(currentUser.id)
             }
         }
     }, [joinQueue, stopPolling])

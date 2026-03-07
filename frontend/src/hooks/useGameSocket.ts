@@ -78,6 +78,8 @@ export function useGameSocket(sessionId: string) {
         setEvents((prev) => [...prev.slice(-49), event])
     }, [])
 
+    const connectWsRef = useRef<((pid: string, isReconnect?: boolean) => void) | null>(null)
+
     const connectWs = useCallback((pid: string, isReconnect = false) => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return
 
@@ -190,7 +192,7 @@ export function useGameSocket(sessionId: string) {
 
                 reconnectTimerRef.current = setTimeout(() => {
                     reconnectAttemptRef.current++
-                    connectWs(currentPid, true)
+                    connectWsRef.current?.(currentPid, true)
                 }, delay)
             } else {
                 setReconnecting(false)
@@ -204,6 +206,10 @@ export function useGameSocket(sessionId: string) {
 
         wsRef.current = ws
     }, [sessionId, addEvent])
+
+    useEffect(() => {
+        connectWsRef.current = connectWs
+    }, [connectWs])
 
     const sendMove = useCallback((row: number, col: number) => {
         if (wsRef.current?.readyState !== WebSocket.OPEN) return

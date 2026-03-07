@@ -12,19 +12,18 @@ export default function GamePage() {
     const { sessionId } = useParams<{ sessionId: string }>()
     const navigate = useNavigate()
 
-    const [userId, setUserId] = useState<string | null>(null)
-
-    useEffect(() => {
+    const [userId, setUserId] = useState<string | null>(() => {
         const userData = localStorage.getItem('user')
         if (userData) {
             try {
                 const parsed = JSON.parse(userData)
-                setUserId(parsed.id || parsed.username || null)
+                return parsed.id || parsed.username || null
             } catch {
-                setUserId(null)
+                return null
             }
         }
-    }, [])
+        return null
+    })
 
     const {
         connected,
