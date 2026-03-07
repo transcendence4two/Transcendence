@@ -1,4 +1,4 @@
-import { BullseyeFillIcon, TrophyFillIcon } from "../icons/Icons";
+import { BullseyeIcon, TrophyIcon } from "../icons/Icons";
 
 export type MatchHistoryItem = {
   result: "win" | "loss";
@@ -64,9 +64,9 @@ const MatchHistory = (props: MatchHistoryProps) => {
               className={`history-icon-badge ${match.result === "win" ? "history-icon-badge-win" : "history-icon-badge-loss"}`}
             >
               {match.result === "win" ? (
-                <TrophyFillIcon className="history-icon icon-svg icon-emerald" />
+                <TrophyIcon className="history-icon icon-svg icon-emerald" />
               ) : (
-                <BullseyeFillIcon className="history-icon icon-svg icon-rose" />
+                <BullseyeIcon className="history-icon icon-svg icon-rose" />
               )}
             </span>
             <dt className="history-text">
