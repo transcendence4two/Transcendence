@@ -3,6 +3,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap");
 @import "tailwindcss";
 
 /* Fix overscroll background color */
@@ -177,6 +178,63 @@ html.light body {
     @apply in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80;
   }
 
+  .settings-page-content {
+    @apply px-4 sm:px-6 py-8 sm:py-10;
+  }
+
+  .settings-page-layout {
+    @apply mx-auto w-full min-w-max max-w-2xl;
+  }
+
+  .settings-page-card {
+    @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
+  }
+
+  .settings-card-header {
+    @apply flex items-center gap-2;
+  }
+
+  .settings-card-title {
+    @apply text-xl font-bold text-white in-[.light]:text-gray-900;
+    font-family: "Outfit", sans-serif;
+  }
+
+  .settings-form {
+    @apply space-y-5 text-left;
+  }
+
+  .settings-field-group {
+    @apply flex flex-col gap-1.5;
+  }
+
+  .settings-label {
+    @apply text-sm font-medium text-slate-300 in-[.light]:text-gray-700;
+  }
+
+  .settings-input {
+    @apply w-full rounded-xl bg-slate-900/80 in-[.light]:bg-gray-100 border border-slate-700/50 in-[.light]:border-gray-300 px-4 py-3 text-white in-[.light]:text-gray-900 placeholder:text-slate-500 in-[.light]:placeholder:text-gray-400 outline-none focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/30 transition-colors;
+  }
+
+  .settings-hint {
+    @apply text-xs text-slate-500 in-[.light]:text-gray-500;
+  }
+
+  .settings-error {
+    @apply text-sm text-rose-400 in-[.light]:text-rose-600;
+  }
+
+  .settings-success {
+    @apply text-sm text-emerald-400 in-[.light]:text-emerald-600;
+  }
+
+  .settings-save-btn {
+    @apply w-full py-3 text-base font-semibold rounded-xl flex items-center justify-center;
+  }
+
+  .settings-page-title h1 {
+    @apply text-white text-left;
+  }
+
   .dashboard-main {
     @apply flex items-center justify-center p-4 sm:p-8;
   }
@@ -247,7 +305,7 @@ html.light body {
 
   .dashboard-play-btn {
     @apply rounded-xl relative z-10 w-full py-3 text-lg font-semibold shadow-lg hover:shadow-cyan-500/30 flex items-center justify-center gap-2;
-    font-family: "DM Sans", sans-serif;
+    font-family: "Play", sans-serif;
     letter-spacing: 0.03em;
   }
 
