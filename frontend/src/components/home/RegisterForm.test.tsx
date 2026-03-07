@@ -45,7 +45,6 @@ describe('RegisterForm Component', () => {
 
         fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'user1' } })
         fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@test.com' } })
-
         fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'different' } })
 
@@ -57,6 +56,23 @@ describe('RegisterForm Component', () => {
         expect(mockFetch).not.toHaveBeenCalled()
     })
 
+    it('shows error when terms are not accepted', async () => {
+        render(<RegisterForm />)
+
+        fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'validuser' } })
+        fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } })
+        fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
+        fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } })
+
+        // Deliberately do NOT check the terms checkbox
+        fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+
+        await waitFor(() => {
+            expect(screen.getByText(/you must accept the terms of service to register/i)).toBeInTheDocument()
+        })
+        expect(mockFetch).not.toHaveBeenCalled()
+    })
+
     it('submits form with valid data and redirects', async () => {
         render(<RegisterForm />)
 
@@ -64,6 +80,7 @@ describe('RegisterForm Component', () => {
         fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } })
         fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } })
+        fireEvent.click(screen.getByRole('checkbox'))
 
         fireEvent.click(screen.getByRole('button', { name: /create account/i }))
 
@@ -89,6 +106,7 @@ describe('RegisterForm Component', () => {
         fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } })
         fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'password123' } })
         fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'password123' } })
+        fireEvent.click(screen.getByRole('checkbox'))
 
         fireEvent.click(screen.getByRole('button', { name: /create account/i }))
 
