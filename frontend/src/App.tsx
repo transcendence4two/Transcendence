@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import TFAPage from "./pages/TFAPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/verify-otp" element={<TFAPage />} />
         <Route path="/home" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<ProfileSettingsPage />} />
       </Routes>
     </BrowserRouter>
   );
