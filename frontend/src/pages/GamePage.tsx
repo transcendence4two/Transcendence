@@ -12,7 +12,7 @@ export default function GamePage() {
     const { sessionId } = useParams<{ sessionId: string }>()
     const navigate = useNavigate()
 
-    const [userId, setUserId] = useState<string | null>(() => {
+    const [userId] = useState<string | null>(() => {
         const userData = localStorage.getItem('user')
         if (userData) {
             try {
