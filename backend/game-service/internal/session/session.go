@@ -539,6 +539,10 @@ func (s *Session) buildStatePayload() protocol.GameStatePayload {
 		}
 	}
 
+	for pid := range s.disconnectedPlayers {
+		payload.DisconnectedPlayers = append(payload.DisconnectedPlayers, pid)
+	}
+
 	return payload
 }
 

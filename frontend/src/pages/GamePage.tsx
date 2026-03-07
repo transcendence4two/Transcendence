@@ -30,6 +30,7 @@ export default function GamePage() {
         connected,
         reconnecting,
         opponentDisconnected,
+        opponentReconnected,
         gameState,
         gameOver,
         roundOver,
@@ -73,6 +74,7 @@ export default function GamePage() {
         }
         if (state === 'waiting') return '⏳ Waiting for opponent...'
         if (opponentDisconnected) return '⚠️ Waiting for opponent to reconnect...'
+        if (opponentReconnected) return '✅ Opponent reconnected!'
         if (isMyTurn) return '🟢 Your turn'
         return "🔴 Opponent's turn"
     }
@@ -146,6 +148,13 @@ export default function GamePage() {
                             {opponentDisconnected && !gameOver && (
                                 <div className="game-opponent-disconnected">
                                     ⚠️ Opponent disconnected. They have 15s to reconnect or they forfeit.
+                                </div>
+                            )}
+
+                            {/* Opponent reconnected banner */}
+                            {opponentReconnected && !gameOver && (
+                                <div className="game-opponent-disconnected" style={{ background: 'rgba(74, 222, 128, 0.10)', borderColor: 'rgba(74, 222, 128, 0.3)', color: '#4ade80' }}>
+                                    ✅ Opponent reconnected!
                                 </div>
                             )}
 

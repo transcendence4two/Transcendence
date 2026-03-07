@@ -19,6 +19,7 @@ export interface GameState {
     next_removed_piece?: RemovedPiece
     round: number
     score: [number, number]
+    disconnected_players?: string[]
 }
 
 interface WinningCell {
@@ -66,6 +67,7 @@ export function useGameSocket(sessionId: string) {
     const [winningLine, setWinningLine] = useState<WinningCell[] | null>(null)
     const [reconnecting, setReconnecting] = useState(false)
     const [opponentDisconnected, setOpponentDisconnected] = useState(false)
+    const [opponentReconnected, setOpponentReconnected] = useState(false)
     const wsRef = useRef<WebSocket | null>(null)
     const reconnectAttemptRef = useRef(0)
     const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -120,6 +122,11 @@ export function useGameSocket(sessionId: string) {
                     setGameState(statePayload)
                     setRoundOver(null)
                     setWinningLine(null)
+                    // Sync opponent disconnection status from server state
+                    const dp = statePayload.disconnected_players || []
+                    const opponentGone = dp.some((id) => id !== playerIdRef.current)
+                    setOpponentDisconnected(opponentGone)
+                    if (opponentGone) setOpponentReconnected(false)
                     break
                 }
                 case 'round_over': {
@@ -149,6 +156,8 @@ export function useGameSocket(sessionId: string) {
                     const joinedPayload = msg.payload as { player_id: string }
                     if (joinedPayload.player_id !== playerIdRef.current) {
                         setOpponentDisconnected(false)
+                        setOpponentReconnected(true)
+                        setTimeout(() => setOpponentReconnected(false), 2500)
                     }
                     break
                 }
@@ -231,6 +240,7 @@ export function useGameSocket(sessionId: string) {
         connected,
         reconnecting,
         opponentDisconnected,
+        opponentReconnected,
         gameState,
         gameOver,
         roundOver,
