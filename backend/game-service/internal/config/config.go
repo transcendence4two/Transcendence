@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {.
+func init() {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if ok {
 		root := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..")
