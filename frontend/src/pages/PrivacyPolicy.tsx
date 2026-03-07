@@ -34,7 +34,7 @@ const PrivacyPolicy = () => {
                     <h2 className='heading-2'>Contact Us</h2>
                     <p className='text-gray-300'>
                         If you have any questions or concerns about this Privacy Policy, please contact us at:
-                        <a href="mailto:support@transcendence42.com" className='text-cyan-400 hover:text-cyan-300 transition-colors'> support@transcendence42.com</a>.
+                        <a href="mailto:trancendencefortytwo@gmail.com" className='text-cyan-400 hover:text-cyan-300 transition-colors'> trancendencefortytwo@gmail.com</a>.
                     </p>
                 </div>
             </main>
