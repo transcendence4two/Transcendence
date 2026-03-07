@@ -120,6 +120,18 @@ async def get_player_stats(
     return PlayerStatsResponse.model_validate(player_stats)
 
 
+@router.post(
+    "/matchmaking/leave/{user_id}",
+    status_code=status.HTTP_200_OK,
+)
+async def leave_matchmaking_queue(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    await tournament_service.leave_matchmaking_queue(user_id)
+    return {"status": "ok"}
+
+
 @router.get(
     "/matchmaking/status/{user_id}",
     response_model=MatchmakingStatusResponse,

@@ -23,12 +23,31 @@ function getUser(): UserData | null {
     }
 }
 
+function leaveQueueBeacon(userId: string): void {
+    const url = `/api/tournaments/matchmaking/leave/${userId}`
+    try {
+        navigator.sendBeacon(url)
+    } catch { }
+}
+
+function leaveQueueFetch(userId: string): void {
+    const token = localStorage.getItem('access_token')
+    const url = `/api/tournaments/matchmaking/leave/${userId}`
+
+    fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        keepalive: true,
+    }).catch(() => { })
+}
+
 export default function MatchmakingPage() {
     const navigate = useNavigate()
     const [state, setState] = useState<MatchmakingState>('joining')
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const user = useRef(getUser())
+    const matchedRef = useRef(false)
 
     const stopPolling = useCallback(() => {
         if (pollingRef.current) {
@@ -51,12 +70,11 @@ export default function MatchmakingPage() {
 
             if (data.status === 'matched' && data.game_session_id) {
                 stopPolling()
+                matchedRef.current = true
                 setState('matched')
                 setTimeout(() => navigate(`/game/${data.game_session_id}`), 600)
             }
-        } catch {
-            // Silently retry on next poll
-        }
+        } catch { }
     }, [navigate, stopPolling])
 
     const joinQueue = useCallback(async () => {
@@ -76,6 +94,7 @@ export default function MatchmakingPage() {
             if (activeRes.ok) {
                 const activeData = await activeRes.json()
                 if (activeData.session_id) {
+                    matchedRef.current = true
                     setState('matched')
                     setTimeout(() => navigate(`/game/${activeData.session_id}`), 600)
                     return
@@ -96,12 +115,20 @@ export default function MatchmakingPage() {
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}))
+
+                if (data.error_type === 'MATCHMAKING_QUEUE_ERROR') {
+                    setState('queued')
+                    pollingRef.current = setInterval(pollStatus, POLLING_INTERVAL_MS)
+                    return
+                }
+
                 throw new Error(data.detail || 'Failed to join matchmaking')
             }
 
             const entry = await res.json()
 
             if (entry.status === 'matched' && entry.game_session_id) {
+                matchedRef.current = true
                 setState('matched')
                 setTimeout(() => navigate(`/game/${entry.game_session_id}`), 600)
                 return
@@ -119,11 +146,28 @@ export default function MatchmakingPage() {
 
     useEffect(() => {
         joinQueue()
-        return stopPolling
+
+        const handleBeforeUnload = () => {
+            if (!matchedRef.current && user.current) {
+                leaveQueueBeacon(user.current.id)
+            }
+        }
+        window.addEventListener('beforeunload', handleBeforeUnload)
+
+        return () => {
+            stopPolling()
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+            if (!matchedRef.current && user.current) {
+                leaveQueueFetch(user.current.id)
+            }
+        }
     }, [joinQueue, stopPolling])
 
     const handleCancel = () => {
         stopPolling()
+        if (user.current) {
+            leaveQueueFetch(user.current.id)
+        }
         navigate('/home')
     }
 

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 from sqlalchemy import asc, desc, select, update
@@ -269,7 +269,9 @@ class TournamentService(TournamentManager):
                     "Matchmaking is busy, please try again in a moment"
                 )
             acquired_lock = True
-            await self._ensure_user_not_already_in_matchmaking_queue(normalized_user_id)
+
+            await self._expire_stale_queue_entries()
+            await self._cancel_existing_queue_entries(normalized_user_id)
 
             queue_entry = MatchmakingQueueEntry(
                 id=str(uuid4()),
@@ -319,6 +321,25 @@ class TournamentService(TournamentManager):
         finally:
             if acquired_lock:
                 await self.session.rollback()
+
+    async def leave_matchmaking_queue(self, user_id: str) -> None:
+        normalized_user_id = user_id.strip()
+        update_statement = (
+            update(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.user_id == normalized_user_id,
+                MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+            )
+            .values(status=MatchmakingQueueStatus.CANCELLED.value)
+        )
+        try:
+            await self.session.execute(update_statement)
+            await self.session.commit()
+        except SQLAlchemyError as database_exception:
+            await self.session.rollback()
+            raise DatabaseError(
+                "Failed to leave matchmaking queue"
+            ) from database_exception
 
     async def save_match_record(
         self,
@@ -603,32 +624,46 @@ class TournamentService(TournamentManager):
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch round matches") from database_exception
 
-    async def _ensure_user_not_already_in_matchmaking_queue(self, user_id: str) -> None:
-        expire_matched = (
+    async def _cancel_existing_queue_entries(self, user_id: str) -> None:
+        cancel_active = (
             update(MatchmakingQueueEntry)
             .where(
                 MatchmakingQueueEntry.user_id == user_id,
-                MatchmakingQueueEntry.status == MatchmakingQueueStatus.MATCHED.value,
+                MatchmakingQueueEntry.status.in_(
+                    [
+                        MatchmakingQueueStatus.QUEUED.value,
+                        MatchmakingQueueStatus.MATCHED.value,
+                    ]
+                ),
+            )
+            .values(status=MatchmakingQueueStatus.CANCELLED.value)
+        )
+        try:
+            await self.session.execute(cancel_active)
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to cancel existing queue entries") from database_exception
+
+    STALE_ENTRY_TTL_MINUTES = 5
+
+    async def _expire_stale_queue_entries(self) -> None:
+        cutoff = self._to_utc_naive(
+            datetime.now(timezone.utc) - timedelta(minutes=self.STALE_ENTRY_TTL_MINUTES)
+        )
+        expire_stale = (
+            update(MatchmakingQueueEntry)
+            .where(
+                MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
+                MatchmakingQueueEntry.joined_at < cutoff,
             )
             .values(status=MatchmakingQueueStatus.EXPIRED.value)
         )
         try:
-            await self.session.execute(expire_matched)
+            await self.session.execute(expire_stale)
         except SQLAlchemyError as database_exception:
-            raise DatabaseError("Failed to expire matched entries") from database_exception
-
-        statement = select(MatchmakingQueueEntry).where(
-            MatchmakingQueueEntry.user_id == user_id,
-            MatchmakingQueueEntry.status == MatchmakingQueueStatus.QUEUED.value,
-        )
-        try:
-            query_result = await self.session.execute(statement)
-            existing_queue_entry = query_result.scalar_one_or_none()
-        except SQLAlchemyError as database_exception:
-            raise DatabaseError("Failed to validate matchmaking queue entry") from database_exception
-
-        if existing_queue_entry is not None:
-            raise MatchmakingQueueError("Player is already queued for matchmaking")
+            logger.warning(
+                "Failed to expire stale queue entries: %s",
+                database_exception,
+            )
 
     async def _deactivate_matchmaking_entries_for_users(
         self,

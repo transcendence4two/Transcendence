@@ -86,6 +86,12 @@ class TournamentManager(ABC):
     ) -> tuple[MatchRecord, list[MatchPlayerSnapshot]]: ...
 
     @abstractmethod
+    async def leave_matchmaking_queue(
+        self,
+        user_id: str,
+    ) -> None: ...
+
+    @abstractmethod
     async def get_matchmaking_status(
         self,
         user_id: str,
