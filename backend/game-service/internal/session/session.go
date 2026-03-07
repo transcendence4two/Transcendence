@@ -35,29 +35,29 @@ type Session struct {
 	Round int    // current round (1-indexed)
 	Score [2]int // accumulated wins [Player[0], Player[1]]
 
-	Config      *SessionConfig
-	lastRemoved *domain.Position
-	broadcast   BroadcastFunc
-	notify      NotifyFunc
-	tournament  tournament.Client
-	disconnectedPlayer string
-	disconnectTimer    *time.Timer
-	roundResetTimer    *time.Timer
+	Config              *SessionConfig
+	lastRemoved         *domain.Position
+	broadcast           BroadcastFunc
+	notify              NotifyFunc
+	tournament          tournament.Client
+	disconnectedPlayers map[string]*time.Timer // playerID -> forfeit timer
+	roundResetTimer     *time.Timer
 }
 
 func NewSession(id string, broadcast BroadcastFunc, notify NotifyFunc, tc tournament.Client, cfg *SessionConfig) *Session {
 	return &Session{
-		ID:          id,
-		Board:       domain.NewBoard(),
-		State:       domain.StateWaiting,
-		TurnIndex:   0,
-		MoveHistory: domain.NewMoveHistory(),
-		CreatedAt:   time.Now(),
-		Round:       1,
-		Config:      cfg,
-		broadcast:   broadcast,
-		notify:      notify,
-		tournament:  tc,
+		ID:                  id,
+		Board:               domain.NewBoard(),
+		State:               domain.StateWaiting,
+		TurnIndex:           0,
+		MoveHistory:         domain.NewMoveHistory(),
+		CreatedAt:           time.Now(),
+		Round:               1,
+		Config:              cfg,
+		broadcast:           broadcast,
+		notify:              notify,
+		tournament:          tc,
+		disconnectedPlayers: make(map[string]*time.Timer),
 	}
 }
 
@@ -65,14 +65,13 @@ func (s *Session) Join(playerID string) (*domain.Player, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Handle reconnection: if a disconnected player rejoins, cancel the forfeit timer.
-	if s.disconnectedPlayer == playerID {
+	// Handle reconnection: if a disconnected player rejoins, cancel their forfeit timer.
+	if timer, ok := s.disconnectedPlayers[playerID]; ok {
 		slog.Info("player reconnected", "session", s.ID, "player", playerID)
-		if s.disconnectTimer != nil {
-			s.disconnectTimer.Stop()
-			s.disconnectTimer = nil
+		if timer != nil {
+			timer.Stop()
 		}
-		s.disconnectedPlayer = ""
+		delete(s.disconnectedPlayers, playerID)
 
 		s.broadcast(s.ID, protocol.ServerMessage{
 			Type: protocol.TypePlayerJoined,
@@ -83,7 +82,6 @@ func (s *Session) Join(playerID string) (*domain.Player, error) {
 		})
 
 		s.broadcastState()
-		// Return existing player info
 		for _, p := range s.Players {
 			if p != nil && p.ID == playerID {
 				return p, nil
@@ -186,14 +184,17 @@ func (s *Session) Disconnect(playerID string) {
 	})
 
 	if s.State == domain.StatePlaying {
-		// Start grace period instead of immediate forfeit
-		s.disconnectedPlayer = playerID
-		s.disconnectTimer = time.AfterFunc(DisconnectGracePeriod, func() {
+		// Stop any existing timer for this player (e.g. double-disconnect)
+		if existing, ok := s.disconnectedPlayers[playerID]; ok && existing != nil {
+			existing.Stop()
+		}
+
+		timer := time.AfterFunc(DisconnectGracePeriod, func() {
 			s.mu.Lock()
 			defer s.mu.Unlock()
 
-			// Only forfeit if the player is still disconnected
-			if s.disconnectedPlayer != playerID || s.State != domain.StatePlaying {
+			// Only forfeit if the player is still disconnected and game is active
+			if _, stillDisconnected := s.disconnectedPlayers[playerID]; !stillDisconnected || s.State != domain.StatePlaying {
 				return
 			}
 
@@ -206,11 +207,10 @@ func (s *Session) Disconnect(playerID string) {
 					winnerID = p.ID
 				}
 			}
-			s.disconnectedPlayer = ""
-			s.disconnectTimer = nil
-			// Forfeit ends the entire match, not just the round
+			delete(s.disconnectedPlayers, playerID)
 			s.finishMatch(winnerID, "forfeit", nil)
 		})
+		s.disconnectedPlayers[playerID] = timer
 
 		slog.Info("grace period started",
 			"session", s.ID, "player", playerID,
@@ -326,16 +326,17 @@ func (s *Session) finishRound(winnerID, reason string, line []domain.Position) {
 func (s *Session) finishMatch(winnerID, reason string, line []domain.Position) {
 	s.State = domain.StateFinished
 
-	// Clean up any pending timers
-	if s.disconnectTimer != nil {
-		s.disconnectTimer.Stop()
-		s.disconnectTimer = nil
+	// Clean up any pending disconnect timers
+	for pid, timer := range s.disconnectedPlayers {
+		if timer != nil {
+			timer.Stop()
+		}
+		delete(s.disconnectedPlayers, pid)
 	}
 	if s.roundResetTimer != nil {
 		s.roundResetTimer.Stop()
 		s.roundResetTimer = nil
 	}
-	s.disconnectedPlayer = ""
 
 	var loserID string
 	for _, p := range s.Players {
