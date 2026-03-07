@@ -73,7 +73,7 @@ const RegisterForm = () => {
                     username: formData.username,
                     email: formData.email,
                     password: formData.password,
-                    enable_2fa: false
+                    enable_2fa: true
                 }),
             })
 
@@ -148,7 +148,6 @@ const RegisterForm = () => {
                             className={`${inputClassName} ${errors.username ? 'border-red-500 focus:ring-red-500' : ''
                                 }`}
                             placeholder='Enter your username'
-                            disabled={isLoading}
                             required
                         />
                         {errors.username && (
