@@ -11,6 +11,7 @@ const EMPTY_BOARD = [['', '', ''], ['', '', ''], ['', '', '']]
 export default function GamePage() {
     const { sessionId } = useParams<{ sessionId: string }>()
     const navigate = useNavigate()
+    const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null)
 
     const [userId] = useState<string | null>(() => {
         const userData = localStorage.getItem('user')
@@ -47,6 +48,25 @@ export default function GamePage() {
             connect(userId)
         }
     }, [userId, sessionId, connected, connect])
+
+    useEffect(() => {
+        if (!gameOver) return
+
+        setRedirectCountdown(3)
+        const interval = setInterval(() => {
+            setRedirectCountdown((prev) => (prev !== null && prev > 0 ? prev - 1 : prev))
+        }, 1000)
+
+        const timer = setTimeout(() => {
+            disconnect()
+            navigate('/home')
+        }, 3000)
+
+        return () => {
+            clearInterval(interval)
+            clearTimeout(timer)
+        }
+    }, [gameOver, disconnect, navigate])
 
     const board = gameState?.board || EMPTY_BOARD
     const state = gameState?.state || 'waiting'
@@ -181,7 +201,9 @@ export default function GamePage() {
                             />
 
                             <button className="game-btn game-btn--secondary" onClick={handleDisconnect}>
-                                Leave Game
+                                {gameOver && redirectCountdown !== null
+                                    ? `Returning to Dashboard (${redirectCountdown}s)...`
+                                    : 'Leave Game'}
                             </button>
 
                             <details className="game-event-log">
