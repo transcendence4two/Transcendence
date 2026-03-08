@@ -3,8 +3,8 @@ import { useState, useRef } from 'react'
 import type { KeyboardEvent, ClipboardEvent } from 'react'
 
 const inputClassName =
-    'w-14 h-14 text-center text-2xl font-bold bg-slate-900/50 [.light_&]:bg-gray-100 [.light_&]:border-gray-300 [.light_&]:text-gray-900 border border-slate-600 rounded-xl ' +
-    'text-white placeholder-slate-500 [.light_&]:placeholder-gray-500 focus:outline-none focus:ring-2 ' +
+    'w-14 h-14 text-center text-2xl font-bold bg-slate-900/50 in-[.light]:bg-gray-100 in-[.light]:border-gray-300 in-[.light]:text-gray-900 border border-slate-600 rounded-xl ' +
+    'text-white placeholder-slate-500 in-[.light]:placeholder-gray-500 focus:outline-none focus:ring-2 ' +
     'focus:ring-cyan-500 focus:border-transparent transition-all'
 
 const TwoFactorAuthSection = () => {
