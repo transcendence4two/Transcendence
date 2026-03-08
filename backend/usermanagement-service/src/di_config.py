@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.core.settings import settings
-from src.domain.contracts import PasswordHasher, TokenProvider, UserRegister
+from src.domain.contracts import PasswordHasher, TokenProvider
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
@@ -39,7 +39,7 @@ def get_event_publisher() -> RedisEventPublisher:
 async def get_user_service(
     session: AsyncSession = Depends(get_db_session),
     event_publisher: RedisEventPublisher = Depends(get_event_publisher),
-) -> UserRegister:
+) -> UserService:
     """Dependency to get user service."""
     password_service = get_password_service()
     token_service = get_token_service()

@@ -15,10 +15,12 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.core.settings import settings as app_settings
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
 )
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
+from src.domain.services.commands.github_oauth import GithubOAuthCommand
 from src.domain.services.commands.login_user import LoginCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
@@ -141,4 +143,17 @@ class UserService(UserRegister, UserOperations):
         return LoginResponse(
             access_token=result["access_token"],
             user=UserResponse.model_validate(user),
+        )
+
+    async def github_oauth_login(self, code: str) -> LoginResponse:
+        command = GithubOAuthCommand(
+            session=self.session,
+            token_service=self.token_service,
+            settings=app_settings,
+            code=code,
+        )
+        result = await command.execute()
+        return LoginResponse(
+            access_token=result["token"],
+            user=UserResponse.model_validate(result["user"]),
         )
