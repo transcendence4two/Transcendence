@@ -6,11 +6,10 @@ import StatGrid from "../components/common/StatGrid";
 import PageNavbar from "../components/common/PageNavbar";
 import TicTacToeAnimation from "../components/common/TicTacToeAnimation";
 import {
-  TrophyFillIcon,
-  BullseyeFillIcon,
-  GraphUpArrowFillIcon,
-  ControllerFillIcon,
-  GamepadPlayIcon,
+  TrophyIcon,
+  BullseyeIcon,
+  GraphUpArrowIcon,
+  GamepadIcon,
 } from "../components/icons/Icons";
 
 interface UserData {
@@ -78,25 +77,25 @@ const DashboardPage = () => {
 
   const statItems = [
     {
-      icon: <TrophyFillIcon className="stat-icon icon-svg icon-emerald" />,
+      icon: <TrophyIcon className="stat-icon icon-svg icon-emerald" />,
       value: wins !== null ? String(wins) : "N/A",
       label: "Wins",
       color: "text-emerald-400",
     },
     {
-      icon: <BullseyeFillIcon className="stat-icon icon-svg icon-rose" />,
+      icon: <BullseyeIcon className="stat-icon icon-svg icon-rose" />,
       value: losses !== null ? String(losses) : "N/A",
       label: "Losses",
       color: "text-rose-400",
     },
     {
-      icon: <GraphUpArrowFillIcon className="stat-icon icon-svg icon-blue" />,
+      icon: <GraphUpArrowIcon className="stat-icon icon-svg icon-blue" />,
       value: winRate ?? "N/A",
       label: "Win Rate",
       color: "text-blue-400",
     },
     {
-      icon: <ControllerFillIcon className="stat-icon icon-svg icon-cyan" />,
+      icon: <GamepadIcon className="stat-icon icon-svg icon-cyan" />,
       value: total !== null ? String(total) : "N/A",
       label: "Total Games",
       color: "text-cyan-400",
@@ -130,8 +129,8 @@ const DashboardPage = () => {
 
                 <div className="dashboard-game-content">
                   <h3 className="dashboard-game-title">
-                    <GamepadPlayIcon className="dashboard-game-icon" /> Play a
-                    Game
+                    <GamepadIcon className="dashboard-game-icon pb-0.5 h-6.5 w-6.5 text-cyan-400 in-[.light]:brightness-0" />{" "}
+                    Play a Game
                   </h3>
                   <p className="dashboard-game-text">Ready for a match?</p>
                 </div>
@@ -140,7 +139,7 @@ const DashboardPage = () => {
                   className="dashboard-play-btn"
                   onClick={() => alert("Game feature coming soon!")}
                 >
-                  <GamepadPlayIcon className="dashboard-game-icon" /> Play
+                  <GamepadIcon className="dashboard-game-icon" /> Play
                 </Button>
               </div>
 
