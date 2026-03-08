@@ -6,11 +6,8 @@ import LoginPage from "./pages/LoginPage";
 import TFAPage from "./pages/TFAPage";
 import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
-<<<<<<< HEAD
 import FriendsPage from "./pages/FriendsPage";
-=======
 import ProfileSettingsPage from "./pages/ProfileSettingsPage";
->>>>>>> 3cd06f7e36bf73c80781ec3c203e07f30c3e6e85
 
 function App() {
   return (
@@ -23,11 +20,8 @@ function App() {
         <Route path="/verify-otp" element={<TFAPage />} />
         <Route path="/home" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-<<<<<<< HEAD
         <Route path="/friends" element={<FriendsPage />} />
-=======
         <Route path="/settings" element={<ProfileSettingsPage />} />
->>>>>>> 3cd06f7e36bf73c80781ec3c203e07f30c3e6e85
       </Routes>
     </BrowserRouter>
   );
