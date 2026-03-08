@@ -56,7 +56,6 @@ const LoginSection = () => {
 
             if (response.status === 202 && data['2fa_required']) {
                 localStorage.setItem('temp_token', data.temporary_token)
-                alert(data.message)
                 window.location.href = '/verify-otp'
                 return
             }
