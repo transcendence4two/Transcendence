@@ -115,25 +115,25 @@ services:
       timeout: 3s
       retries: 5
 
-  tournament-postgres:
+  postgres:
     image: postgres:16-bookworm
-    container_name: tournament-postgres
+    container_name: postgres
     environment:
-      - POSTGRES_DB=${TOURNAMENT_POSTGRES_DB:-tournament_service}
-      - POSTGRES_USER=${TOURNAMENT_POSTGRES_USER:-tournament_user}
-      - POSTGRES_PASSWORD=${TOURNAMENT_POSTGRES_PASSWORD:-tournament_password}
+      - POSTGRES_DB=${POSTGRES_DB:-transcendence}
+      - POSTGRES_USER=${POSTGRES_USER:-transcendence_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-transcendence_password}
     expose:
       - "5432"
     restart: unless-stopped
     networks:
       - transcendence-network
     volumes:
-      - tournament_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${TOURNAMENT_POSTGRES_USER:-tournament_user} -d ${TOURNAMENT_POSTGRES_DB:-tournament_service}",
+          "pg_isready -U $${POSTGRES_USER:-transcendence_user} -d $${POSTGRES_DB:-transcendence}"
         ]
       interval: 5s
       timeout: 5s
@@ -183,6 +183,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
 
   game-service:
     build:
@@ -210,7 +212,7 @@ services:
     networks:
       - transcendence-network
     depends_on:
-      tournament-postgres:
+      postgres:
         condition: service_healthy
 
   emails-service:
@@ -232,7 +234,7 @@ services:
 volumes:
   esdata:
   kibana_data:
-  tournament_postgres_data:
+  postgres_data:
 
 networks:
   transcendence-network:
