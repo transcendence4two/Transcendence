@@ -5,6 +5,8 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import TFAPage from "./pages/TFAPage";
 import DashboardPage from "./pages/DashboardPage";
+import MatchmakingPage from "./pages/MatchmakingPage";
+import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<TFAPage />} />
         <Route path="/home" element={<DashboardPage />} />
+        <Route path="/matchmaking" element={<MatchmakingPage />} />
+        <Route path="/game/:sessionId" element={<GamePage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>

@@ -18,6 +18,19 @@ from src.domain.schemas.tournament import (
 )
 
 
+class GameServiceClient(ABC):
+    """Port for communication with the game-service."""
+
+    @abstractmethod
+    async def create_session(
+        self,
+        player1_user_id: str,
+        player2_user_id: str,
+    ) -> str:
+        """Create a game session and return the session_id."""
+        ...
+
+
 class TournamentManager(ABC):
     """Port for tournament operations."""
 
@@ -71,3 +84,15 @@ class TournamentManager(ABC):
         self,
         payload: MatchRecordSaveRequest,
     ) -> tuple[MatchRecord, list[MatchPlayerSnapshot]]: ...
+
+    @abstractmethod
+    async def leave_matchmaking_queue(
+        self,
+        user_id: str,
+    ) -> None: ...
+
+    @abstractmethod
+    async def get_matchmaking_status(
+        self,
+        user_id: str,
+    ) -> MatchmakingQueueEntry | None: ...

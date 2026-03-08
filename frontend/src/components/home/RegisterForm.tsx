@@ -145,11 +145,9 @@ const RegisterForm = () => {
                             name='username'
                             value={formData.username}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.username ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.username ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your username'
-                            disabled={isLoading}
                             required
                         />
                         {errors.username && (
@@ -167,9 +165,8 @@ const RegisterForm = () => {
                             name='email'
                             value={formData.email}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.email ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.email ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your email'
                             disabled={isLoading}
                             required
@@ -189,9 +186,8 @@ const RegisterForm = () => {
                             name='password'
                             value={formData.password}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.password ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.password ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your password'
                             disabled={isLoading}
                             required
@@ -211,9 +207,8 @@ const RegisterForm = () => {
                             name='confirmPassword'
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Confirm your password'
                             disabled={isLoading}
                             required

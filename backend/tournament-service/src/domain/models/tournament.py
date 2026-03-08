@@ -133,6 +133,7 @@ class MatchmakingQueueEntry(Base):
     preferred_game_mode = Column(String, nullable=False, default="pong_1v1")
     tournament_id = Column(String, ForeignKey("tournaments.id"), nullable=True, index=True)
     status = Column(String, nullable=False, default=MatchmakingQueueStatus.QUEUED.value)
+    game_session_id = Column(String, nullable=True, index=True)
     joined_at = Column(DateTime, default=utc_now_naive, nullable=False)
     matched_at = Column(DateTime, nullable=True)
 
