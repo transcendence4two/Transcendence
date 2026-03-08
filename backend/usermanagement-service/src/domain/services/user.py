@@ -3,6 +3,7 @@ from fastapi import status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.settings import settings as app_settings
 from src.domain.contracts import UserOperations, UserRegister
 from src.domain.models.user import User
 from src.domain.schemas.user import (
@@ -15,7 +16,6 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
-from src.core.settings import settings as app_settings
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
 )

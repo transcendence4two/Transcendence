@@ -6,40 +6,40 @@ const OAuthCallbackPage = () => {
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        const params = new URLSearchParams(window.location.search)
-        const code = params.get('code')
-        const errorParam = params.get('error')
+        const handleCallback = async () => {
+            const params = new URLSearchParams(window.location.search)
+            const code = params.get('code')
+            const errorParam = params.get('error')
 
-        if (errorParam) {
-            setError('GitHub authorization was denied.')
-            return
-        }
+            if (errorParam) {
+                setError('GitHub authorization was denied.')
+                return
+            }
 
-        if (!code) {
-            setError('No authorization code received from GitHub.')
-            return
-        }
+            if (!code) {
+                setError('No authorization code received from GitHub.')
+                return
+            }
 
-        fetch('/api/users/oauth/github/callback', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
-        })
-            .then(async res => {
+            try {
+                const res = await fetch('/api/users/oauth/github/callback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code }),
+                })
                 const data = await res.json()
                 if (!res.ok) {
                     throw new Error(data.detail || 'OAuth login failed.')
                 }
-                return data
-            })
-            .then(data => {
                 localStorage.setItem('access_token', data.access_token)
                 localStorage.setItem('user', JSON.stringify(data.user))
                 navigate('/home')
-            })
-            .catch(err => {
-                setError(err.message)
-            })
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'OAuth login failed.')
+            }
+        }
+
+        handleCallback()
     }, [navigate])
 
     if (error) {

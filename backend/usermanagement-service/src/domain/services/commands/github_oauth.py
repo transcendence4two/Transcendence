@@ -79,7 +79,11 @@ class GithubOAuthCommand(Command):
                 )
                 emails = emails_res.json()
                 primary = next(
-                    (e["email"] for e in emails if e.get("primary") and e.get("verified")),
+                    (
+                        e["email"]
+                        for e in emails
+                        if e.get("primary") and e.get("verified")
+                    ),
                     None,
                 )
                 user_data["email"] = primary
