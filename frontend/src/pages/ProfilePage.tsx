@@ -11,7 +11,7 @@ import {
 import PageNavbar from "../components/common/PageNavbar";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
-import ProfileHelpFab from "../components/common/ProfileHelpFab";
+import HelpFab from "../components/common/HelpFab";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
 
 type UserData = {
@@ -149,7 +149,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <ProfileHelpFab />
+          <HelpFab />
         </div>
       </main>
     </div>

@@ -5,7 +5,7 @@ type ProfileHelpFabProps = {
   onClick?: () => void;
 };
 
-const ProfileHelpFab = ({ ariaLabel = "Help", onClick }: ProfileHelpFabProps) => {
+const HelpFab = ({ ariaLabel = "Help", onClick }: ProfileHelpFabProps) => {
   return (
     <button
       type="button"
@@ -18,4 +18,4 @@ const ProfileHelpFab = ({ ariaLabel = "Help", onClick }: ProfileHelpFabProps) =>
   );
 };
 
-export default ProfileHelpFab;
+export default HelpFab;
