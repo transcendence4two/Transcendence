@@ -158,8 +158,13 @@ export function useGameSocket(sessionId: string) {
                     const joinedPayload = msg.payload as { player_id: string }
                     if (joinedPayload.player_id !== playerIdRef.current) {
                         setOpponentDisconnected(false)
-                        setOpponentReconnected(true)
-                        setTimeout(() => setOpponentReconnected(false), 2500)
+                        setGameState((prev) => {
+                            if (prev?.state === 'playing') {
+                                setOpponentReconnected(true)
+                                setTimeout(() => setOpponentReconnected(false), 2500)
+                            }
+                            return prev
+                        })
                     }
                     break
                 }
