@@ -191,6 +191,22 @@ html.light body {
     @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
   }
 
+  .friends-page-content {
+    @apply px-4 sm:px-6 py-8 sm:py-10;
+  }
+
+  .friends-page-layout {
+    @apply mx-auto w-full max-w-2xl space-y-6;
+  }
+
+  .friends-page-card {
+    @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
+  }
+
+  .friends-page-card button {
+    @apply cursor-pointer duration-500 disabled:cursor-default;
+  }
+
   .settings-card-header {
     @apply flex items-center gap-2;
   }
@@ -353,13 +369,13 @@ html.light body {
     @apply mb-3 text-left sm:text-base font-semibold uppercase tracking-[0.14em] text-gray-400;
   }
 
-  .profile-help-fab {
+  .help-fab {
     @apply fixed right-4 bottom-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_4px_14px_rgba(0,0,0,0.45)] transition-colors cursor-pointer;
     background-color: #2d3139;
     border-color: #59606b;
   }
 
-  .profile-help-fab:hover {
+  .help-fab:hover {
     background-color: #383e49;
     border-color: #68707d;
   }
@@ -616,13 +632,13 @@ html.light body {
   @apply text-gray-700;
 }
 
-.light .profile-help-fab {
+.light .help-fab {
   border-color: #cbd5e1;
   background-color: #ffffff;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
 }
 
-.light .profile-help-fab:hover {
+.light .help-fab:hover {
   background-color: #f1f5f9;
   border-color: #94a3b8;
 }
