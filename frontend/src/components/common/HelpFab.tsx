@@ -9,7 +9,7 @@ const HelpFab = ({ ariaLabel = "Help", onClick }: ProfileHelpFabProps) => {
   return (
     <button
       type="button"
-      className="profile-help-fab"
+      className="help-fab"
       aria-label={ariaLabel}
       onClick={onClick}
     >
