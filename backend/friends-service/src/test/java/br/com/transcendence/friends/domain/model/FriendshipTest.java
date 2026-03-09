@@ -8,11 +8,11 @@ class FriendshipTest {
     @Test
     void shouldCreateFriendship() {
         Friendship fs = Friendship.create("user1", "user2");
-        assertNotNull(fs.getId());
+        assertNotNull(fs.id());
         // Since we order them
-        assertEquals("user1", fs.getUserId1());
-        assertEquals("user2", fs.getUserId2());
-        assertTrue(fs.isActive());
+        assertEquals("user1", fs.userId1());
+        assertEquals("user2", fs.userId2());
+        assertTrue(fs.active());
     }
 
     @Test
@@ -23,7 +23,7 @@ class FriendshipTest {
     @Test
     void shouldDeactivateFriendship() {
         Friendship fs = Friendship.create("user1", "user2");
-        fs.deactivate();
-        assertFalse(fs.isActive());
+        fs = fs.deactivate();
+        assertFalse(fs.active());
     }
 }

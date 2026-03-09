@@ -44,8 +44,8 @@ class SendFriendRequestUseCaseTest {
         FriendRequest result = useCase.execute("userA", "userB");
 
         assertNotNull(result);
-        assertEquals("userA", result.getRequesterId());
-        assertEquals("userB", result.getReceiverId());
+        assertEquals("userA", result.requesterId());
+        assertEquals("userB", result.receiverId());
     }
 
     @Test

@@ -25,24 +25,24 @@ public class AcceptFriendRequestUseCase {
         FriendRequest request = friendRequestRepository.findRequestById(requestId)
                 .orElseThrow(() -> new FriendRequestNotFoundException(requestId));
 
-        if (!request.getReceiverId().equals(currentUserId)) {
+        if (!request.receiverId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the receiver can accept the friend request");
         }
 
-        request.accept();
+        request = request.accept();
         friendRequestRepository.save(request);
 
-        Optional<Friendship> existingFriendship = friendshipRepository.findByUsers(request.getRequesterId(), request.getReceiverId());
+        Optional<Friendship> existingFriendship = friendshipRepository.findByUsers(request.requesterId(), request.receiverId());
         
         if (existingFriendship.isPresent()) {
             Friendship friendship = existingFriendship.get();
-            if (friendship.isActive()) {
+            if (friendship.active()) {
                 throw new FriendshipAlreadyExistsException("Users are already friends");
             }
-            friendship.reactivate();
+            friendship = friendship.reactivate();
             return friendshipRepository.save(friendship);
         }
-        Friendship newFriendship = Friendship.create(request.getRequesterId(), request.getReceiverId());
+        Friendship newFriendship = Friendship.create(request.requesterId(), request.receiverId());
         return friendshipRepository.save(newFriendship);
     }
 }

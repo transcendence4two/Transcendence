@@ -28,7 +28,7 @@ public class SendFriendRequestUseCase {
         }
 
         Optional<Friendship> existingFriendship = friendshipRepository.findByUsers(requesterId, receiverId);
-        if (existingFriendship.isPresent() && existingFriendship.get().isActive()) {
+        if (existingFriendship.isPresent() && existingFriendship.get().active()) {
             throw new FriendshipAlreadyExistsException("Users are already friends");
         }
 

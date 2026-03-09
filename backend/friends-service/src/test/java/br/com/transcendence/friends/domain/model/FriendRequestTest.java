@@ -9,10 +9,10 @@ class FriendRequestTest {
     void shouldCreatePendingRequest() {
         FriendRequest request = FriendRequest.create("user1", "user2");
         
-        assertNotNull(request.getId());
-        assertEquals("user1", request.getRequesterId());
-        assertEquals("user2", request.getReceiverId());
-        assertEquals(RequestStatus.PENDING, request.getStatus());
+        assertNotNull(request.id());
+        assertEquals("user1", request.requesterId());
+        assertEquals("user2", request.receiverId());
+        assertEquals(RequestStatus.PENDING, request.status());
     }
 
     @Test
@@ -25,14 +25,14 @@ class FriendRequestTest {
     @Test
     void shouldAcceptPendingRequest() {
         FriendRequest request = FriendRequest.create("user1", "user2");
-        request.accept();
-        assertEquals(RequestStatus.ACCEPTED, request.getStatus());
+        request = request.accept();
+        assertEquals(RequestStatus.ACCEPTED, request.status());
     }
 
     @Test
     void shouldNotAcceptAlreadyAcceptedRequest() {
         FriendRequest request = FriendRequest.create("user1", "user2");
-        request.accept();
-        assertThrows(IllegalStateException.class, request::accept);
+        final FriendRequest r1 = request.accept();
+        assertThrows(IllegalStateException.class, r1::accept);
     }
 }

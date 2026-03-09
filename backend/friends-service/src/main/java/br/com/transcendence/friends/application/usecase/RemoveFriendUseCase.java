@@ -17,12 +17,12 @@ public class RemoveFriendUseCase {
     public void execute(String currentUserId, String friendUserId) {
         Optional<Friendship> optFriendship = friendshipRepository.findByUsers(currentUserId, friendUserId);
 
-        if (optFriendship.isEmpty() || !optFriendship.get().isActive()) {
+        if (optFriendship.isEmpty() || !optFriendship.get().active()) {
             throw new DomainException("Active friendship not found");
         }
 
         Friendship friendship = optFriendship.get();
-        friendship.deactivate();
+        friendship = friendship.deactivate();
         friendshipRepository.save(friendship);
     }
 }

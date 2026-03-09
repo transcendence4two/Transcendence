@@ -35,12 +35,12 @@ public class FriendRequestEntity {
 
     public static FriendRequestEntity fromDomain(FriendRequest model) {
         FriendRequestEntity entity = new FriendRequestEntity();
-        entity.id = model.getId();
-        entity.requesterId = model.getRequesterId();
-        entity.receiverId = model.getReceiverId();
-        entity.status = model.getStatus();
-        entity.createdAt = model.getCreatedAt();
-        entity.updatedAt = model.getUpdatedAt();
+        entity.id = model.id();
+        entity.requesterId = model.requesterId();
+        entity.receiverId = model.receiverId();
+        entity.status = model.status();
+        entity.createdAt = model.createdAt();
+        entity.updatedAt = model.updatedAt();
         return entity;
     }
 }

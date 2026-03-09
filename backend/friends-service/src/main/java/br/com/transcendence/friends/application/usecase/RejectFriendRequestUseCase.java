@@ -18,11 +18,11 @@ public class RejectFriendRequestUseCase {
         FriendRequest request = friendRequestRepository.findRequestById(requestId)
                 .orElseThrow(() -> new FriendRequestNotFoundException(requestId));
 
-        if (!request.getReceiverId().equals(currentUserId)) {
+        if (!request.receiverId().equals(currentUserId)) {
             throw new IllegalArgumentException("Only the receiver can reject the friend request");
         }
 
-        request.reject();
+        request = request.reject();
         friendRequestRepository.save(request);
     }
 }

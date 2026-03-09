@@ -36,12 +36,12 @@ public class FriendshipEntity {
 
     public static FriendshipEntity fromDomain(Friendship model) {
         FriendshipEntity entity = new FriendshipEntity();
-        entity.id = model.getId();
-        entity.userId1 = model.getUserId1();
-        entity.userId2 = model.getUserId2();
-        entity.active = model.isActive();
-        entity.createdAt = model.getCreatedAt();
-        entity.updatedAt = model.getUpdatedAt();
+        entity.id = model.id();
+        entity.userId1 = model.userId1();
+        entity.userId2 = model.userId2();
+        entity.active = model.active();
+        entity.createdAt = model.createdAt();
+        entity.updatedAt = model.updatedAt();
         return entity;
     }
 }

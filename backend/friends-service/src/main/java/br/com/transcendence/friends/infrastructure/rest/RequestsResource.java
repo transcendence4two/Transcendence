@@ -44,7 +44,7 @@ public class RequestsResource {
     @Transactional
     public Response sendRequest(@HeaderParam("X-User-Id") String currentUserId, SendRequestDTO dto) {
         String requesterId = getCurrentUserId(currentUserId);
-        FriendRequest request = sendFriendRequestUseCase.execute(requesterId, dto.receiverId);
+        FriendRequest request = sendFriendRequestUseCase.execute(requesterId, dto.receiverId());
         return Response.status(Response.Status.CREATED).entity(request).build();
     }
 
