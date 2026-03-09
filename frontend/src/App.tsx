@@ -8,6 +8,7 @@ import DashboardPage from "./pages/DashboardPage";
 import MatchmakingPage from "./pages/MatchmakingPage";
 import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/matchmaking" element={<MatchmakingPage />} />
         <Route path="/game/:sessionId" element={<GamePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
       </Routes>
     </BrowserRouter>
   );

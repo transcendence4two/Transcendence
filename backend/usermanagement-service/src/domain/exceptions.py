@@ -45,3 +45,7 @@ class InvalidCredentialsError(DomainError):
 
 class InvalidOtpError(DomainError):
     """OTP code is invalid or expired."""
+
+
+class OAuthError(DomainError):
+    """GitHub OAuth flow failed."""

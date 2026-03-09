@@ -101,3 +101,9 @@ class Verify2FARequest(BaseModel):
 
     temporary_token: str
     otp_code: str = Field(..., min_length=6, max_length=6)
+
+
+class GithubOAuthRequest(BaseModel):
+    """Schema for GitHub OAuth callback"""
+
+    code: str
