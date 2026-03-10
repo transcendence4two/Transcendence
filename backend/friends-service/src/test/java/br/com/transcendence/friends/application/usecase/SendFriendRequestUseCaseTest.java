@@ -1,7 +1,9 @@
 package br.com.transcendence.friends.application.usecase;
 
+import br.com.transcendence.friends.application.port.out.UserManagementPort;
 import br.com.transcendence.friends.domain.exception.FriendRequestAlreadyExistsException;
 import br.com.transcendence.friends.domain.exception.FriendshipAlreadyExistsException;
+import br.com.transcendence.friends.domain.exception.UserNotFoundException;
 import br.com.transcendence.friends.domain.model.FriendRequest;
 import br.com.transcendence.friends.domain.model.Friendship;
 import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
@@ -25,12 +27,16 @@ class SendFriendRequestUseCaseTest {
     @Mock
     IFriendshipRepository friendshipRepository;
 
+    @Mock
+    UserManagementPort userManagementPort;
+
     @InjectMocks
     SendFriendRequestUseCase useCase;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(userManagementPort.userExists(anyString())).thenReturn(true);
     }
 
     @Test
@@ -46,6 +52,12 @@ class SendFriendRequestUseCaseTest {
         assertNotNull(result);
         assertEquals("userA", result.requesterId());
         assertEquals("userB", result.receiverId());
+    }
+
+    @Test
+    void shouldThrowWhenUserNotFound() {
+        when(userManagementPort.userExists("userDoesNotExist")).thenReturn(false);
+        assertThrows(UserNotFoundException.class, () -> useCase.execute("userA", "userDoesNotExist"));
     }
 
     @Test

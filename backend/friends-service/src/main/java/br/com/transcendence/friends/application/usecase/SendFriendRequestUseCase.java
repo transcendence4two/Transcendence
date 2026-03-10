@@ -1,7 +1,9 @@
 package br.com.transcendence.friends.application.usecase;
 
+import br.com.transcendence.friends.application.port.out.UserManagementPort;
 import br.com.transcendence.friends.domain.exception.FriendRequestAlreadyExistsException;
 import br.com.transcendence.friends.domain.exception.FriendshipAlreadyExistsException;
+import br.com.transcendence.friends.domain.exception.UserNotFoundException;
 import br.com.transcendence.friends.domain.model.FriendRequest;
 import br.com.transcendence.friends.domain.model.Friendship;
 import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
@@ -20,11 +22,16 @@ public class SendFriendRequestUseCase {
     @Inject
     IFriendshipRepository friendshipRepository;
 
-    // TODO: injetar UserManagementClientPort para validar existência de receiverId
+    @Inject
+    UserManagementPort userManagementPort;
 
     public FriendRequest execute(String requesterId, String receiverId) {
         if (requesterId == null || receiverId == null || requesterId.equals(receiverId)) {
             throw new IllegalArgumentException("Invalid requester or receiver ID");
+        }
+
+        if (!userManagementPort.userExists(receiverId)) {
+            throw new UserNotFoundException(receiverId);
         }
 
         Optional<Friendship> existingFriendship = friendshipRepository.findByUsers(requesterId, receiverId);
