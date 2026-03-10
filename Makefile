@@ -44,6 +44,8 @@ tests:
 	cd backend/tournament-service && uv sync --extra test && uv run pytest
 	@echo "Running tests for game-service..."
 	cd backend/game-service && go test ./... -v -race
+	@echo "Running tests for friends-service..."
+	cd backend/friends-service && ./mvnw test
 
 lint:
 	@echo "Linting code with Ruff..."
