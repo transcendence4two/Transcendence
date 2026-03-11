@@ -1,15 +1,15 @@
 package br.com.transcendence.friends.infrastructure.rest;
 
+import br.com.transcendence.friends.application.dto.PaginatedResponse;
 import br.com.transcendence.friends.application.usecase.ListFriendsUseCase;
 import br.com.transcendence.friends.application.usecase.RemoveFriendUseCase;
 import br.com.transcendence.friends.domain.model.Friendship;
+import br.com.transcendence.friends.domain.model.Page;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.List;
 
 @Path("/friends")
 @Produces(MediaType.APPLICATION_JSON)
@@ -30,10 +30,13 @@ public class FriendsResource {
     }
 
     @GET
-    public Response listFriends(@HeaderParam("X-User-Id") String currentUserId) {
+    public Response listFriends(
+            @HeaderParam("X-User-Id") String currentUserId,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("page_size") @DefaultValue("10") int pageSize) {
         String userId = getCurrentUserId(currentUserId);
-        List<Friendship> friends = listFriendsUseCase.execute(userId);
-        return Response.ok(friends).build();
+        Page<Friendship> friendsPage = listFriendsUseCase.execute(userId, page, pageSize);
+        return Response.ok(PaginatedResponse.fromPage(friendsPage)).build();
     }
 
     @DELETE

@@ -1,11 +1,10 @@
 package br.com.transcendence.friends.application.usecase;
 
 import br.com.transcendence.friends.domain.model.Friendship;
+import br.com.transcendence.friends.domain.model.Page;
 import br.com.transcendence.friends.domain.repository.IFriendshipRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
-import java.util.List;
 
 @ApplicationScoped
 public class ListFriendsUseCase {
@@ -13,7 +12,7 @@ public class ListFriendsUseCase {
     @Inject
     IFriendshipRepository friendshipRepository;
 
-    public List<Friendship> execute(String userId) {
-        return friendshipRepository.findActiveFriendsByUserId(userId);
+    public Page<Friendship> execute(String userId, int page, int pageSize) {
+        return friendshipRepository.findActiveFriendsByUserId(userId, page, pageSize);
     }
 }

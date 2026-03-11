@@ -1,5 +1,6 @@
 package br.com.transcendence.friends.infrastructure.rest;
 
+import br.com.transcendence.friends.application.dto.PaginatedResponse;
 import br.com.transcendence.friends.application.dto.SendRequestDTO;
 import br.com.transcendence.friends.application.usecase.AcceptFriendRequestUseCase;
 import br.com.transcendence.friends.application.usecase.ListPendingRequestsUseCase;
@@ -7,13 +8,13 @@ import br.com.transcendence.friends.application.usecase.RejectFriendRequestUseCa
 import br.com.transcendence.friends.application.usecase.SendFriendRequestUseCase;
 import br.com.transcendence.friends.domain.model.FriendRequest;
 import br.com.transcendence.friends.domain.model.Friendship;
+import br.com.transcendence.friends.domain.model.Page;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
 import java.util.UUID;
 
 @Path("/friends/requests")
@@ -67,9 +68,12 @@ public class RequestsResource {
     }
 
     @GET
-    public Response listPendingRequests(@HeaderParam("X-User-Id") String currentUserId) {
+    public Response listPendingRequests(
+            @HeaderParam("X-User-Id") String currentUserId,
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("page_size") @DefaultValue("10") int pageSize) {
         String receiverId = getCurrentUserId(currentUserId);
-        List<FriendRequest> requests = listPendingRequestsUseCase.execute(receiverId);
-        return Response.ok(requests).build();
+        Page<FriendRequest> requestsPage = listPendingRequestsUseCase.execute(receiverId, page, pageSize);
+        return Response.ok(PaginatedResponse.fromPage(requestsPage)).build();
     }
 }

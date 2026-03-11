@@ -1,6 +1,0 @@
-package br.com.transcendence;
-
-import io.quarkus.test.junit.QuarkusIntegrationTest;
-
-@QuarkusIntegrationTest
-class GreetingResourceIT extends GreetingResourceTest {}

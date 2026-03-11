@@ -1,8 +1,10 @@
 package br.com.transcendence.friends.infrastructure.persistence.repository;
 
 import br.com.transcendence.friends.domain.model.Friendship;
+import br.com.transcendence.friends.domain.model.Page;
 import br.com.transcendence.friends.domain.repository.IFriendshipRepository;
 import br.com.transcendence.friends.infrastructure.persistence.entity.FriendshipEntity;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -37,10 +39,17 @@ public class FriendshipRepositoryImpl implements IFriendshipRepository, PanacheR
     }
 
     @Override
-    public List<Friendship> findActiveFriendsByUserId(String userId) {
-        return find("(userId1 = ?1 or userId2 = ?1) and active = true", userId)
+    public Page<Friendship> findActiveFriendsByUserId(String userId, int page, int pageSize) {
+        PanacheQuery<FriendshipEntity> query = find("(userId1 = ?1 or userId2 = ?1) and active = true", userId);
+        
+        long total = query.count();
+        List<Friendship> items = query.page(io.quarkus.panache.common.Page.of(page - 1, pageSize))
                 .stream()
                 .map(FriendshipEntity::toDomain)
                 .collect(Collectors.toList());
+        
+        int totalPages = (int) Math.ceil((double) total / pageSize);
+
+        return new Page<>(items, total, page, pageSize, totalPages);
     }
 }
