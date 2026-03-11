@@ -31,7 +31,7 @@ deploy: certs
 	$(DOCKER_COMPOSE) up --build -d
 
 ilm:
-	@echo "Creating ILM policies..."
+	@echo "Starting to create ILM policies..."
 	@chmod +x infra/scripts/create-ilm.sh
 	@./infra/scripts/create-ilm.sh
 

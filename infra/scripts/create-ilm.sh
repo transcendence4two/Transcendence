@@ -1,15 +1,18 @@
 #!/bin/bash
 set -e
 
-# Wait for Elasticsearch to start
-until curl -u elastic:$ELASTIC_PASSWORD http://localhost:9200 > /dev/null 2>&1; do
-  sleep 5
-done
+# Path to ILM JSONs on host
+ILM_DIR="./infra/elasticsearch/ilm"
 
-# Loop through all ILM JSON files and create policies
-for file in /usr/share/elasticsearch/ilm/*.json; do
+# Check if the folder exists and has JSON files
+if [ ! -d "$ILM_DIR" ] || [ -z "$(ls $ILM_DIR/*.json 2>/dev/null)" ]; then
+  echo "Error: No JSON files found in $ILM_DIR"
+  exit 1
+fi
+
+for file in "$ILM_DIR"/*.json; do
   policy_name=$(basename "$file" .json)
-  echo "Creating ILM policy: $policy_name"
+  echo -e "Creating ILM policy: $policy_name"
   curl -u elastic:$ELASTIC_PASSWORD -X PUT "http://localhost:9200/_ilm/policy/$policy_name" \
        -H "Content-Type: application/json" \
        -d @"$file"
