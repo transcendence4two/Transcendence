@@ -71,6 +71,7 @@ services:
     restart: unless-stopped
     volumes:
       - ../logstash/pipeline/default.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ../logstash/pipeline/service_mapping.yml:/usr/share/logstash/pipeline/service_mapping.yml:ro
     networks:
       - transcendence-network
     depends_on:
