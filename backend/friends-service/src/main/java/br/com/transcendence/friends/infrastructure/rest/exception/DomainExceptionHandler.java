@@ -1,8 +1,6 @@
 package br.com.transcendence.friends.infrastructure.rest.exception;
 
 import br.com.transcendence.friends.domain.exception.DomainException;
-import br.com.transcendence.friends.domain.exception.FriendRequestNotFoundException;
-import br.com.transcendence.friends.domain.exception.UserNotFoundException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
@@ -13,14 +11,9 @@ public class DomainExceptionHandler implements ExceptionMapper<DomainException> 
 
     @Override
     public Response toResponse(DomainException e) {
-        int status = Response.Status.BAD_REQUEST.getStatusCode();
-        
-        if (e instanceof FriendRequestNotFoundException || e instanceof UserNotFoundException) {
-            status = Response.Status.NOT_FOUND.getStatusCode();
-        }
-
-        return Response.status(status)
+        return Response.status(e.httpStatus())
                 .entity(Map.of("error", e.getMessage()))
                 .build();
     }
 }
+

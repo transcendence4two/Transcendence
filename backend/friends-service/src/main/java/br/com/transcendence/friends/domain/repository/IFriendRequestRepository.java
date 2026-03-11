@@ -4,7 +4,6 @@ import br.com.transcendence.friends.domain.model.FriendRequest;
 import br.com.transcendence.friends.domain.model.Page;
 import br.com.transcendence.friends.domain.model.RequestStatus;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 

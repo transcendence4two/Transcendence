@@ -10,6 +10,7 @@ import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
 import br.com.transcendence.friends.domain.repository.IFriendshipRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ public class SendFriendRequestUseCase {
     @Inject
     UserManagementPort userManagementPort;
 
+    @Transactional
     public FriendRequest execute(String requesterId, String receiverId) {
         if (requesterId == null || receiverId == null || requesterId.equals(receiverId)) {
             throw new IllegalArgumentException("Invalid requester or receiver ID");
@@ -39,12 +41,13 @@ public class SendFriendRequestUseCase {
             throw new FriendshipAlreadyExistsException("Users are already friends");
         }
 
-        Optional<FriendRequest> pendingreq1 = friendRequestRepository.findPendingRequest(requesterId, receiverId);
-        if (pendingreq1.isPresent()) {
+        Optional<FriendRequest> pendingFromRequester = friendRequestRepository.findPendingRequest(requesterId, receiverId);
+        if (pendingFromRequester.isPresent()) {
             throw new FriendRequestAlreadyExistsException("A pending friend request already exists between these users");
         }
-        Optional<FriendRequest> pendingreq2 = friendRequestRepository.findPendingRequest(receiverId, requesterId);
-        if (pendingreq2.isPresent()) {
+
+        Optional<FriendRequest> pendingFromReceiver = friendRequestRepository.findPendingRequest(receiverId, requesterId);
+        if (pendingFromReceiver.isPresent()) {
             throw new FriendRequestAlreadyExistsException("Receiver has already sent you a friend request. You can accept it instead.");
         }
 

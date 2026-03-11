@@ -5,14 +5,12 @@ import br.com.transcendence.friends.domain.model.Page;
 import br.com.transcendence.friends.domain.model.RequestStatus;
 import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
 import br.com.transcendence.friends.infrastructure.persistence.entity.FriendRequestEntity;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import br.com.transcendence.friends.infrastructure.persistence.util.PaginationHelper;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class FriendRequestRepositoryImpl implements IFriendRequestRepository, PanacheRepositoryBase<FriendRequestEntity, UUID> {
@@ -38,16 +36,8 @@ public class FriendRequestRepositoryImpl implements IFriendRequestRepository, Pa
 
     @Override
     public Page<FriendRequest> findByReceiverAndStatus(String receiverId, RequestStatus status, int page, int pageSize) {
-        PanacheQuery<FriendRequestEntity> query = find("receiverId = ?1 and status = ?2", receiverId, status);
-        
-        long total = query.count();
-        List<FriendRequest> items = query.page(io.quarkus.panache.common.Page.of(page - 1, pageSize))
-                .stream()
-                .map(FriendRequestEntity::toDomain)
-                .collect(Collectors.toList());
-                
-        int totalPages = (int) Math.ceil((double) total / pageSize);
-
-        return new Page<>(items, total, page, pageSize, totalPages);
+        return PaginationHelper.paginate(
+                find("receiverId = ?1 and status = ?2", receiverId, status),
+                page, pageSize, FriendRequestEntity::toDomain);
     }
 }

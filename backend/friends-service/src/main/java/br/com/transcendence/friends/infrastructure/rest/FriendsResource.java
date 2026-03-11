@@ -5,8 +5,8 @@ import br.com.transcendence.friends.application.usecase.ListFriendsUseCase;
 import br.com.transcendence.friends.application.usecase.RemoveFriendUseCase;
 import br.com.transcendence.friends.domain.model.Friendship;
 import br.com.transcendence.friends.domain.model.Page;
+import br.com.transcendence.friends.infrastructure.rest.util.UserContextHelper;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -22,29 +22,24 @@ public class FriendsResource {
     @Inject
     RemoveFriendUseCase removeFriendUseCase;
 
-    private String getCurrentUserId(String headerUserId) {
-        if (headerUserId == null || headerUserId.isBlank()) {
-            throw new NotAuthorizedException("X-User-Id header is required for context");
-        }
-        return headerUserId;
-    }
-
     @GET
     public Response listFriends(
             @HeaderParam("X-User-Id") String currentUserId,
             @QueryParam("page") @DefaultValue("1") int page,
             @QueryParam("page_size") @DefaultValue("10") int pageSize) {
-        String userId = getCurrentUserId(currentUserId);
+        String userId = UserContextHelper.extractUserId(currentUserId);
         Page<Friendship> friendsPage = listFriendsUseCase.execute(userId, page, pageSize);
         return Response.ok(PaginatedResponse.fromPage(friendsPage)).build();
     }
 
     @DELETE
     @Path("/user/{friendUserId}")
-    @Transactional
-    public Response removeFriend(@PathParam("friendUserId") String friendUserId, @HeaderParam("X-User-Id") String currentUserId) {
-        String userId = getCurrentUserId(currentUserId);
+    public Response removeFriend(
+            @PathParam("friendUserId") String friendUserId,
+            @HeaderParam("X-User-Id") String currentUserId) {
+        String userId = UserContextHelper.extractUserId(currentUserId);
         removeFriendUseCase.execute(userId, friendUserId);
         return Response.noContent().build();
     }
 }
+

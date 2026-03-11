@@ -4,10 +4,13 @@ import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import org.jboss.logging.Logger;
 import java.util.Map;
 
 @Provider
 public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
+
+    private static final Logger LOG = Logger.getLogger(GlobalExceptionHandler.class);
 
     @Override
     public Response toResponse(Exception e) {
@@ -22,10 +25,11 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
                     .build();
         }
 
-        e.printStackTrace();
+        LOG.errorf(e, "Unexpected error: %s", e.getMessage());
 
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(Map.of("error", "Internal Server Error", "details", e.getMessage()))
                 .build();
     }
 }
+

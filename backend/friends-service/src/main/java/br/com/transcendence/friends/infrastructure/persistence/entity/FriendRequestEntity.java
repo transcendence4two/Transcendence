@@ -10,22 +10,22 @@ import java.util.UUID;
 @Table(name = "friend_requests")
 public class FriendRequestEntity {
     @Id
-    public UUID id;
+    private UUID id;
 
     @Column(name = "requester_id")
-    public String requesterId;
+    private String requesterId;
 
     @Column(name = "receiver_id")
-    public String receiverId;
+    private String receiverId;
 
     @Enumerated(EnumType.STRING)
-    public RequestStatus status;
+    private RequestStatus status;
 
     @Column(name = "created_at")
-    public LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    public LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     public FriendRequestEntity() {}
 
@@ -44,3 +44,4 @@ public class FriendRequestEntity {
         return entity;
     }
 }
+

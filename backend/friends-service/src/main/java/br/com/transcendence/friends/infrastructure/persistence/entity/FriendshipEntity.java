@@ -12,21 +12,21 @@ import java.util.UUID;
 @Table(name = "friendships")
 public class FriendshipEntity {
     @Id
-    public UUID id;
+    private UUID id;
 
     @Column(name = "user_id_1")
-    public String userId1;
+    private String userId1;
 
     @Column(name = "user_id_2")
-    public String userId2;
+    private String userId2;
 
-    public boolean active;
+    private boolean active;
 
     @Column(name = "created_at")
-    public LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    public LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     public FriendshipEntity() {}
 

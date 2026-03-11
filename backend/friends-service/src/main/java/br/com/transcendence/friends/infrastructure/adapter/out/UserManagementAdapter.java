@@ -23,9 +23,18 @@ public class UserManagementAdapter implements UserManagementPort {
             if (e.getResponse().getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 return false;
             }
-            throw e; 
-        } catch (Exception e) {
-            return false;
+            throw e;
+        }
+    }
+
+    @Override
+    public Object findByUsername(String username) {
+        try (Response response = userManagementClient.findByUsername(username)) {
+            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return response.readEntity(Object.class);
+            }
+            throw new RuntimeException("User not found or error from user management: " + response.getStatus());
         }
     }
 }
+

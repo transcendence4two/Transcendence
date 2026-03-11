@@ -4,14 +4,12 @@ import br.com.transcendence.friends.domain.model.Friendship;
 import br.com.transcendence.friends.domain.model.Page;
 import br.com.transcendence.friends.domain.repository.IFriendshipRepository;
 import br.com.transcendence.friends.infrastructure.persistence.entity.FriendshipEntity;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import br.com.transcendence.friends.infrastructure.persistence.util.PaginationHelper;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class FriendshipRepositoryImpl implements IFriendshipRepository, PanacheRepositoryBase<FriendshipEntity, UUID> {
@@ -30,26 +28,23 @@ public class FriendshipRepositoryImpl implements IFriendshipRepository, PanacheR
 
     @Override
     public Optional<Friendship> findByUsers(String userId1, String userId2) {
-        String u1 = userId1.compareTo(userId2) < 0 ? userId1 : userId2;
-        String u2 = userId1.compareTo(userId2) < 0 ? userId2 : userId1;
-
-        return find("userId1 = ?1 and userId2 = ?2", u1, u2)
+        String[] ordered = normalizeUserOrder(userId1, userId2);
+        return find("userId1 = ?1 and userId2 = ?2", ordered[0], ordered[1])
                 .firstResultOptional()
                 .map(FriendshipEntity::toDomain);
     }
 
     @Override
     public Page<Friendship> findActiveFriendsByUserId(String userId, int page, int pageSize) {
-        PanacheQuery<FriendshipEntity> query = find("(userId1 = ?1 or userId2 = ?1) and active = true", userId);
-        
-        long total = query.count();
-        List<Friendship> items = query.page(io.quarkus.panache.common.Page.of(page - 1, pageSize))
-                .stream()
-                .map(FriendshipEntity::toDomain)
-                .collect(Collectors.toList());
-        
-        int totalPages = (int) Math.ceil((double) total / pageSize);
+        return PaginationHelper.paginate(
+                find("(userId1 = ?1 or userId2 = ?1) and active = true", userId),
+                page, pageSize, FriendshipEntity::toDomain);
+    }
 
-        return new Page<>(items, total, page, pageSize, totalPages);
+    private String[] normalizeUserOrder(String userId1, String userId2) {
+        if (userId1.compareTo(userId2) <= 0) {
+            return new String[]{userId1, userId2};
+        }
+        return new String[]{userId2, userId1};
     }
 }

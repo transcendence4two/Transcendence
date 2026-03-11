@@ -8,6 +8,7 @@ import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
 import br.com.transcendence.friends.domain.repository.IFriendshipRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +22,7 @@ public class AcceptFriendRequestUseCase {
     @Inject
     IFriendshipRepository friendshipRepository;
 
+    @Transactional
     public Friendship execute(UUID requestId, String currentUserId) {
         FriendRequest request = friendRequestRepository.findRequestById(requestId)
                 .orElseThrow(() -> new FriendRequestNotFoundException(requestId));

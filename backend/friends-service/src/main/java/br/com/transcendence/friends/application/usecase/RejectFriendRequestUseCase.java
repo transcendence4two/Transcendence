@@ -5,6 +5,7 @@ import br.com.transcendence.friends.domain.model.FriendRequest;
 import br.com.transcendence.friends.domain.repository.IFriendRequestRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public class RejectFriendRequestUseCase {
     @Inject
     IFriendRequestRepository friendRequestRepository;
 
+    @Transactional
     public void execute(UUID requestId, String currentUserId) {
         FriendRequest request = friendRequestRepository.findRequestById(requestId)
                 .orElseThrow(() -> new FriendRequestNotFoundException(requestId));

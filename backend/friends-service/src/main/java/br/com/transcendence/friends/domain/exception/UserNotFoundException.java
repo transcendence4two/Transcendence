@@ -4,4 +4,9 @@ public class UserNotFoundException extends DomainException {
     public UserNotFoundException(String userId) {
         super("User with id " + userId + " not found");
     }
+
+    @Override
+    public int httpStatus() {
+        return 404;
+    }
 }
