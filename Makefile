@@ -4,7 +4,7 @@ frontend:
 	@echo "Starting frontend service locally..."
 	cd frontend && bun run dev
 
-infra-up:
+infra-up: ilm slm
 	@echo "Starting infrastructure services..."
 	$(DOCKER_COMPOSE) up -d redis
 
@@ -29,6 +29,18 @@ certs-clean:
 deploy: certs
 	@echo "Deploying all Docker images..."
 	$(DOCKER_COMPOSE) up --build -d
+
+ilm:
+	@echo "Starting to create ILM policies..."
+	@chmod +x infra/scripts/create-ilm.sh
+	@./infra/scripts/create-ilm.sh
+
+slm:
+	@echo "Starting to create SLM policies"
+	@chmod +x infra/scripts/setup_snapshot_repository.sh
+	@./infra/scripts/setup_snapshot_repository.sh
+	@chmod +x infra/scritps/setup-slm-policy.sh
+	@./infra/scripts/setup-slm-policy.sh
 
 down:
 	@echo "Stopping all services..."
