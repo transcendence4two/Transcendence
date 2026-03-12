@@ -36,7 +36,11 @@ class UserOperations(ABC):
     ) -> User: ...
 
     @abstractmethod
-    async def delete_user_profile(self, user_id: str, confirmation_text: str) -> None: ...
+    async def delete_user_profile(
+        self,
+        user_id: str,
+        confirmation_text: str,
+    ) -> None: ...
 
 
 class TokenProvider(ABC):
