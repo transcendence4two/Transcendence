@@ -4,6 +4,7 @@ from src.core.auth import get_token_payload
 from src.core.settings import settings
 from src.di_config import get_user_service
 from src.domain.schemas.user import (
+    DeleteUserRequest,
     GithubOAuthRequest,
     LoginRequest,
     LoginResponse,
@@ -14,6 +15,7 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.domain.exceptions import UnauthorizedActionError
 from src.domain.services.user import UserService
 
 router = APIRouter()
@@ -104,3 +106,17 @@ async def update_profile(
 ):
     user = await user_service.update_user_profile(user_id, request)
     return UserProfileResponse.model_validate(user)
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_profile(
+    user_id: str,
+    request: DeleteUserRequest,
+    payload: dict = Depends(get_token_payload),
+    user_service: UserService = Depends(get_user_service),
+):
+    if payload.get("sub") != user_id:
+        raise UnauthorizedActionError("You can only delete your own user")
+
+    await user_service.delete_user_profile(user_id, request.confirmation_text)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

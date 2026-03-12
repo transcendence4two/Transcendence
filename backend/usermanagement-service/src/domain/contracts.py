@@ -35,6 +35,9 @@ class UserOperations(ABC):
         self, user_id: str, payload: UserProfileUpdateRequest
     ) -> User: ...
 
+    @abstractmethod
+    async def delete_user_profile(self, user_id: str, confirmation_text: str) -> None: ...
+
 
 class TokenProvider(ABC):
     """Port for token operations."""

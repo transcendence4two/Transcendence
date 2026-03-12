@@ -46,6 +46,12 @@ class UserProfileUpdateRequest(BaseModel):
     email: EmailStr | None = None
 
 
+class DeleteUserRequest(BaseModel):
+    """Schema for user delete confirmation."""
+
+    confirmation_text: str = Field(..., min_length=1)
+
+
 T = TypeVar("T")
 
 

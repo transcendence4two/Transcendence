@@ -22,6 +22,7 @@ from src.domain.services.commands.get_paginated_users import (
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.github_oauth import GithubOAuthCommand
 from src.domain.services.commands.login_user import LoginCommand
+from src.domain.services.commands.delete_user_profile import DeleteUserProfileCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 from src.domain.services.commands.verify_two_factor import VerifyTwoFactorCommand
@@ -77,6 +78,10 @@ class UserService(UserRegister, UserOperations):
     ):
         command = UpdateUserProfileCommand(self.session, user_id, payload)
         return await command.execute()
+
+    async def delete_user_profile(self, user_id: str, confirmation_text: str) -> None:
+        command = DeleteUserProfileCommand(self.session, user_id, confirmation_text)
+        await command.execute()
 
     # Messaging methods
     async def send_welcome_email(self, email: str, username: str) -> None:
