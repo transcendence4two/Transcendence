@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     JWT_EXPIRES_MINUTES: int = 60
     JWT_ISSUER: str = "usermanagement"
     REDIS_URL: str = "redis://localhost:6379"
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: str = ""
+    GITHUB_OAUTH_REDIRECT_URI: str = "https://localhost/oauth/callback"
 
     class Config:
         env_file = find_root_env()
