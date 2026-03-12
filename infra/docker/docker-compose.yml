@@ -15,6 +15,7 @@ services:
       - transcendence-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
+      - essnapshot:/snapshot
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
       test:
@@ -233,6 +234,7 @@ services:
 
 volumes:
   esdata:
+  essnapshots:
   kibana_data:
   postgres_data:
 
