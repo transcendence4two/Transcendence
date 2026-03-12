@@ -83,8 +83,15 @@ class MatchmakingQueueEntryResponse(BaseModel):
     preferred_game_mode: str
     tournament_id: str | None
     status: str
+    game_session_id: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class MatchmakingStatusResponse(BaseModel):
+    user_id: str
+    status: str
+    game_session_id: str | None = None
 
 
 class MatchPlayerSnapshotSaveRequest(BaseModel):

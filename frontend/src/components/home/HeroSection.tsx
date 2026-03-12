@@ -8,7 +8,7 @@ const HeroSection = () => {
             {/* Hero Section */}
             <div className='space-y-4'>
                 <h1 className='text-6xl font-bold bg-linear-to-r from-cyan-400 to-purple-600 bg-clip-text text-transparent'>
-                    Infinite Tic Tac Toe
+                    Tic Tac Infinity
                 </h1>
                 <p className='text-xl text-gray-300'>
                     A classic game reinvented, no ties allowed.

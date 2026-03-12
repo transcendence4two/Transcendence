@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from src.core.auth import get_token_payload
+from src.core.settings import settings
 from src.di_config import get_user_service
 from src.domain.schemas.user import (
+    GithubOAuthRequest,
     LoginRequest,
     LoginResponse,
     PaginatedResponse,
@@ -15,6 +17,28 @@ from src.domain.schemas.user import (
 from src.domain.services.user import UserService
 
 router = APIRouter()
+
+GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+
+
+@router.get("/oauth/github/authorize")
+async def github_authorize():
+    """Return the GitHub OAuth authorization URL for the frontend to redirect to."""
+    params = (
+        f"client_id={settings.GITHUB_CLIENT_ID}"
+        f"&redirect_uri={settings.GITHUB_OAUTH_REDIRECT_URI}"
+        "&scope=read:user+user:email"
+    )
+    return {"authorize_url": f"{GITHUB_AUTHORIZE_URL}?{params}"}
+
+
+@router.post("/oauth/github/callback", response_model=LoginResponse)
+async def github_oauth_callback(
+    request: GithubOAuthRequest,
+    user_service: UserService = Depends(get_user_service),
+):
+    """Exchange a GitHub OAuth code for a JWT access token."""
+    return await user_service.github_oauth_login(request.code)
 
 
 @router.post(

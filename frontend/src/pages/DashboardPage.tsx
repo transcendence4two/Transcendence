@@ -137,7 +137,7 @@ const DashboardPage = () => {
 
                 <Button
                   className="dashboard-play-btn"
-                  onClick={() => alert("Game feature coming soon!")}
+                  onClick={() => navigate('/matchmaking')}
                 >
                   <GamepadIcon className="dashboard-game-icon" /> Play
                 </Button>

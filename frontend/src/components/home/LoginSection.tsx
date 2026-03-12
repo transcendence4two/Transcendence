@@ -1,5 +1,5 @@
 import Button from '../common/Button'
-import { GoogleIcon } from '../icons/Icons'
+import { GitHubIcon } from '../icons/Icons'
 import { useState } from 'react'
 
 const inputClassName =
@@ -82,13 +82,15 @@ const LoginSection = () => {
             </div>
 
             <Button
-                onClick={() => {
-                    alert('Google Sign-In is not implemented yet.')
+                onClick={async () => {
+                    const res = await fetch('/api/users/oauth/github/authorize')
+                    const data = await res.json()
+                    window.location.href = data.authorize_url
                 }}
                 className='w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-3'
-                icon={<GoogleIcon />}
+                icon={<GitHubIcon />}
             >
-                Sign in with Google
+                Sign in with GitHub
             </Button>
 
             <div className='flex items-center gap-4 py-2'>
