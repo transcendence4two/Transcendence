@@ -16,13 +16,13 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.domain.services.commands.delete_user_profile import DeleteUserProfileCommand
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
 )
 from src.domain.services.commands.get_user_profile import GetUserProfileCommand
 from src.domain.services.commands.github_oauth import GithubOAuthCommand
 from src.domain.services.commands.login_user import LoginCommand
-from src.domain.services.commands.delete_user_profile import DeleteUserProfileCommand
 from src.domain.services.commands.register_user import RegisterUserCommand
 from src.domain.services.commands.update_user_profile import UpdateUserProfileCommand
 from src.domain.services.commands.verify_two_factor import VerifyTwoFactorCommand

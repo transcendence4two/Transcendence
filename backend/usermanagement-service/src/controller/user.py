@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 from src.core.auth import get_token_payload
 from src.core.settings import settings
 from src.di_config import get_user_service
+from src.domain.exceptions import UnauthorizedActionError
 from src.domain.schemas.user import (
     DeleteUserRequest,
     GithubOAuthRequest,
@@ -15,7 +16,6 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
-from src.domain.exceptions import UnauthorizedActionError
 from src.domain.services.user import UserService
 
 router = APIRouter()
