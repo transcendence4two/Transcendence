@@ -46,7 +46,7 @@ const ProfileSettingsPage = () => {
 
   if (!user) return null;
 
-  const handleSave = async (e: React.SubmitEvent) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError(null);

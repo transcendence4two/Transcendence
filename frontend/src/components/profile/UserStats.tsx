@@ -1,8 +1,8 @@
 import {
-  BullseyeFillIcon,
+  BullseyeIcon,
   ControllerFillIcon,
-  GraphUpArrowFillIcon,
-  TrophyFillIcon,
+  GraphUpArrowIcon,
+  TrophyIcon,
 } from "../icons/Icons";
 
 export type UserStatsData = {
@@ -32,17 +32,17 @@ const UserStats = (props: UserStatsProps) => {
 
   const statItems = [
     {
-      icon: <TrophyFillIcon className="stat-icon icon-svg icon-emerald" />,
+      icon: <TrophyIcon className="stat-icon icon-svg icon-emerald" />,
       value: wins !== null ? String(wins) : "N/A",
       label: "Wins",
     },
     {
-      icon: <BullseyeFillIcon className="stat-icon icon-svg icon-rose" />,
+      icon: <BullseyeIcon className="stat-icon icon-svg icon-rose" />,
       value: losses !== null ? String(losses) : "N/A",
       label: "Losses",
     },
     {
-      icon: <GraphUpArrowFillIcon className="stat-icon icon-svg icon-blue" />,
+      icon: <GraphUpArrowIcon className="stat-icon icon-svg icon-blue" />,
       value: winRate ?? "N/A",
       label: "Win Rate",
     },
