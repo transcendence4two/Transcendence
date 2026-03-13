@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { GearIcon, UserIconUntitledUi } from "../components/icons/Icons";
@@ -9,6 +9,7 @@ interface UserData {
   id: string;
   username: string;
   email: string;
+  profileImageUrl?: string;
 }
 
 function getInitialUser(): UserData | null {
@@ -32,10 +33,17 @@ const ProfileSettingsPage = () => {
   );
   const [email, setEmail] = useState(() => getInitialUser()?.email ?? "");
   const [password, setPassword] = useState("");
-  const [profileImage, setProfileImage] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileImage, setProfileImage] = useState(
+    () => getInitialUser()?.profileImageUrl ?? "",
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<
+    string | null
+  >(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -46,10 +54,16 @@ const ProfileSettingsPage = () => {
 
   if (!user) return null;
 
+  const handleProfileImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setProfileImage(e.target.value);
+  };
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
+    setPasswordError(null);
+    setConfirmPasswordError(null);
     setSuccess(false);
 
     const token = localStorage.getItem("access_token");
@@ -57,7 +71,47 @@ const ProfileSettingsPage = () => {
     if (username !== user.username) body.username = username;
     if (email !== user.email) body.email = email;
 
-    if (Object.keys(body).length === 0) {
+    if (password.length > 0 || confirmPassword.length > 0) {
+      if (password !== confirmPassword) {
+        setConfirmPasswordError("Passwords do not match");
+        setSaving(false);
+        return;
+      }
+
+      if (password.length < 6) {
+        setPasswordError("Password must have at least 6 characters");
+        setSaving(false);
+        return;
+      }
+
+      if (password.length > 255) {
+        setPasswordError("Password must not exceed 255 characters");
+        setSaving(false);
+        return;
+      }
+
+      body.password = password;
+    }
+
+    const normalizedProfileImageUrl = profileImage.trim();
+    const currentProfileImageUrl = user.profileImageUrl ?? "";
+    const profileImageChanged =
+      normalizedProfileImageUrl !== currentProfileImageUrl;
+
+    if (Object.keys(body).length === 0 && profileImageChanged) {
+      const updatedLocalUser: UserData = {
+        ...user,
+        profileImageUrl: normalizedProfileImageUrl,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedLocalUser));
+      setUser(updatedLocalUser);
+      setSuccess(true);
+      setSaving(false);
+      return;
+    }
+
+    if (Object.keys(body).length === 0 && !profileImageChanged) {
       setSaving(false);
       setSuccess(true);
       return;
@@ -87,9 +141,14 @@ const ProfileSettingsPage = () => {
         ...user,
         username: updated.username,
         email: updated.email,
+        profileImageUrl: profileImageChanged
+          ? normalizedProfileImageUrl
+          : user.profileImageUrl,
       };
       localStorage.setItem("user", JSON.stringify(newUserData));
       setUser(newUserData);
+      setPassword("");
+      setConfirmPassword("");
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error.");
@@ -141,9 +200,26 @@ const ProfileSettingsPage = () => {
                     placeholder="New password"
                     className="settings-input"
                   />
+                  {passwordError && (
+                    <p className="settings-error">{passwordError}</p>
+                  )}
                   <span className="settings-hint">
                     Leave blank to keep the current password
                   </span>
+                </div>
+
+                <div className="settings-field-group">
+                  <label className="settings-label">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    className="settings-input"
+                  />
+                  {confirmPasswordError && (
+                    <p className="settings-error">{confirmPasswordError}</p>
+                  )}
                 </div>
 
                 <div className="settings-field-group">
@@ -151,7 +227,7 @@ const ProfileSettingsPage = () => {
                   <input
                     type="url"
                     value={profileImage}
-                    onChange={(e) => setProfileImage(e.target.value)}
+                    onChange={handleProfileImageChange}
                     placeholder="https://link.to/your-profile-image"
                     className="settings-input"
                   />
