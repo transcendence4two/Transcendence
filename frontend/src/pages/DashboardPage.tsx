@@ -16,6 +16,7 @@ interface UserData {
   id: string;
   username: string;
   email: string;
+  profileImageUrl?: string;
 }
 
 interface PlayerStats {
@@ -39,6 +40,8 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [user] = useState<UserData | null>(getInitialUser);
   const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
 
   useEffect(() => {
     if (!user) {
@@ -56,6 +59,10 @@ const DashboardPage = () => {
       .then((data: PlayerStats) => setStats(data))
       .catch(() => setStats(null));
   }, [user]);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [avatarImageUrl]);
 
   if (!user) return null;
 
@@ -112,7 +119,18 @@ const DashboardPage = () => {
             <div className="dashboard-card-content">
               {/* Avatar */}
               <div className="dashboard-avatar-wrap">
-                <div className="dashboard-avatar">{initials}</div>
+                <div className="dashboard-avatar">
+                  {avatarImageUrl && !avatarLoadError ? (
+                    <img
+                      src={avatarImageUrl}
+                      alt={`Avatar of ${user.username}`}
+                      className="dashboard-avatar-image"
+                      onError={() => setAvatarLoadError(true)}
+                    />
+                  ) : (
+                    initials || "JG"
+                  )}
+                </div>
               </div>
 
               {/* User Info */}
