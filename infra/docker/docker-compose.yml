@@ -15,7 +15,7 @@ services:
       - transcendence-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
-      - essnapshot:/snapshot
+      - essnapshots:/snapshots
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
       test:
