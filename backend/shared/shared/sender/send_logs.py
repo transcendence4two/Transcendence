@@ -1,3 +1,4 @@
+import os
 import logging
 import structlog
 import socket
@@ -45,7 +46,8 @@ class LogstashTCPHandler(logging.Handler):
 
 
 def send_logs():
-    handler = LogstashTCPHandler("localhost", 5000)
+    host = os.getenv("LOGSTASH_HOST", "logstash")
+    handler = LogstashTCPHandler(host, 5000)
     handler.setFormatter(logging.Formatter("%(message)s"))
 
     root_logger = logging.getLogger()

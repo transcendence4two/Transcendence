@@ -4,11 +4,11 @@ frontend:
 	@echo "Starting frontend service locally..."
 	cd frontend && bun run dev
 
-infra-up: ilm slm
+infra-up:
 	@echo "Starting infrastructure services..."
 	$(DOCKER_COMPOSE) up -d redis
 
-all: infra-up
+all: infra-up ilm slm
 	@echo "Starting backend service locally..."
 	cd backend/usermanagement-service && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 

@@ -59,6 +59,26 @@ services:
       elasticsearch:
         condition: service_healthy
 
+  elasticsearch-bootstrap:
+    container_name: elasticsearch-bootstrap
+    image: elasticsearch:9.2.6
+    env_file:
+      - ../../.env
+    entrypoint: ["/bin/bash", "/scripts/bootstrap-indices.sh"]
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_URL=http://elasticsearch:9200
+      - ILM_DIR=/scripts/ilm
+    restart: "no"
+    networks:
+      - transcendence-network
+    volumes:
+      - ../scripts/bootstrap-indices.sh:/scripts/bootstrap-indices.sh:ro
+      - ../elasticsearch/ilm:/scripts/ilm:ro
+    depends_on:
+      elasticsearch-setup:
+        condition: service_completed_successfully
+
   logstash:
     container_name: logstash
     image: logstash:9.2.6
@@ -72,6 +92,7 @@ services:
     restart: unless-stopped
     volumes:
       - ../logstash/pipeline/default.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ../logstash/pipeline/service_mapping.yml:/usr/share/logstash/config/service_mapping.yml:ro
     networks:
       - transcendence-network
     depends_on:
