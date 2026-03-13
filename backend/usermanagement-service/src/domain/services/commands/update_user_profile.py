@@ -2,6 +2,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.domain.contracts import PasswordHasher
 from src.domain.exceptions import UserAlreadyExistsError, UserNotFoundError
 from src.domain.models.user import User
 from src.domain.schemas.user import UserProfileUpdateRequest
@@ -18,10 +19,12 @@ class UpdateUserProfileCommand(Command):
         session: AsyncSession,
         user_id: str,
         payload: UserProfileUpdateRequest,
+        password_service: PasswordHasher,
     ):
         self.session = session
         self.user_id = user_id
         self.payload = payload
+        self.password_service = password_service
 
     async def execute(self) -> User:
         user = await self._get_user()
@@ -37,6 +40,12 @@ class UpdateUserProfileCommand(Command):
             await self._ensure_email_unique(self.payload.email)
             user.email = self.payload.email
             updated_fields.append("email")
+
+        if self.payload.password:
+            user.hashed_password = self.password_service.hash_password(
+                self.payload.password
+            )
+            updated_fields.append("password")
 
         updated_user = await self._persist(user)
 

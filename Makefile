@@ -8,7 +8,7 @@ infra-up:
 	@echo "Starting infrastructure services..."
 	$(DOCKER_COMPOSE) up -d redis
 
-all: infra-up
+all: infra-up ilm
 	@echo "Starting backend service locally..."
 	cd backend/usermanagement-service && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
@@ -30,6 +30,11 @@ deploy: certs
 	@echo "Deploying all Docker images..."
 	$(DOCKER_COMPOSE) up --build -d
 
+ilm:
+	@echo "Starting to create ILM policies..."
+	@chmod +x infra/scripts/create-ilm.sh
+	@./infra/scripts/create-ilm.sh
+
 down:
 	@echo "Stopping all services..."
 	$(DOCKER_COMPOSE) down
@@ -42,6 +47,8 @@ tests:
 	cd backend/usermanagement-service && uv sync --extra test && uv run pytest
 	@echo "Running tests for tournament-service..."
 	cd backend/tournament-service && uv sync --extra test && uv run pytest
+	@echo "Running tests for game-service..."
+	cd backend/game-service && go test ./... -v -race
 
 lint:
 	@echo "Linting code with Ruff..."

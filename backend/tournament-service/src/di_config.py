@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.core.settings import settings
 from src.domain.contracts import TournamentManager
+from src.domain.services.game_client import HTTPGameServiceClient
 from src.domain.services.tournament import TournamentService
 
 
@@ -24,6 +25,8 @@ async_session_factory = sessionmaker(
     expire_on_commit=False,
 )
 
+_game_client = HTTPGameServiceClient(base_url=settings.GAME_SERVICE_URL)
+
 
 async def get_db_session() -> AsyncSession:
     async with async_session_factory() as session:
@@ -33,4 +36,4 @@ async def get_db_session() -> AsyncSession:
 async def get_tournament_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> TournamentManager:
-    return TournamentService(session=session)
+    return TournamentService(session=session, game_client=_game_client)

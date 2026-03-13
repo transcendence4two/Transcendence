@@ -44,6 +44,7 @@ class UserProfileUpdateRequest(BaseModel):
 
     username: str | None = Field(None, min_length=1, max_length=255)
     email: EmailStr | None = None
+    password: str | None = Field(None, min_length=6, max_length=255)
 
 
 T = TypeVar("T")
@@ -101,3 +102,9 @@ class Verify2FARequest(BaseModel):
 
     temporary_token: str
     otp_code: str = Field(..., min_length=6, max_length=6)
+
+
+class GithubOAuthRequest(BaseModel):
+    """Schema for GitHub OAuth callback"""
+
+    code: str

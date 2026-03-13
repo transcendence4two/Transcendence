@@ -160,7 +160,7 @@ class TestTournamentEndpoints:
         assert stats_payload["wins"] == 1
         assert stats_payload["matches_played"] == 1
 
-    async def test_join_matchmaking_queue_success_and_duplicate(self, client: AsyncClient):
+    async def test_join_matchmaking_queue_is_idempotent(self, client: AsyncClient):
         queue_payload = {
             "user_id": "queued_player",
             "display_name": "Queued Player",
@@ -172,13 +172,81 @@ class TestTournamentEndpoints:
         assert first_join_body["user_id"] == queue_payload["user_id"]
         assert first_join_body["status"] in {"queued", "matched"}
 
-        duplicate_join_response = await client.post(
+        second_join_response = await client.post(
             "/tournaments/join",
             json=queue_payload,
         )
-        assert duplicate_join_response.status_code == 409
-        duplicate_join_body = duplicate_join_response.json()
-        assert duplicate_join_body["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+        assert second_join_response.status_code == 201
+        second_join_body = second_join_response.json()
+        assert second_join_body["status"] in {"queued", "matched"}
+
+    async def test_leave_matchmaking_queue_cancels_entry(self, client: AsyncClient):
+        queue_payload = {
+            "user_id": "leaving_player",
+            "display_name": "Leaving Player",
+            "preferred_game_mode": "leave_test_mode",
+        }
+        join_response = await client.post("/tournaments/join", json=queue_payload)
+        assert join_response.status_code == 201
+        assert join_response.json()["status"] == "queued"
+
+        leave_response = await client.post(
+            "/tournaments/matchmaking/leave/leaving_player"
+        )
+        assert leave_response.status_code == 200
+
+        status_response = await client.get(
+            "/tournaments/matchmaking/status/leaving_player"
+        )
+        assert status_response.status_code == 200
+        assert status_response.json()["status"] == "none"
+
+        rejoin_response = await client.post("/tournaments/join", json=queue_payload)
+        assert rejoin_response.status_code == 201
+
+    async def test_stale_queue_entries_are_expired_on_join(
+        self,
+        client: AsyncClient,
+        db_session,
+    ):
+        from datetime import datetime, timedelta, timezone
+        from uuid import uuid4
+
+        stale_time = (
+            datetime.now(timezone.utc) - timedelta(minutes=10)
+        ).replace(tzinfo=None)
+
+        db_session.add(
+            MatchmakingQueueEntry(
+                id=str(uuid4()),
+                user_id="stale_player",
+                display_name="Stale Player",
+                preferred_game_mode="stale_test_mode",
+                status=MatchmakingQueueStatus.QUEUED.value,
+                joined_at=stale_time,
+            )
+        )
+        await db_session.commit()
+
+        # A new join should expire the stale entry via TTL
+        join_response = await client.post(
+            "/tournaments/join",
+            json={
+                "user_id": "fresh_player",
+                "display_name": "Fresh Player",
+                "preferred_game_mode": "stale_test_mode",
+            },
+        )
+        assert join_response.status_code == 201
+        # The stale player should NOT be matched (was expired)
+        assert join_response.json()["status"] == "queued"
+
+        # Verify stale entry is expired
+        status_response = await client.get(
+            "/tournaments/matchmaking/status/stale_player"
+        )
+        assert status_response.status_code == 200
+        assert status_response.json()["status"] == "none"
 
     async def test_join_matchmaking_queue_handles_multiple_available_opponents(
         self,
@@ -217,7 +285,7 @@ class TestTournamentEndpoints:
         assert join_response.status_code == 201
         assert join_response.json()["status"] == "matched"
 
-        duplicate_response = await client.post(
+        rejoin_response = await client.post(
             "/tournaments/join",
             json={
                 "user_id": "new_player",
@@ -226,8 +294,8 @@ class TestTournamentEndpoints:
             },
         )
 
-        assert duplicate_response.status_code == 409
-        assert duplicate_response.json()["error_type"] == "MATCHMAKING_QUEUE_ERROR"
+        assert rejoin_response.status_code == 201
+        assert rejoin_response.json()["status"] in {"queued", "matched"}
 
     async def test_join_matchmaking_queue_serializes_concurrent_requests(self):
         database_file_descriptor, database_path = tempfile.mkstemp(suffix=".db")

@@ -172,7 +172,6 @@ services:
       - usermanagement-service
       - tournament-service
       - game-service
-      - friends-service
       - frontend
     restart: unless-stopped
     container_name: nginx

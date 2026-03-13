@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Button from '../common/Button'
-import { GoogleIcon } from '../icons/Icons'
+import { GitHubIcon } from '../icons/Icons'
 import TermsOfServiceModal from './TermsOfServiceModal'
 
 const inputClassName =
@@ -118,13 +118,15 @@ const RegisterForm = () => {
                 </div>
 
                 <Button
-                    onClick={() => {
-                        alert('Google Sign-In is not implemented yet. Please use the form below to register.')
+                    onClick={async () => {
+                        const res = await fetch('/api/users/oauth/github/authorize')
+                        const data = await res.json()
+                        window.location.href = data.authorize_url
                     }}
                     className='w-full py-3 text-lg font-semibold shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-3'
-                    icon={<GoogleIcon />}
+                    icon={<GitHubIcon />}
                 >
-                    Sign up with Google
+                    Sign up with GitHub
                 </Button>
 
                 <div className='flex items-center gap-4 py-2'>
@@ -145,11 +147,9 @@ const RegisterForm = () => {
                             name='username'
                             value={formData.username}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.username ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.username ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your username'
-                            disabled={isLoading}
                             required
                         />
                         {errors.username && (
@@ -167,9 +167,8 @@ const RegisterForm = () => {
                             name='email'
                             value={formData.email}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.email ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.email ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your email'
                             disabled={isLoading}
                             required
@@ -189,9 +188,8 @@ const RegisterForm = () => {
                             name='password'
                             value={formData.password}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.password ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.password ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Enter your password'
                             disabled={isLoading}
                             required
@@ -211,9 +209,8 @@ const RegisterForm = () => {
                             name='confirmPassword'
                             value={formData.confirmPassword}
                             onChange={handleChange}
-                            className={`${inputClassName} ${
-                                errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''
-                            }`}
+                            className={`${inputClassName} ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''
+                                }`}
                             placeholder='Confirm your password'
                             disabled={isLoading}
                             required

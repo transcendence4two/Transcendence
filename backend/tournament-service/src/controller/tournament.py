@@ -6,6 +6,7 @@ from src.domain.contracts import TournamentManager
 from src.domain.models.tournament import MatchPlayerSnapshot, MatchRecord
 from src.domain.schemas.tournament import (
     MatchmakingQueueEntryResponse,
+    MatchmakingStatusResponse,
     MatchPlayerSnapshotResponse,
     MatchRecordResponse,
     MatchRecordSaveRequest,
@@ -92,6 +93,65 @@ async def save_match_record_from_game_webhook(
     return _build_match_record_save_response(
         match_record=match_record,
         match_players=match_players,
+    )
+
+
+
+@router.get(
+    "/stats/players/{user_id}",
+    response_model=PlayerStatsResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_player_stats(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    player_stats = await tournament_service.get_player_stats(user_id)
+    if player_stats is None:
+        return PlayerStatsResponse(
+            user_id=user_id,
+            display_name="unknown",
+            tournaments_played=0,
+            matches_played=0,
+            wins=0,
+            losses=0,
+            total_points=0,
+        )
+    return PlayerStatsResponse.model_validate(player_stats)
+
+
+@router.post(
+    "/matchmaking/leave/{user_id}",
+    status_code=status.HTTP_200_OK,
+)
+async def leave_matchmaking_queue(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    await tournament_service.leave_matchmaking_queue(user_id)
+    return {"status": "ok"}
+
+
+@router.get(
+    "/matchmaking/status/{user_id}",
+    response_model=MatchmakingStatusResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_matchmaking_status(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    queue_entry = await tournament_service.get_matchmaking_status(user_id)
+    if queue_entry is None:
+        return MatchmakingStatusResponse(
+            user_id=user_id,
+            status="none",
+            game_session_id=None,
+        )
+    return MatchmakingStatusResponse(
+        user_id=user_id,
+        status=queue_entry.status,
+        game_session_id=queue_entry.game_session_id,
     )
 
 
@@ -184,26 +244,3 @@ async def register_match_result(
         payload=request,
     )
     return TournamentMatchResponse.model_validate(updated_match)
-
-
-@router.get(
-    "/stats/players/{user_id}",
-    response_model=PlayerStatsResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def get_player_stats(
-    user_id: str,
-    tournament_service: TournamentManager = Depends(get_tournament_service),
-):
-    player_stats = await tournament_service.get_player_stats(user_id)
-    if player_stats is None:
-        return PlayerStatsResponse(
-            user_id=user_id,
-            display_name="unknown",
-            tournaments_played=0,
-            matches_played=0,
-            wins=0,
-            losses=0,
-            total_points=0,
-        )
-    return PlayerStatsResponse.model_validate(player_stats)

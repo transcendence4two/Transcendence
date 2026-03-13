@@ -1,9 +1,4 @@
-import {
-  useState,
-  useEffect,
-  type ChangeEvent,
-  type ComponentProps,
-} from "react";
+import { useState, useEffect, type ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { GearIcon, UserIconUntitledUi } from "../components/icons/Icons";
@@ -63,9 +58,7 @@ const ProfileSettingsPage = () => {
     setProfileImage(e.target.value);
   };
 
-  const handleSave: NonNullable<ComponentProps<"form">["onSubmit"]> = async (
-    e,
-  ) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
@@ -77,6 +70,33 @@ const ProfileSettingsPage = () => {
     const body: Record<string, string> = {};
     if (username !== user.username) body.username = username;
     if (email !== user.email) body.email = email;
+    if (password.length > 0 || confirmPassword.length > 0) {
+      if (password !== confirmPassword) {
+        setConfirmPasswordError("Passwords do not match");
+        setSaving(false);
+        return;
+      }
+
+      if (password.length < 6) {
+        setPasswordError("Password must have at least 6 characters");
+        setSaving(false);
+        return;
+      }
+
+      if (password.length > 255) {
+        setPasswordError("Password must not exceed 255 characters");
+        setSaving(false);
+        return;
+      }
+
+      body.password = password;
+    }
+
+    const normalizedProfileImageUrl = profileImage.trim();
+    const currentProfileImageUrl = user.profileImageUrl ?? "";
+    const profileImageChanged =
+      normalizedProfileImageUrl !== currentProfileImageUrl;
+
     if (password.length > 0 || confirmPassword.length > 0) {
       if (password !== confirmPassword) {
         setConfirmPasswordError("Passwords do not match");

@@ -61,7 +61,11 @@ const DashboardPage = () => {
   }, [user]);
 
   useEffect(() => {
-    setAvatarLoadError(false);
+    const timeout = setTimeout(() => {
+      setAvatarLoadError(false);
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, [avatarImageUrl]);
 
   if (!user) return null;
@@ -125,6 +129,7 @@ const DashboardPage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${user.username}`}
                       className="dashboard-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
@@ -155,7 +160,7 @@ const DashboardPage = () => {
 
                 <Button
                   className="dashboard-play-btn"
-                  onClick={() => alert("Game feature coming soon!")}
+                  onClick={() => navigate("/matchmaking")}
                 >
                   <GamepadIcon className="dashboard-game-icon" /> Play
                 </Button>

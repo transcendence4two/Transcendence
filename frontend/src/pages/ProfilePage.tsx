@@ -82,7 +82,11 @@ const ProfilePage = () => {
   }, [user]);
 
   useEffect(() => {
-    setAvatarLoadError(false);
+    const timeout = setTimeout(() => {
+      setAvatarLoadError(false);
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, [avatarImageUrl]);
 
   if (!user) return null;
@@ -142,6 +146,7 @@ const ProfilePage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${nick}`}
                       className="profile-page-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
