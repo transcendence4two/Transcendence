@@ -81,10 +81,6 @@ const ProfilePage = () => {
       .catch(() => setMatches([]));
   }, [user]);
 
-  useEffect(() => {
-    setAvatarLoadError(false);
-  }, [avatarImageUrl]);
-
   if (!user) return null;
 
   const wins = stats?.wins ?? null;
@@ -142,6 +138,7 @@ const ProfilePage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${nick}`}
                       className="profile-page-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (

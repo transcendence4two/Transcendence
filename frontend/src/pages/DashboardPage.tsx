@@ -60,10 +60,6 @@ const DashboardPage = () => {
       .catch(() => setStats(null));
   }, [user]);
 
-  useEffect(() => {
-    setAvatarLoadError(false);
-  }, [avatarImageUrl]);
-
   if (!user) return null;
 
   const initials = user.username
@@ -125,6 +121,7 @@ const DashboardPage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${user.username}`}
                       className="dashboard-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
