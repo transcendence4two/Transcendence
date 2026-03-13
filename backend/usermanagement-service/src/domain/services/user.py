@@ -75,7 +75,12 @@ class UserService(UserRegister, UserOperations):
     async def update_user_profile(
         self, user_id: str, payload: UserProfileUpdateRequest
     ):
-        command = UpdateUserProfileCommand(self.session, user_id, payload)
+        command = UpdateUserProfileCommand(
+            self.session,
+            user_id,
+            payload,
+            self.password_service,
+        )
         return await command.execute()
 
     # Messaging methods
