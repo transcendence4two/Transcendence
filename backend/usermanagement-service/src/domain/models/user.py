@@ -14,6 +14,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=True)
     enable_2fa = Column(Boolean, default=False, nullable=False)
+    avatar_url = Column(String, nullable=True)
     oauth_provider = Column(String, nullable=True)
     oauth_id = Column(String, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

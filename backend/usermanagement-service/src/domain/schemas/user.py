@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+    avatar_url: str | None = None
 
     class Config:
         from_attributes = True
@@ -32,6 +33,7 @@ class UserProfileResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+    avatar_url: str | None = None
     created_at: datetime
     updated_at: datetime
 

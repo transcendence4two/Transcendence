@@ -29,6 +29,7 @@ from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
+from src.infrastructure.storage import storage_service
 
 logger = structlog.get_logger()
 
@@ -77,6 +78,19 @@ class UserService(UserRegister, UserOperations):
     ):
         command = UpdateUserProfileCommand(self.session, user_id, payload)
         return await command.execute()
+
+    async def upload_avatar(self, user_id: str, file_bytes: bytes, filename: str) -> User:
+        user = await self.get_user_profile(user_id)
+        if not user:
+            from src.domain.exceptions import UserNotFoundError
+            raise UserNotFoundError(f"User with id {user_id} not found")
+        
+        avatar_url = storage_service.upload_avatar(file_bytes, filename)
+        user.avatar_url = avatar_url
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
 
     # Messaging methods
     async def send_welcome_email(self, email: str, username: str) -> None:
