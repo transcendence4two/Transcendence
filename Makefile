@@ -37,8 +37,8 @@ ilm:
 
 slm:
 	@echo "Starting to create SLM policies"
-	@chmod +x infra/scripts/setup_snapshot_repository.sh
-	@./infra/scripts/setup_snapshot_repository.sh
+	@chmod +x infra/scripts/setup-snapshot-repository.sh
+	@./infra/scripts/setup-snapshot-repository.sh
 	@chmod +x infra/scritps/setup-slm-policy.sh
 	@./infra/scripts/setup-slm-policy.sh
 
