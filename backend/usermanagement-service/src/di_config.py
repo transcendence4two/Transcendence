@@ -11,6 +11,7 @@ from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.domain.services.user import UserService
 from src.infrastructure.event_publisher import RedisEventPublisher
+from src.infrastructure.storage import StorageService
 
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 async_session_factory = sessionmaker(
@@ -44,12 +45,14 @@ async def get_user_service(
     password_service = get_password_service()
     token_service = get_token_service()
     otp_service = get_otp_service()
+    storage_service = get_storage_service()
     return UserService(
         session=session,
         password_service=password_service,
         token_service=token_service,
         otp_service=otp_service,
         event_publisher=event_publisher,
+        storage_service=storage_service,
     )
 
 
@@ -61,3 +64,8 @@ def get_token_service() -> TokenProvider:
 def get_otp_service() -> OtpService:
     """Dependency to get OTP service."""
     return OtpService(redis_url=settings.REDIS_URL)
+
+
+def get_storage_service() -> StorageService:
+    """Dependency to get storage service."""
+    return StorageService()

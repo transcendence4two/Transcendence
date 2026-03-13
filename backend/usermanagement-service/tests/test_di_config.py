@@ -93,12 +93,20 @@ async def get_test_user_service(session: AsyncSession) -> UserRegister:
     token_service = get_test_token_service()
     otp_service = get_test_otp_service()
     event_publisher = get_test_event_publisher()
+    
+    class LocalMockStorageService:
+        def upload_avatar(self, bytes_data, name):
+            return "http://mock-minio/avatars/file.png"
+            
+    storage_service = LocalMockStorageService()
+    
     return UserService(
         session=session,
         password_service=password_service,
         token_service=token_service,
         otp_service=otp_service,
         event_publisher=event_publisher,
+        storage_service=storage_service,
     )
 
 

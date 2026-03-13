@@ -29,7 +29,7 @@ from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
-from src.infrastructure.storage import storage_service
+from src.infrastructure.storage import StorageService
 
 logger = structlog.get_logger()
 
@@ -47,12 +47,14 @@ class UserService(UserRegister, UserOperations):
         token_service: TokenService,
         otp_service: OtpService,
         event_publisher: EventPublisher,
+        storage_service: StorageService,
     ):
         self.session = session
         self.password_service = password_service
         self.token_service = token_service
         self.otp_service = otp_service
         self.event_publisher = event_publisher
+        self.storage_service = storage_service
 
     async def register_user(self, payload: UserRegisterRequest):
         command = RegisterUserCommand(
@@ -85,7 +87,7 @@ class UserService(UserRegister, UserOperations):
             from src.domain.exceptions import UserNotFoundError
             raise UserNotFoundError(f"User with id {user_id} not found")
         
-        avatar_url = storage_service.upload_avatar(file_bytes, filename)
+        avatar_url = self.storage_service.upload_avatar(file_bytes, filename)
         user.avatar_url = avatar_url
         self.session.add(user)
         await self.session.commit()

@@ -16,6 +16,26 @@ from tests.test_di_config import (
     init_test_db,
 )
 
+class MockStorageService:
+    """Mock storage service for unit tests"""
+    def __init__(self):
+        self.uploaded_files = {}
+
+    def upload_avatar(self, file_content: bytes, original_filename: str) -> str:
+        url = f"http://mock-minio/avatars/{original_filename}"
+        self.uploaded_files[original_filename] = {
+            "content": file_content,
+            "url": url
+        }
+        return url
+
+@pytest.fixture(scope="function")
+def mock_storage_service() -> Generator[MockStorageService, None, None]:
+    """Fixture for mock storage service that is cleared between tests"""
+    storage_service = MockStorageService()
+    yield storage_service
+    storage_service.uploaded_files.clear()
+
 
 @pytest.fixture(scope="session")
 def anyio_backend():
@@ -52,6 +72,7 @@ async def app(
     db_session: AsyncSession,
     mock_event_publisher: MockEventPublisher,
     mock_otp_service: MockOtpService,
+    mock_storage_service: MockStorageService,
 ) -> FastAPI:
     from main import app as fastapi_app
 
@@ -65,6 +86,7 @@ async def app(
             token_service=get_test_token_service(),
             otp_service=mock_otp_service,
             event_publisher=mock_event_publisher,
+            storage_service=mock_storage_service,
         )
 
     fastapi_app.dependency_overrides[get_db_session] = override_get_db_session
