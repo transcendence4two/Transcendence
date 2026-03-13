@@ -97,33 +97,6 @@ const ProfileSettingsPage = () => {
     const profileImageChanged =
       normalizedProfileImageUrl !== currentProfileImageUrl;
 
-    if (password.length > 0 || confirmPassword.length > 0) {
-      if (password !== confirmPassword) {
-        setConfirmPasswordError("Passwords do not match");
-        setSaving(false);
-        return;
-      }
-
-      if (password.length < 6) {
-        setPasswordError("Password must have at least 6 characters");
-        setSaving(false);
-        return;
-      }
-
-      if (password.length > 255) {
-        setPasswordError("Password must not exceed 255 characters");
-        setSaving(false);
-        return;
-      }
-
-      body.password = password;
-    }
-
-    const normalizedProfileImageUrl = profileImage.trim();
-    const currentProfileImageUrl = user.profileImageUrl ?? "";
-    const profileImageChanged =
-      normalizedProfileImageUrl !== currentProfileImageUrl;
-
     if (Object.keys(body).length === 0 && profileImageChanged) {
       const updatedLocalUser: UserData = {
         ...user,

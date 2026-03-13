@@ -260,6 +260,54 @@ export const CrosshairIcon = ({ className = "w-5 h-5" }: IconProps) => (
   </svg>
 );
 
+export const CheckIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M5 13l4 4L19 7"
+    />
+  </svg>
+);
+
+export const XIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M6 6l12 12M6 18L18 6"
+    />
+  </svg>
+);
+
+export const CombatIcon = ({ className = "w-5 h-5" }: IconProps) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M6 5l6 6m0 0l6-6M12 11l-6 8m6-8l6 8"
+    />
+  </svg>
+);
+
 export const TrendingUpIcon = ({ className = "w-5 h-5" }: IconProps) => (
   <svg
     className={className}
