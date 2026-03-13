@@ -82,7 +82,11 @@ const ProfilePage = () => {
   }, [user]);
 
   useEffect(() => {
-    setAvatarLoadError(false);
+    const timeout = setTimeout(() => {
+      setAvatarLoadError(false);
+    }, 0);
+
+    return () => clearTimeout(timeout);
   }, [avatarImageUrl]);
 
   if (!user) return null;
