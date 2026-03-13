@@ -10,6 +10,7 @@ import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
 import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<ProfileSettingsPage />} />
         <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
