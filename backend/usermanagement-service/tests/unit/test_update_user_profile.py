@@ -11,7 +11,9 @@ from src.domain.services.user import UserService
 class TestUpdateUserProfileCommand:
     """Unit tests for UpdateUserProfileCommand"""
 
-    async def test_execute_updates_username_successfully(self, mock_session):
+    async def test_execute_updates_username_successfully(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-123",
             username="oldusername",
@@ -22,14 +24,21 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user)
         payload = UserProfileUpdateRequest(username="newusername")
 
-        command = UpdateUserProfileCommand(session, "user-123", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-123",
+            payload,
+            mock_password_service,
+        )
         result = await command.execute()
 
         assert result.username == "newusername"
         assert result.email == "old@example.com"
         assert session.committed is True
 
-    async def test_execute_updates_email_successfully(self, mock_session):
+    async def test_execute_updates_email_successfully(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-456",
             username="testuser",
@@ -40,14 +49,21 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user)
         payload = UserProfileUpdateRequest(email="new@example.com")
 
-        command = UpdateUserProfileCommand(session, "user-456", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-456",
+            payload,
+            mock_password_service,
+        )
         result = await command.execute()
 
         assert result.username == "testuser"
         assert result.email == "new@example.com"
         assert session.committed is True
 
-    async def test_execute_updates_both_username_and_email(self, mock_session):
+    async def test_execute_updates_both_username_and_email(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-789",
             username="oldname",
@@ -58,25 +74,39 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user)
         payload = UserProfileUpdateRequest(username="newname", email="new@example.com")
 
-        command = UpdateUserProfileCommand(session, "user-789", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-789",
+            payload,
+            mock_password_service,
+        )
         result = await command.execute()
 
         assert result.username == "newname"
         assert result.email == "new@example.com"
         assert result.enable_2fa is True
 
-    async def test_execute_raises_when_user_not_found(self, mock_session):
+    async def test_execute_raises_when_user_not_found(
+        self, mock_session, mock_password_service
+    ):
         session = mock_session(user_to_return=None)
         payload = UserProfileUpdateRequest(username="newusername")
 
-        command = UpdateUserProfileCommand(session, "non-existent", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "non-existent",
+            payload,
+            mock_password_service,
+        )
 
         with pytest.raises(UserNotFoundError) as exc_info:
             await command.execute()
 
         assert "User with id 'non-existent' not found" in str(exc_info.value)
 
-    async def test_execute_raises_when_username_already_taken(self, mock_session):
+    async def test_execute_raises_when_username_already_taken(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-123",
             username="currentuser",
@@ -94,14 +124,21 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user, conflicting_user=conflicting_user)
         payload = UserProfileUpdateRequest(username="takenusername")
 
-        command = UpdateUserProfileCommand(session, "user-123", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-123",
+            payload,
+            mock_password_service,
+        )
 
         with pytest.raises(UserAlreadyExistsError) as exc_info:
             await command.execute()
 
         assert "Username 'takenusername' is already taken" in str(exc_info.value)
 
-    async def test_execute_raises_when_email_already_registered(self, mock_session):
+    async def test_execute_raises_when_email_already_registered(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-123",
             username="testuser",
@@ -119,14 +156,21 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user, conflicting_user=conflicting_user)
         payload = UserProfileUpdateRequest(email="taken@example.com")
 
-        command = UpdateUserProfileCommand(session, "user-123", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-123",
+            payload,
+            mock_password_service,
+        )
 
         with pytest.raises(UserAlreadyExistsError) as exc_info:
             await command.execute()
 
         assert "Email 'taken@example.com' is already registered" in str(exc_info.value)
 
-    async def test_execute_with_no_changes_provided(self, mock_session):
+    async def test_execute_with_no_changes_provided(
+        self, mock_session, mock_password_service
+    ):
         user = User(
             id="user-000",
             username="unchanged",
@@ -137,11 +181,40 @@ class TestUpdateUserProfileCommand:
         session = mock_session(user_to_return=user)
         payload = UserProfileUpdateRequest()
 
-        command = UpdateUserProfileCommand(session, "user-000", payload)
+        command = UpdateUserProfileCommand(
+            session,
+            "user-000",
+            payload,
+            mock_password_service,
+        )
         result = await command.execute()
 
         assert result.username == "unchanged"
         assert result.email == "unchanged@example.com"
+
+    async def test_execute_updates_password_successfully(
+        self, mock_session, mock_password_service
+    ):
+        user = User(
+            id="user-pass-123",
+            username="testuser",
+            email="test@example.com",
+            hashed_password="old_hash",
+            enable_2fa=False,
+        )
+        session = mock_session(user_to_return=user)
+        payload = UserProfileUpdateRequest(password="newpassword123")
+
+        command = UpdateUserProfileCommand(
+            session,
+            "user-pass-123",
+            payload,
+            mock_password_service,
+        )
+        result = await command.execute()
+
+        assert result.hashed_password == "hashed_newpassword123"
+        assert session.committed is True
 
 
 @pytest.mark.asyncio
@@ -229,3 +302,32 @@ class TestUserServiceUpdateProfile:
 
         assert result.email == "new@example.com"
         assert result.username == "testuser"
+
+    async def test_update_user_profile_updates_password(
+        self,
+        mock_session,
+        mock_password_service,
+        mock_token_service,
+        mock_otp_service,
+        mock_event_publisher,
+    ):
+        user = User(
+            id="password-update-id",
+            username="testuser",
+            email="test@example.com",
+            hashed_password="old_hash",
+            enable_2fa=False,
+        )
+        session = mock_session(user_to_return=user)
+
+        service = UserService(
+            session,
+            mock_password_service,
+            mock_token_service,
+            mock_otp_service,
+            mock_event_publisher,
+        )
+        payload = UserProfileUpdateRequest(password="newpassword123")
+        result = await service.update_user_profile("password-update-id", payload)
+
+        assert result.hashed_password == "hashed_newpassword123"

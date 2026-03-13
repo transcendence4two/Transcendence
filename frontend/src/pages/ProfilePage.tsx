@@ -81,6 +81,14 @@ const ProfilePage = () => {
       .catch(() => setMatches([]));
   }, [user]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setAvatarLoadError(false);
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [avatarImageUrl]);
+
   if (!user) return null;
 
   const wins = stats?.wins ?? null;
