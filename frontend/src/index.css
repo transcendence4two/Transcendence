@@ -55,6 +55,7 @@ html.light body {
 
 /* Custom component classes */
 @layer components {
+  /* ─── Base / Layout ─── */
   .header-main {
     @apply bg-transparent text-white py-6 px-8;
   }
@@ -123,6 +124,7 @@ html.light body {
     @apply mx-auto w-full max-w-4xl rounded-3xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-sm p-6 sm:p-8 shadow-2xl space-y-8;
   }
 
+  /* ─── Navbar ─── */
   .profile-nav-shell {
     @apply relative z-[200] w-full border-b border-slate-700/50 bg-slate-900/60 backdrop-blur-sm;
   }
@@ -147,6 +149,7 @@ html.light body {
     @apply h-5 w-5;
   }
 
+  /* ─── Profile Page ─── */
   .profile-page-content {
     @apply px-4 sm:px-6 py-8 sm:py-10;
   }
@@ -167,6 +170,10 @@ html.light body {
     @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
   }
 
+  .profile-page-avatar-image {
+    @apply w-full h-full rounded-full object-cover;
+  }
+
   .profile-page-name {
     @apply text-xl font-bold text-white in-[.light]:text-gray-900;
   }
@@ -179,6 +186,7 @@ html.light body {
     @apply in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80;
   }
 
+  /* ─── Settings Page ─── */
   .settings-page-content {
     @apply px-4 sm:px-6 py-8 sm:py-10;
   }
@@ -189,22 +197,6 @@ html.light body {
 
   .settings-page-card {
     @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
-  }
-
-  .friends-page-content {
-    @apply px-4 sm:px-6 py-8 sm:py-10;
-  }
-
-  .friends-page-layout {
-    @apply mx-auto w-full max-w-2xl space-y-6;
-  }
-
-  .friends-page-card {
-    @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
-  }
-
-  .friends-page-card button {
-    @apply cursor-pointer duration-500 disabled:cursor-default;
   }
 
   .settings-card-header {
@@ -252,6 +244,80 @@ html.light body {
     @apply text-white text-left;
   }
 
+  /* ─── Friends Page ─── */
+  .friends-page-content {
+    @apply px-4 sm:px-6 py-8 sm:py-10;
+  }
+
+  .friends-page-layout {
+    @apply mx-auto w-full max-w-2xl space-y-6;
+  }
+
+  .friends-page-card {
+    @apply bg-slate-900/40 border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-800/50 in-[.light]:bg-white/80 backdrop-blur-sm rounded-2xl p-8 space-y-6;
+  }
+
+  .friends-page-card button {
+    @apply cursor-pointer duration-500 disabled:cursor-default;
+  }
+
+  .friends-page-section-title {
+    @apply flex items-center gap-2 text-gray-400 font-semibold text-sm uppercase tracking-widest mb-3;
+  }
+
+  .friends-page-input {
+    @apply flex-1 bg-slate-900/80 border border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-white/15 transition-colors duration-500;
+  }
+
+  .friends-page-add-btn {
+    @apply bg-linear-to-r from-cyan-500 to-blue-600 text-white font-semibold px-5 py-1 rounded-xl text-sm hover:opacity-80 transition-all;
+  }
+
+  .friends-page-request-badge {
+    @apply bg-linear-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold rounded-xl w-5 h-4.5 flex items-center justify-center ml-1;
+  }
+
+  .friends-page-friends-badge {
+    @apply bg-gray-600 text-white text-xs font-bold rounded-xl w-5 h-4.5 flex items-center justify-center ml-1;
+  }
+
+  .friends-page-friend-request-card {
+    @apply flex items-center justify-between bg-slate-900/80 in-[.light]:bg-gray-100 border border-slate-700/50 rounded-xl px-4 py-3;
+  }
+
+  .friends-page-friend-card {
+    @apply flex items-center justify-between bg-slate-900/80 in-[.light]:bg-gray-100 border border-slate-700/50 rounded-xl px-4 py-3;
+  }
+
+  .friends-page-friend-card .friends-page-user-status-online {
+    @apply text-green-500;
+  }
+
+  .friends-page-friend-card .friends-page-user-status-offline {
+    @apply text-gray-400;
+  }
+
+  .friends-page-username {
+    @apply text-white font-medium text-sm in-[.light]:text-gray-900;
+  }
+
+  .friends-page-accept-btn {
+    @apply inline-flex items-center justify-center bg-green-500 hover:bg-green-700 text-white w-8 h-8 rounded-lg transition-colors;
+  }
+
+  .friends-page-decline-btn {
+    @apply inline-flex items-center justify-center bg-red-500 hover:bg-red-700 text-white w-8 h-8 rounded-lg transition-colors;
+  }
+
+  .friends-page-challenge-btn {
+    @apply flex items-center gap-1.5 bg-linear-to-r from-cyan-500 via-blue-500 to-cyan-400 bg-[length:200%_auto] bg-left disabled:bg-none disabled:bg-white/10 disabled:text-white/30 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition-all hover:bg-right;
+  }
+
+  .friends-page-view-profile-btn {
+    @apply flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white in-[.light]:text-gray-700 font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors;
+  }
+
+  /* ─── Dashboard Page ─── */
   .dashboard-main {
     @apply flex items-center justify-center p-4 sm:p-8;
   }
@@ -278,6 +344,10 @@ html.light body {
 
   .dashboard-avatar {
     @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
+  }
+
+  .dashboard-avatar-image {
+    @apply w-full h-full rounded-full object-cover;
   }
 
   .dashboard-user-name {
@@ -369,6 +439,7 @@ html.light body {
     @apply mb-3 text-left sm:text-base font-semibold uppercase tracking-[0.14em] text-gray-400;
   }
 
+  /* ─── Shared Components ─── */
   .help-fab {
     @apply fixed right-4 bottom-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_4px_14px_rgba(0,0,0,0.45)] transition-colors cursor-pointer;
     background-color: #2d3139;
@@ -505,6 +576,7 @@ html.light body {
     animation-delay: -7s;
   }
 
+  /* ─── Icons ─── */
   .icon-svg {
     opacity: 0.95;
   }
@@ -535,6 +607,8 @@ html.light body {
 }
 
 /* Light Mode Styles */
+
+/* ─── Base / Layout ─── */
 .light .header-main {
   @apply bg-transparent text-gray-900;
 }
@@ -567,6 +641,7 @@ html.light body {
   @apply border-gray-200 bg-white shadow-xl;
 }
 
+/* ─── Navbar ─── */
 .light .profile-nav {
   @apply bg-transparent;
 }
@@ -595,6 +670,7 @@ html.light body {
   @apply text-gray-900;
 }
 
+/* ─── Dashboard ─── */
 .light .dashboard-card {
   @apply bg-white border-gray-400;
 }
@@ -616,6 +692,7 @@ html.light body {
   text-shadow: 0 0 12px rgba(14, 116, 144, 0.18);
 }
 
+/* ─── Profile ─── */
 .light .profile-initials {
   @apply border-blue-400 from-cyan-400 to-blue-500;
 }
@@ -632,6 +709,7 @@ html.light body {
   @apply text-gray-700;
 }
 
+/* ─── Shared Components ─── */
 .light .help-fab {
   border-color: #cbd5e1;
   background-color: #ffffff;
@@ -648,6 +726,7 @@ html.light body {
   opacity: 0.9;
 }
 
+/* ─── Profile Page ─── */
 .light .profile-page-user-card {
   @apply border-gray-400;
 }
@@ -660,6 +739,50 @@ html.light body {
   @apply text-gray-700;
 }
 
+/* ─── Friends Page ─── */
+.light .friends-page-friend-request-card,
+.light .friends-page-friend-card {
+  @apply border-gray-300;
+}
+
+.light .friends-page-input {
+  @apply bg-gray-100 text-gray-900 placeholder-gray-500 border-gray-300 focus:border-gray-400;
+}
+
+.light .friends-page-card section h2 {
+  @apply text-black;
+  font-family: "Outfit", sans-serif;
+}
+
+.light .friends-page-friend-card .friends-page-user-status-online {
+  @apply text-green-500;
+}
+
+.light .friends-page-friend-card .friends-page-user-status-offline {
+  @apply text-gray-400;
+}
+
+.light .friends-page-mini-circle-status {
+  @apply border-gray-100;
+}
+
+.light .friends-page-accept-btn {
+  @apply bg-green-400 hover:bg-green-500;
+}
+
+.light .friends-page-decline-btn {
+  @apply bg-red-400 hover:bg-red-500;
+}
+
+.light .friends-page-challenge-btn {
+  @apply disabled:text-gray-500 disabled:bg-gray-400/20;
+}
+
+.light .friends-page-view-profile-btn {
+  @apply bg-gray-400/20 hover:bg-gray-500/40;
+}
+
+/* ─── Shared Stats & History ─── */
 .light .stat-card {
   @apply border-gray-300 bg-white;
 }
@@ -700,6 +823,7 @@ html.light body {
   @apply bg-gray-50 border-gray-400;
 }
 
+/* ─── Icons ─── */
 .light .icon-svg {
   opacity: 0.85;
 }
@@ -729,6 +853,7 @@ html.light body {
     hue-rotate(244deg) brightness(92%) contrast(91%);
 }
 
+/* ─── Tailwind Overrides ─── */
 .light .text-gray-300 {
   @apply text-gray-700;
 }

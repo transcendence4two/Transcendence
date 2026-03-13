@@ -1,7 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import { FriendsIcon, UserAddIcon, EyeIcon } from "../components/icons/Icons";
+import {
+  FriendsIcon,
+  UserAddIcon,
+  EyeIcon,
+  CombatIcon,
+  CheckIcon,
+  XIcon,
+} from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
 import HelpFab from "../components/common/HelpFab";
@@ -17,7 +24,6 @@ type FriendRequest = {
   username: string;
   initials: string;
   color: string;
-  timeAgo: string;
 };
 
 type Friend = {
@@ -45,14 +51,12 @@ const mockRequests: FriendRequest[] = [
     username: "newplayer99",
     initials: "NP",
     color: "bg-blue-500",
-    timeAgo: "2 horas atrás",
   },
   {
     id: "2",
     username: "challenger42",
     initials: "C4",
     color: "bg-purple-500",
-    timeAgo: "5 horas atrás",
   },
 ];
 
@@ -103,8 +107,8 @@ const FriendsPage = () => {
             <div className="friends-page-card">
               {/* ── ADD FRIEND ── */}
               <section className="mb-6">
-                <h2 className="flex items-center gap-2 text-gray-400 font-semibold text-sm uppercase tracking-widest mb-3">
-                  <UserAddIcon className="w-6 h-6 text-cyan-400" />
+                <h2 className="friends-page-section-title">
+                  <UserAddIcon className="w-6 h-6 text-cyan-400 in-[.light]:brightness-0" />
                   Add Friend
                 </h2>
                 <div className="flex gap-2">
@@ -113,20 +117,18 @@ const FriendsPage = () => {
                     placeholder="Username"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="flex-1 bg-[#0d1b2a] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:outline-none focus:border-white/15 transition-colors duration-500"
+                    className="friends-page-input"
                   />
-                  <button className="bg-linear-to-r from-cyan-500 to-blue-600 text-white font-semibold px-5 py-1 rounded-xl text-sm hover:opacity-80 transition-all">
-                    Add
-                  </button>
+                  <button className="friends-page-add-btn">Add</button>
                 </div>
               </section>
 
               {/* ── FRIEND REQUESTS ── */}
               <section className="mb-6">
-                <h2 className="flex items-center gap-2 text-gray-400 font-semibold text-sm uppercase tracking-widest mb-3">
-                  <UserAddIcon className="w-6 h-6 text-cyan-400" />
+                <h2 className="friends-page-section-title">
+                  <UserAddIcon className="w-6 h-6 text-cyan-400 in-[.light]:brightness-0" />
                   Friend Requests
-                  <span className="bg-linear-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold rounded-xl w-5 h-4.5 flex items-center justify-center ml-1">
+                  <span className="friends-page-request-badge">
                     {mockRequests.length}
                   </span>
                 </h2>
@@ -135,7 +137,7 @@ const FriendsPage = () => {
                   {mockRequests.map((req) => (
                     <div
                       key={req.id}
-                      className="flex items-center justify-between bg-[#0d1b2a] border border-white/10 rounded-xl px-4 py-3"
+                      className="friends-page-friend-request-card"
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -144,18 +146,23 @@ const FriendsPage = () => {
                           {req.initials}
                         </div>
                         <div>
-                          <p className="text-white font-medium text-sm">
+                          <p className="friends-page-username">
                             {req.username}
                           </p>
-                          <p className="text-white/40 text-xs">{req.timeAgo}</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="bg-green-500 hover:bg-green-700 text-white font-bold px-4 py-1.5 rounded-lg text-sm transition-colors">
-                          Accept
+                        <button
+                          className="friends-page-accept-btn"
+                          aria-label={`Accept ${req.username} friend request`}
+                        >
+                          <CheckIcon className="w-4 h-4" />
                         </button>
-                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold px-4 py-1.5 rounded-lg text-sm transition-colors">
-                          Decline
+                        <button
+                          className="friends-page-decline-btn"
+                          aria-label={`Decline ${req.username} friend request`}
+                        >
+                          <XIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -165,20 +172,17 @@ const FriendsPage = () => {
 
               {/* ── MY FRIENDS ── */}
               <section>
-                <h2 className="flex items-center gap-2 text-gray-400 font-semibold text-sm uppercase tracking-widest mb-3">
-                  <FriendsIcon className="w-6 h-6 text-cyan-400" />
+                <h2 className="friends-page-section-title">
+                  <FriendsIcon className="w-6 h-6 text-cyan-400 in-[.light]:brightness-0" />
                   My Friends
-                  <span className="bg-gray-600 text-white text-xs font-bold rounded-xl w-5 h-4.5 flex items-center justify-center ml-1">
+                  <span className="friends-page-friends-badge">
                     {mockFriends.length}
                   </span>
                 </h2>
 
                 <div className="flex flex-col gap-2">
                   {mockFriends.map((friend) => (
-                    <div
-                      key={friend.id}
-                      className="flex items-center justify-between bg-[#0d1b2a] border border-white/10 rounded-xl px-4 py-3"
-                    >
+                    <div key={friend.id} className="friends-page-friend-card">
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div
@@ -187,15 +191,15 @@ const FriendsPage = () => {
                             {friend.initials}
                           </div>
                           <span
-                            className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0d1b2a] ${friend.online ? "bg-green-400" : "bg-gray-500"}`}
+                            className={`friends-page-mini-circle-status absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0d1b2a] ${friend.online ? "bg-green-500" : "bg-gray-500"}`}
                           />
                         </div>
                         <div>
-                          <p className="text-white font-medium text-sm">
+                          <p className="friends-page-username">
                             {friend.username}
                           </p>
                           <p
-                            className={`text-xs ${friend.online ? "text-green-400" : "text-white/40"}`}
+                            className={`friends-page-user-status text-xs ${friend.online ? "friends-page-user-status-online" : "friends-page-user-status-offline"}`}
                           >
                             {friend.online ? "Online" : "Offline"}
                           </p>
@@ -204,11 +208,12 @@ const FriendsPage = () => {
                       <div className="flex gap-2">
                         <button
                           disabled={!friend.online}
-                          className="flex items-center gap-1.5 bg-linear-to-r from-cyan-500 via-blue-500 to-blue-400 bg-[length:200%_auto] bg-left disabled:bg-none disabled:bg-white/10 disabled:text-white/30 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition-all duration-600 hover:bg-right"
+                          className="friends-page-challenge-btn"
                         >
+                          <CombatIcon className="w-4 h-4" />
                           Challenge
                         </button>
-                        <button className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-1.5 rounded-lg text-sm transition-colors">
+                        <button className="friends-page-view-profile-btn">
                           <EyeIcon className="w-4 h-4" />
                           View Profile
                         </button>
