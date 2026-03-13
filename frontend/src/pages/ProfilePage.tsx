@@ -11,13 +11,14 @@ import {
 import PageNavbar from "../components/common/PageNavbar";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
-import ProfileHelpFab from "../components/common/ProfileHelpFab";
+import HelpFab from "../components/common/HelpFab";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
 
 type UserData = {
   id: string;
   username: string;
   email: string;
+  profileImageUrl?: string;
 };
 
 type PlayerStats = {
@@ -40,6 +41,8 @@ function getInitialUser(): UserData | null {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [user] = useState<UserData | null>(getInitialUser);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
@@ -77,6 +80,10 @@ const ProfilePage = () => {
       )
       .catch(() => setMatches([]));
   }, [user]);
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+  }, [avatarImageUrl]);
 
   if (!user) return null;
 
@@ -130,7 +137,16 @@ const ProfilePage = () => {
                   className="profile-page-avatar"
                   aria-label={`Avatar of ${nick}`}
                 >
-                  {initials || "JG"}
+                  {avatarImageUrl && !avatarLoadError ? (
+                    <img
+                      src={avatarImageUrl}
+                      alt={`Avatar of ${nick}`}
+                      className="profile-page-avatar-image"
+                      onError={() => setAvatarLoadError(true)}
+                    />
+                  ) : (
+                    initials || "JG"
+                  )}
                 </div>
               </div>
 
@@ -149,7 +165,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <ProfileHelpFab />
+          <HelpFab />
         </div>
       </main>
     </div>
