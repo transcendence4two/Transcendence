@@ -129,6 +129,7 @@ const DashboardPage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${user.username}`}
                       className="dashboard-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (

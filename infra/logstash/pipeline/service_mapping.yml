@@ -1,0 +1,24 @@
+usermanagement-service:
+  index: "usermanagement-service-logs-%{+YYYY.MM.dd}"
+  alias: "usermanagement-service-logs"
+  policy: "usermanagement-logs-policy"
+
+emails-service:
+  index: "emails-service-logs-%{+YYYY.MM.dd}"
+  alias: "emails-service-logs"
+  policy: "emails-logs-policy"
+
+game-service:
+  index: "game-service-logs-%{+YYYY.MM.dd}"
+  alias: "game-service-logs"
+  policy: "game-logs-policy"
+
+friends-service:
+  index: "friends-service-logs-%{+YYYY.MM.dd}"
+  alias: "friends-service-logs"
+  policy: "friends-logs-policy"
+
+tournament-service:
+  index: "tournament-service-logs-%{+YYYY.MM.dd}"
+  alias: "tournament-service-logs"
+  policy: "tournament-logs-policy"

@@ -146,6 +146,7 @@ const ProfilePage = () => {
                       src={avatarImageUrl}
                       alt={`Avatar of ${nick}`}
                       className="profile-page-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
                       onError={() => setAvatarLoadError(true)}
                     />
                   ) : (
