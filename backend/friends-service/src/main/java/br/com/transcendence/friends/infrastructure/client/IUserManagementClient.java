@@ -6,15 +6,15 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-@Path("/users")
+@Path("/")
 @RegisterRestClient(configKey = "usermanagement-client")
 public interface IUserManagementClient {
 
     @GET
-    @Path("/find-by-username/{username}")
+    @Path("/users/find-by-username/{username}")
     Response findByUsername(@PathParam("username") String username);
 
     @GET
-    @Path("/{id}")
+    @Path("/internal/users/{id}/exists")
     Response findById(@PathParam("id") String id);
 }
