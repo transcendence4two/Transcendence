@@ -199,7 +199,7 @@ const FriendsPage = () => {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch("/api/friends?page=1&page_size=100", {
+        fetch("/api/friends/?page=1&page_size=100", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -419,7 +419,7 @@ const FriendsPage = () => {
                       Loading...
                     </p>
                   ) : requests.length === 0 ? (
-                    <p className="friends-page-user-status text-sm text-gray-400">
+                    <p className="friends-page-user-status text-sm text-gray-400/50">
                       No pending requests
                     </p>
                   ) : (
@@ -484,7 +484,7 @@ const FriendsPage = () => {
                       Loading...
                     </p>
                   ) : friends.length === 0 ? (
-                    <p className="friends-page-user-status text-sm text-gray-400">
+                    <p className="friends-page-user-status text-sm text-gray-400/50">
                       You do not have friends yet
                     </p>
                   ) : (
