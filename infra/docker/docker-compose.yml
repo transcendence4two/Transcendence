@@ -172,6 +172,7 @@ services:
       - usermanagement-service
       - tournament-service
       - game-service
+      - friends-service
       - frontend
     restart: unless-stopped
     container_name: nginx
@@ -280,6 +281,31 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}
     networks:
       - transcendence-network
+
+  friends-service:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-friends-service
+    env_file:
+      - ../../.env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-transcendence}
+      - POSTGRES_USER=${POSTGRES_USER:-transcendence_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-transcendence_password}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - USERMANAGEMENT_SERVICE_URL=http://usermanagement-service:8000
+    expose:
+      - "8003"
+    restart: unless-stopped
+    container_name: friends-service
+    networks:
+      - transcendence-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      usermanagement-service:
+        condition: service_started
 
 volumes:
   esdata:

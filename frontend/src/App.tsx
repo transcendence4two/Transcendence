@@ -8,7 +8,9 @@ import DashboardPage from "./pages/DashboardPage";
 import MatchmakingPage from "./pages/MatchmakingPage";
 import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
+import ProfileSettingsPage from "./pages/ProfileSettingsPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -23,7 +25,9 @@ function App() {
         <Route path="/matchmaking" element={<MatchmakingPage />} />
         <Route path="/game/:sessionId" element={<GamePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<ProfileSettingsPage />} />
         <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

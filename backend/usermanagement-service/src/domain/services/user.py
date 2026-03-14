@@ -78,7 +78,12 @@ class UserService(UserRegister, UserOperations):
     async def update_user_profile(
         self, user_id: str, payload: UserProfileUpdateRequest
     ):
-        command = UpdateUserProfileCommand(self.session, user_id, payload)
+        command = UpdateUserProfileCommand(
+            self.session,
+            user_id,
+            payload,
+            self.password_service,
+        )
         return await command.execute()
 
     async def upload_avatar(self, user_id: str, file_bytes: bytes, filename: str) -> User:

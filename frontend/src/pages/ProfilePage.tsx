@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  PersonFillIcon,
-  TrophyFillIcon,
-  BullseyeFillIcon,
-  GraphUpArrowFillIcon,
-  ControllerFillIcon,
+  TrophyIcon,
+  BullseyeIcon,
+  GraphUpArrowIcon,
+  GamepadIcon,
+  UserIconUntitledUi,
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
-import ProfileHelpFab from "../components/common/ProfileHelpFab";
+import HelpFab from "../components/common/HelpFab";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
 
 type UserData = {
   id: string;
   username: string;
   email: string;
+  profileImageUrl?: string;
 };
 
 type PlayerStats = {
@@ -40,6 +41,8 @@ function getInitialUser(): UserData | null {
 const ProfilePage = () => {
   const navigate = useNavigate();
   const [user] = useState<UserData | null>(getInitialUser);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
@@ -78,6 +81,14 @@ const ProfilePage = () => {
       .catch(() => setMatches([]));
   }, [user]);
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setAvatarLoadError(false);
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [avatarImageUrl]);
+
   if (!user) return null;
 
   const wins = stats?.wins ?? null;
@@ -92,35 +103,35 @@ const ProfilePage = () => {
 
   const statItems = [
     {
-      icon: <TrophyFillIcon className="stat-icon icon-svg icon-emerald" />,
+      icon: <TrophyIcon className="stat-icon icon-svg icon-emerald" />,
       value: wins !== null ? String(wins) : "N/A",
-      label: "Wins",
       color: "text-emerald-400",
+      label: "Wins",
     },
     {
-      icon: <BullseyeFillIcon className="stat-icon icon-svg icon-rose" />,
+      icon: <BullseyeIcon className="stat-icon icon-svg icon-rose" />,
       value: losses !== null ? String(losses) : "N/A",
-      label: "Losses",
       color: "text-rose-400",
+      label: "Losses",
     },
     {
-      icon: <GraphUpArrowFillIcon className="stat-icon icon-svg icon-blue" />,
+      icon: <GraphUpArrowIcon className="stat-icon icon-svg icon-blue" />,
       value: winRate ?? "N/A",
-      label: "Win Rate",
       color: "text-blue-400",
+      label: "Win Rate",
     },
     {
-      icon: <ControllerFillIcon className="stat-icon icon-svg icon-cyan" />,
+      icon: <GamepadIcon className="stat-icon icon-svg icon-cyan" />,
       value: total !== null ? String(total) : "N/A",
-      label: "Total Games",
       color: "text-cyan-400",
+      label: "Total Games",
     },
   ];
 
   return (
     <div className="container-main">
       <main className="content-main">
-        <PageNavbar title="User Profile" icon={PersonFillIcon} />
+        <PageNavbar title="User Profile" icon={UserIconUntitledUi} />
 
         <div className="profile-page-content">
           <div className="profile-page-layout">
@@ -130,7 +141,17 @@ const ProfilePage = () => {
                   className="profile-page-avatar"
                   aria-label={`Avatar of ${nick}`}
                 >
-                  {initials || "JG"}
+                  {avatarImageUrl && !avatarLoadError ? (
+                    <img
+                      src={avatarImageUrl}
+                      alt={`Avatar of ${nick}`}
+                      className="profile-page-avatar-image"
+                      onLoad={() => setAvatarLoadError(false)}
+                      onError={() => setAvatarLoadError(true)}
+                    />
+                  ) : (
+                    initials || "JG"
+                  )}
                 </div>
               </div>
 
@@ -149,7 +170,7 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <ProfileHelpFab />
+          <HelpFab />
         </div>
       </main>
     </div>
