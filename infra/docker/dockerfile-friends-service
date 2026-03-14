@@ -1,0 +1,25 @@
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+WORKDIR /app
+
+COPY backend/friends-service/pom.xml .
+COPY backend/friends-service/src ./src
+
+# Build the applicationi
+RUN mvn clean package -DskipTests
+
+# Runner Stage
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+USER appuser
+
+COPY --chown=appuser:appuser --from=builder /app/target/quarkus-app/lib/ /app/lib/
+COPY --chown=appuser:appuser --from=builder /app/target/quarkus-app/*.jar /app/
+COPY --chown=appuser:appuser --from=builder /app/target/quarkus-app/app/ /app/app/
+COPY --chown=appuser:appuser --from=builder /app/target/quarkus-app/quarkus/ /app/quarkus/
+
+ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+EXPOSE 8003
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar /app/quarkus-run.jar" ]

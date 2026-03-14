@@ -1,0 +1,47 @@
+package br.com.transcendence.friends.infrastructure.persistence.entity;
+
+import br.com.transcendence.friends.domain.model.FriendRequest;
+import br.com.transcendence.friends.domain.model.RequestStatus;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "friend_requests")
+public class FriendRequestEntity {
+    @Id
+    private UUID id;
+
+    @Column(name = "requester_id")
+    private String requesterId;
+
+    @Column(name = "receiver_id")
+    private String receiverId;
+
+    @Enumerated(EnumType.STRING)
+    private RequestStatus status;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    public FriendRequestEntity() {}
+
+    public FriendRequest toDomain() {
+        return new FriendRequest(id, requesterId, receiverId, status, createdAt, updatedAt);
+    }
+
+    public static FriendRequestEntity fromDomain(FriendRequest model) {
+        FriendRequestEntity entity = new FriendRequestEntity();
+        entity.id = model.id();
+        entity.requesterId = model.requesterId();
+        entity.receiverId = model.receiverId();
+        entity.status = model.status();
+        entity.createdAt = model.createdAt();
+        entity.updatedAt = model.updatedAt();
+        return entity;
+    }
+}
+
