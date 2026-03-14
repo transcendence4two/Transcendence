@@ -1,0 +1,20 @@
+{
+  "schedule": "0 2 * * 0",
+  "name": "<transcendence-logs-{now/d}>",
+  "repository": "transcendence_local",
+  "config": {
+    "indices": [
+      "friends-service-*",
+      "managementuser-service-*",
+      "tournament-service-*",
+      "emails-service-*",
+      "game-service-*"
+    ],
+    "ignore_unavailable": true
+  },
+  "retention": {
+    "expire_after": "180d",
+    "min_count": 1,
+    "max_count": 20
+  }
+}
