@@ -35,15 +35,15 @@ class TestUserServiceUploadAvatar:
             mock_event_publisher,
             mock_storage_service,
         )
-        
+
         file_bytes = b"fake_image_content"
         filename = "myphoto.png"
-        
+
         result = await service.upload_avatar("avatar-id-123", file_bytes, filename)
 
         assert result.id == "avatar-id-123"
         assert result.avatar_url == "http://mock-minio/avatars/myphoto.png"
-        
+
         # Ensure the file was actually stored in the mock
         stored_file = mock_storage_service.uploaded_files["myphoto.png"]
         assert stored_file["content"] == b"fake_image_content"

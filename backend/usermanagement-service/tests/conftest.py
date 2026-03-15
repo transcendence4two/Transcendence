@@ -16,18 +16,18 @@ from tests.test_di_config import (
     init_test_db,
 )
 
+
 class MockStorageService:
     """Mock storage service for unit tests"""
+
     def __init__(self):
         self.uploaded_files = {}
 
     def upload_avatar(self, file_content: bytes, original_filename: str) -> str:
         url = f"http://mock-minio/avatars/{original_filename}"
-        self.uploaded_files[original_filename] = {
-            "content": file_content,
-            "url": url
-        }
+        self.uploaded_files[original_filename] = {"content": file_content, "url": url}
         return url
+
 
 @pytest.fixture(scope="function")
 def mock_storage_service() -> Generator[MockStorageService, None, None]:

@@ -91,12 +91,15 @@ class UserService(UserRegister, UserOperations):
         command = DeleteUserProfileCommand(self.session, user_id, confirmation_text)
         await command.execute()
 
-    async def upload_avatar(self, user_id: str, file_bytes: bytes, filename: str) -> User:
+    async def upload_avatar(
+        self, user_id: str, file_bytes: bytes, filename: str
+    ) -> User:
         user = await self.get_user_profile(user_id)
         if not user:
             from src.domain.exceptions import UserNotFoundError
+
             raise UserNotFoundError(f"User with id {user_id} not found")
-        
+
         avatar_url = self.storage_service.upload_avatar(file_bytes, filename)
         user.avatar_url = avatar_url
         self.session.add(user)

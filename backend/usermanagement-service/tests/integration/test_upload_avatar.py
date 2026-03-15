@@ -39,17 +39,16 @@ class TestUploadAvatarIntegration:
         # 5. Assertions
         assert response.status_code == 200
         data = response.json()
-        
+
         assert data["id"] == "integration-user-123"
         assert data["username"] == "testavatar"
         assert "avatar_url" in data
         assert data["avatar_url"] == "http://mock-minio/avatars/profile.png"
-        
+
         # Verify the dependency override caught the internal file
         stored_file = mock_storage_service.uploaded_files.get("profile.png")
         assert stored_file is not None
         assert stored_file["content"] == b"fake_png_bytes"
-
 
     async def test_upload_avatar_without_file_fails(
         self, client: AsyncClient, db_session
@@ -64,7 +63,9 @@ class TestUploadAvatarIntegration:
         db_session.add(user)
         await db_session.commit()
 
-        token = TokenService(settings.jwt_config).create_token("integration-user-no-file")
+        token = TokenService(settings.jwt_config).create_token(
+            "integration-user-no-file"
+        )
         headers = {"Authorization": f"Bearer {token}"}
 
         # Request missing the 'files' kwarg
@@ -73,7 +74,6 @@ class TestUploadAvatarIntegration:
         assert response.status_code == 422
         assert "detail" in response.json()
 
-    
     async def test_upload_avatar_unauthorized(self, client: AsyncClient):
         files = {
             "file": ("profile.png", b"fake_png_bytes", "image/png"),

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Response, status, UploadFile, File
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 
 from src.core.auth import get_token_payload
 from src.core.settings import settings
@@ -106,6 +106,7 @@ async def upload_avatar(
     user_id = payload.get("sub")
     if not user_id:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=401, detail="Invalid token")
 
     content = await file.read()
