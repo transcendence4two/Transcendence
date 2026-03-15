@@ -1,10 +1,10 @@
-import logging
+import structlog
 
 import httpx
 
 from src.domain.contracts import GameServiceClient
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 
 class HTTPGameServiceClient(GameServiceClient):
