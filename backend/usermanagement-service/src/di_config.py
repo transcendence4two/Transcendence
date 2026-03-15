@@ -8,6 +8,7 @@ from src.core.settings import settings
 from src.domain.contracts import PasswordHasher, TokenProvider
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
+from src.domain.services.presence import PresenceService
 from src.domain.services.token import TokenService
 from src.domain.services.user import UserService
 from src.infrastructure.event_publisher import RedisEventPublisher
@@ -61,3 +62,11 @@ def get_token_service() -> TokenProvider:
 def get_otp_service() -> OtpService:
     """Dependency to get OTP service."""
     return OtpService(redis_url=settings.REDIS_URL)
+
+
+def get_presence_service() -> PresenceService:
+    """Dependency to get online presence service."""
+    return PresenceService(
+        redis_url=settings.REDIS_URL,
+        ttl_seconds=settings.PRESENCE_TTL_SECONDS,
+    )
