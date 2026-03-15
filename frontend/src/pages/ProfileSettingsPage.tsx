@@ -9,7 +9,7 @@ interface UserData {
   id: string;
   username: string;
   email: string;
-  profileImageUrl?: string;
+  avatar_url?: string;
 }
 
 function getInitialUser(): UserData | null {
@@ -123,7 +123,7 @@ const ProfileSettingsPage = () => {
     }
 
     try {
-      let currentProfileImageUrl = user.profileImageUrl;
+      let currentAvatarUrl = user.avatar_url;
 
       if (tempImageFile) {
         const formData = new FormData();
@@ -143,7 +143,7 @@ const ProfileSettingsPage = () => {
         }
 
         const avatarData = await avatarRes.json();
-        currentProfileImageUrl = avatarData.avatar_url;
+        currentAvatarUrl = avatarData.avatar_url;
       }
 
       if (Object.keys(body).length > 0) {
@@ -170,14 +170,14 @@ const ProfileSettingsPage = () => {
           ...user,
           username: updated.username,
           email: updated.email,
-          profileImageUrl: currentProfileImageUrl,
+          avatar_url: currentAvatarUrl,
         };
         localStorage.setItem("user", JSON.stringify(newUserData));
         setUser(newUserData);
       } else if (tempImageFile) {
         const newUserData = {
           ...user,
-          profileImageUrl: currentProfileImageUrl,
+          avatar_url: currentAvatarUrl,
         };
         localStorage.setItem("user", JSON.stringify(newUserData));
         setUser(newUserData);
@@ -198,7 +198,7 @@ const ProfileSettingsPage = () => {
     }
   };
 
-  const avatarImageUrl = tempPreviewUrl || (user?.profileImageUrl ?? "").trim();
+  const avatarImageUrl = tempPreviewUrl || (user?.avatar_url ?? "").trim();
 
   return (
     <div className="container-main">
