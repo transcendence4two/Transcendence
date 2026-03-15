@@ -42,9 +42,25 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loggedUser] = useState<UserData | null>(getInitialUser);
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [remoteProfileState, setRemoteProfileState] = useState<{
+    requestedUserId: string;
+    user: UserData | null;
+    loaded: boolean;
+  }>({ requestedUserId: "", user: null, loaded: false });
   const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const targetUserId = searchParams.get("id")?.trim() ?? "";
+  const effectiveUserId = targetUserId || loggedUser?.id || "";
+  const isOwnProfile = Boolean(loggedUser && effectiveUserId === loggedUser.id);
+  const user = isOwnProfile
+    ? loggedUser
+    : remoteProfileState.requestedUserId === effectiveUserId
+      ? remoteProfileState.user
+      : null;
+  const isLoadingProfile =
+    !isOwnProfile &&
+    (!remoteProfileState.loaded ||
+      remoteProfileState.requestedUserId !== effectiveUserId);
+
   const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
   const nick = user?.username ?? "player";
   const initials = nick
@@ -57,8 +73,6 @@ const ProfilePage = () => {
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
 
-  const targetUserId = searchParams.get("id")?.trim() ?? "";
-
   useEffect(() => {
     if (!loggedUser) {
       navigate("/login", { replace: true });
@@ -66,26 +80,29 @@ const ProfilePage = () => {
   }, [loggedUser, navigate]);
 
   useEffect(() => {
-    if (!loggedUser) return;
+    if (!loggedUser || isOwnProfile) return;
 
     const token = localStorage.getItem("access_token");
-    const effectiveUserId = targetUserId || loggedUser.id;
 
-    if (effectiveUserId === loggedUser.id) {
-      setUser(loggedUser);
-      setIsLoadingProfile(false);
-      return;
-    }
-
-    setIsLoadingProfile(true);
     fetch(`/api/users/${effectiveUserId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: UserData) => setUser(data))
-      .catch(() => setUser(null))
-      .finally(() => setIsLoadingProfile(false));
-  }, [loggedUser, targetUserId]);
+      .then((data: UserData) => {
+        setRemoteProfileState({
+          requestedUserId: effectiveUserId,
+          user: data,
+          loaded: true,
+        });
+      })
+      .catch(() => {
+        setRemoteProfileState({
+          requestedUserId: effectiveUserId,
+          user: null,
+          loaded: true,
+        });
+      });
+  }, [effectiveUserId, isOwnProfile, loggedUser]);
 
   useEffect(() => {
     if (!user) return;

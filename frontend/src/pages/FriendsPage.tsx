@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import {
   FriendsIcon,
@@ -138,7 +138,7 @@ const FriendsPage = () => {
     }
   }, [user, navigate]);
 
-  const getUserProfileById = async (
+  const getUserProfileById = useCallback(async (
     userId: string,
   ): Promise<ApiUserProfile> => {
     const response = await fetch(`/api/users/${userId}`, {
@@ -152,7 +152,7 @@ const FriendsPage = () => {
     }
 
     return (await response.json()) as ApiUserProfile;
-  };
+  }, [token]);
 
   const getUserIdByUsername = async (
     username: string,
@@ -190,7 +190,7 @@ const FriendsPage = () => {
     }
   };
 
-  const isUserOnline = async (userId: string): Promise<boolean> => {
+  const isUserOnline = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const presenceResponse = await fetch(
         `/api/users/${userId}/presence`,
@@ -211,9 +211,9 @@ const FriendsPage = () => {
     } catch {
       return false;
     }
-  };
+  }, [token]);
 
-  const resolveOnlineStatuses = async (
+  const resolveOnlineStatuses = useCallback(async (
     userIds: string[],
   ): Promise<Map<string, boolean>> => {
     const statuses = await Promise.all(
@@ -221,9 +221,9 @@ const FriendsPage = () => {
     );
 
     return new Map<string, boolean>(statuses);
-  };
+  }, [isUserOnline]);
 
-  const loadFriendsData = async () => {
+  const loadFriendsData = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -305,12 +305,12 @@ const FriendsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getUserProfileById, resolveOnlineStatuses, token, user]);
 
   useEffect(() => {
     if (!user || !token) return;
     void loadFriendsData();
-  }, [user, token]);
+  }, [loadFriendsData, token, user]);
 
   const handleAddFriend = async () => {
     if (!user || !token) return;
