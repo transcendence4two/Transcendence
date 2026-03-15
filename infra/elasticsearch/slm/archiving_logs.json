@@ -1,5 +1,5 @@
 {
-  "schedule": "0 2 * * 0",
+  "schedule": "0 0 2 ? * SUN",
   "name": "<transcendence-logs-{now/d}>",
   "repository": "transcendence_local",
   "config": {
