@@ -4,7 +4,6 @@ from src.core.auth import get_token_payload
 from src.core.settings import settings
 from src.di_config import get_presence_service, get_user_service
 from src.domain.exceptions import UnauthorizedActionError
-from src.domain.services.presence import PresenceService
 from src.domain.schemas.user import (
     DeleteUserRequest,
     GithubOAuthRequest,
@@ -17,6 +16,7 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.domain.services.presence import PresenceService
 from src.domain.services.user import UserService
 
 router = APIRouter()
