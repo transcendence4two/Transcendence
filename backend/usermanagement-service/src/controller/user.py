@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, statu
 
 from src.core.auth import get_token_payload
 from src.core.settings import settings
-from src.di_config import get_user_service
+from src.di_config import get_presence_service, get_user_service
 from src.domain.exceptions import UnauthorizedActionError
 from src.domain.schemas.user import (
     DeleteUserRequest,
@@ -16,6 +16,7 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.domain.services.presence import PresenceService
 from src.domain.services.user import UserService
 
 router = APIRouter()
@@ -85,6 +86,36 @@ async def get_all_profiles(
 ):
     result = await user_service.get_paginated_user_profiles(page, page_size)
     return result
+
+
+@router.post("/presence/heartbeat", status_code=status.HTTP_200_OK)
+async def heartbeat_presence(
+    payload: dict = Depends(get_token_payload),
+    presence_service: PresenceService = Depends(get_presence_service),
+):
+    user_id = str(payload.get("sub", ""))
+    await presence_service.heartbeat(user_id)
+    return {"status": "ok"}
+
+
+@router.post("/presence/offline", status_code=status.HTTP_200_OK)
+async def mark_presence_offline(
+    payload: dict = Depends(get_token_payload),
+    presence_service: PresenceService = Depends(get_presence_service),
+):
+    user_id = str(payload.get("sub", ""))
+    await presence_service.set_offline(user_id)
+    return {"status": "ok"}
+
+
+@router.get("/{user_id}/presence", status_code=status.HTTP_200_OK)
+async def get_user_presence(
+    user_id: str,
+    payload: dict = Depends(get_token_payload),
+    presence_service: PresenceService = Depends(get_presence_service),
+):
+    online = await presence_service.is_online(user_id)
+    return {"user_id": user_id, "online": online}
 
 
 @router.get("/{user_id}", response_model=UserProfileResponse)

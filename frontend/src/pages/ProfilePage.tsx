@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   TrophyIcon,
   BullseyeIcon,
@@ -40,8 +40,27 @@ function getInitialUser(): UserData | null {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const [user] = useState<UserData | null>(getInitialUser);
+  const [searchParams] = useSearchParams();
+  const [loggedUser] = useState<UserData | null>(getInitialUser);
+  const [remoteProfileState, setRemoteProfileState] = useState<{
+    requestedUserId: string;
+    user: UserData | null;
+    loaded: boolean;
+  }>({ requestedUserId: "", user: null, loaded: false });
   const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const targetUserId = searchParams.get("id")?.trim() ?? "";
+  const effectiveUserId = targetUserId || loggedUser?.id || "";
+  const isOwnProfile = Boolean(loggedUser && effectiveUserId === loggedUser.id);
+  const user = isOwnProfile
+    ? loggedUser
+    : remoteProfileState.requestedUserId === effectiveUserId
+      ? remoteProfileState.user
+      : null;
+  const isLoadingProfile =
+    !isOwnProfile &&
+    (!remoteProfileState.loaded ||
+      remoteProfileState.requestedUserId !== effectiveUserId);
+
   const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
   const nick = user?.username ?? "player";
   const initials = nick
@@ -55,10 +74,35 @@ const ProfilePage = () => {
   const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
 
   useEffect(() => {
-    if (!user) {
+    if (!loggedUser) {
       navigate("/login", { replace: true });
     }
-  }, [user, navigate]);
+  }, [loggedUser, navigate]);
+
+  useEffect(() => {
+    if (!loggedUser || isOwnProfile) return;
+
+    const token = localStorage.getItem("access_token");
+
+    fetch(`/api/users/${effectiveUserId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: UserData) => {
+        setRemoteProfileState({
+          requestedUserId: effectiveUserId,
+          user: data,
+          loaded: true,
+        });
+      })
+      .catch(() => {
+        setRemoteProfileState({
+          requestedUserId: effectiveUserId,
+          user: null,
+          loaded: true,
+        });
+      });
+  }, [effectiveUserId, isOwnProfile, loggedUser]);
 
   useEffect(() => {
     if (!user) return;
@@ -82,14 +126,16 @@ const ProfilePage = () => {
   }, [user]);
 
   useEffect(() => {
+    if (!user) return;
+
     const timeout = setTimeout(() => {
       setAvatarLoadError(false);
     }, 0);
 
     return () => clearTimeout(timeout);
-  }, [avatarImageUrl]);
+  }, [avatarImageUrl, user]);
 
-  if (!user) return null;
+  if (!loggedUser || isLoadingProfile || !user) return null;
 
   const wins = stats?.wins ?? null;
   const losses = stats?.losses ?? null;
@@ -131,7 +177,11 @@ const ProfilePage = () => {
   return (
     <div className="container-main">
       <main className="content-main">
-        <PageNavbar title="User Profile" icon={UserIconUntitledUi} />
+        <PageNavbar
+          title="User Profile"
+          icon={UserIconUntitledUi}
+          showHamburgerMenu
+        />
 
         <div className="profile-page-content">
           <div className="profile-page-layout">

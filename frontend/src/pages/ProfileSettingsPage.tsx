@@ -100,7 +100,6 @@ const ProfileSettingsPage = () => {
     const body: Record<string, string> = {};
     if (username !== user.username) body.username = username;
     if (email !== user.email) body.email = email;
-
     if (password.length > 0 || confirmPassword.length > 0) {
       if (password !== confirmPassword) {
         setConfirmPasswordError("Passwords do not match");
@@ -204,7 +203,7 @@ const ProfileSettingsPage = () => {
   return (
     <div className="container-main">
       <main className="content-main">
-        <PageNavbar title="Settings" icon={GearIcon} />
+        <PageNavbar title="Settings" icon={GearIcon} showHamburgerMenu />
 
         <div className="settings-page-content">
           <div className="settings-page-layout">

@@ -10,4 +10,5 @@ async def validate_token(
     payload: dict = Depends(get_token_payload),
 ):
     """Validate JWT token for nginx auth_request."""
-    return Response(status_code=status.HTTP_200_OK)
+    user_id = payload.get("sub", "")
+    return Response(status_code=status.HTTP_200_OK, headers={"X-User-Id": user_id})

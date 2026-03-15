@@ -12,12 +12,14 @@ interface PageNavbarProps {
   title?: string;
   icon?: ComponentType<IconProps>;
   backTo?: string;
+  showHamburgerMenu?: boolean;
 }
 
 const PageNavbar = ({
   title,
   icon: Icon,
   backTo = "/home",
+  showHamburgerMenu = false,
 }: PageNavbarProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -42,7 +44,7 @@ const PageNavbar = ({
   return (
     <div className="profile-nav-shell">
       <nav className="profile-nav" aria-label="Page navigation">
-        {isHome ? (
+        {isHome || showHamburgerMenu ? (
           <div className="profile-nav-menu-wrap">
             <HamburgerMenu />
           </div>
