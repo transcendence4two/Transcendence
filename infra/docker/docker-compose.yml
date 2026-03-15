@@ -253,6 +253,35 @@ services:
       redis:
         condition: service_healthy
 
+  minio:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}
+    volumes:
+      - minio_data:/data
+    networks:
+      - transcendence-network
+
+  minio-setup:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-minio-setup
+    container_name: minio-setup
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}
+    networks:
+      - transcendence-network
+
   friends-service:
     build:
       context: ../..
@@ -282,6 +311,7 @@ volumes:
   esdata:
   kibana_data:
   postgres_data:
+  minio_data:
 
 networks:
   transcendence-network:

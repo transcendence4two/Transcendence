@@ -83,6 +83,7 @@ class TestUserServiceDeleteProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="service-delete-user",
@@ -99,13 +100,13 @@ class TestUserServiceDeleteProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
 
         await service.delete_user_profile(
             user_id="service-delete-user",
             confirmation_text="Yes, delete my user",
         )
-
         assert session.committed is True
         assert len(session.deleted_entities) == 1
         assert session.deleted_entities[0].id == "service-delete-user"

@@ -18,7 +18,7 @@ type UserData = {
   id: string;
   username: string;
   email: string;
-  profileImageUrl?: string;
+  avatar_url?: string;
 };
 
 type PlayerStats = {
@@ -61,7 +61,7 @@ const ProfilePage = () => {
     (!remoteProfileState.loaded ||
       remoteProfileState.requestedUserId !== effectiveUserId);
 
-  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
+  const avatarImageUrl = (user?.avatar_url ?? "").trim();
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)

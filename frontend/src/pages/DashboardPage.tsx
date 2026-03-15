@@ -16,7 +16,7 @@ interface UserData {
   id: string;
   username: string;
   email: string;
-  profileImageUrl?: string;
+  avatar_url?: string;
 }
 
 interface PlayerStats {
@@ -41,7 +41,7 @@ const DashboardPage = () => {
   const [user] = useState<UserData | null>(getInitialUser);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
-  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
+  const avatarImageUrl = (user?.avatar_url ?? "").trim();
 
   useEffect(() => {
     if (!user) {

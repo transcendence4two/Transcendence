@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_ID: str = ""
     GITHUB_CLIENT_SECRET: str = ""
     GITHUB_OAUTH_REDIRECT_URI: str = "https://localhost/oauth/callback"
+    MINIO_ROOT_USER: str = "admin"
+    MINIO_ROOT_PASSWORD: str = "supersecret123"
+    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_PUBLIC_URL: str = "http://localhost:9000"
+    MINIO_BUCKET_NAME: str = "avatars"
 
     class Config:
         env_file = find_root_env()

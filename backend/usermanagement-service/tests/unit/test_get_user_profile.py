@@ -67,6 +67,7 @@ class TestUserServiceGetProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="service-id-456",
@@ -83,6 +84,7 @@ class TestUserServiceGetProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_user_profile("service-id-456")
 
@@ -96,6 +98,7 @@ class TestUserServiceGetProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         session = mock_session(user_to_return=None)
 
@@ -105,6 +108,7 @@ class TestUserServiceGetProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
 
         with pytest.raises(UserNotFoundError):
@@ -117,6 +121,7 @@ class TestUserServiceGetProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="2fa-user",
@@ -133,6 +138,7 @@ class TestUserServiceGetProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_user_profile("2fa-user")
 

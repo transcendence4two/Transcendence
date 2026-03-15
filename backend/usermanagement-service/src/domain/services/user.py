@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.settings import settings as app_settings
 from src.domain.contracts import UserOperations, UserRegister
+from src.domain.exceptions import UserNotFoundError
 from src.domain.models.user import User
 from src.domain.schemas.user import (
     Login2FAResponse,
@@ -30,6 +31,7 @@ from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
 from src.infrastructure.event_publisher import EventPublisher
+from src.infrastructure.storage import StorageService
 
 logger = structlog.get_logger()
 
@@ -47,12 +49,14 @@ class UserService(UserRegister, UserOperations):
         token_service: TokenService,
         otp_service: OtpService,
         event_publisher: EventPublisher,
+        storage_service: StorageService,
     ):
         self.session = session
         self.password_service = password_service
         self.token_service = token_service
         self.otp_service = otp_service
         self.event_publisher = event_publisher
+        self.storage_service = storage_service
 
     async def register_user(self, payload: UserRegisterRequest):
         command = RegisterUserCommand(
@@ -87,6 +91,20 @@ class UserService(UserRegister, UserOperations):
     async def delete_user_profile(self, user_id: str, confirmation_text: str) -> None:
         command = DeleteUserProfileCommand(self.session, user_id, confirmation_text)
         await command.execute()
+
+    async def upload_avatar(
+        self, user_id: str, file_bytes: bytes, filename: str
+    ) -> User:
+        user = await self.get_user_profile(user_id)
+        if not user:
+            raise UserNotFoundError(f"User with id {user_id} not found")
+
+        avatar_url = await self.storage_service.upload_avatar(file_bytes, filename)
+        user.avatar_url = avatar_url
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
 
     # Messaging methods
     async def send_welcome_email(self, email: str, username: str) -> None:

@@ -113,7 +113,7 @@ html.light body {
   }
 
   .btn-hero {
-    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/50;
+    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)];
   }
 
   .card-feature {
@@ -137,7 +137,7 @@ html.light body {
     @apply text-white;
   }
 
-  .profile-nav-menu-wrap button > svg {
+  .profile-nav-menu-wrap button>svg {
     @apply w-6 h-6;
   }
 
@@ -145,7 +145,7 @@ html.light body {
     @apply relative z-10 flex h-9 w-9 items-center justify-center cursor-pointer rounded-xl border border-cyan-300/50 bg-linear-to-br from-sky-500 to-blue-700 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70;
   }
 
-  .hamburger-trigger > svg {
+  .hamburger-trigger>svg {
     @apply h-5 w-5;
   }
 
@@ -238,6 +238,30 @@ html.light body {
 
   .settings-save-btn {
     @apply w-full py-3 text-base font-semibold rounded-xl flex items-center justify-center;
+  }
+
+  .settings-avatar-edit-modern {
+    @apply flex flex-col items-start gap-4 mb-6;
+  }
+
+  .settings-avatar-container {
+    @apply relative inline-block;
+  }
+
+  .settings-avatar-circle {
+    @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
+  }
+
+  .settings-avatar-img-modern {
+    @apply w-full h-full rounded-full object-cover;
+  }
+
+  .settings-edit-btn-modern {
+    @apply absolute bottom-0 left-0 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 flex items-center gap-1.5 text-xs font-semibold text-white shadow-lg hover:bg-slate-700 transition-colors cursor-pointer;
+  }
+
+  .settings-edit-icon {
+    @apply w-3.5 h-3.5;
   }
 
   .settings-page-title h1 {
@@ -581,23 +605,19 @@ html.light body {
   }
 
   .icon-cyan {
-    filter: brightness(0) saturate(100%) invert(78%) sepia(39%) saturate(6167%)
-      hue-rotate(144deg) brightness(98%) contrast(92%);
+    filter: brightness(0) saturate(100%) invert(78%) sepia(39%) saturate(6167%) hue-rotate(144deg) brightness(98%) contrast(92%);
   }
 
   .icon-rose {
-    filter: brightness(0) saturate(100%) invert(66%) sepia(44%) saturate(4833%)
-      hue-rotate(316deg) brightness(99%) contrast(98%);
+    filter: brightness(0) saturate(100%) invert(66%) sepia(44%) saturate(4833%) hue-rotate(316deg) brightness(99%) contrast(98%);
   }
 
   .icon-emerald {
-    filter: brightness(0) saturate(100%) invert(73%) sepia(23%) saturate(1408%)
-      hue-rotate(103deg) brightness(94%) contrast(92%);
+    filter: brightness(0) saturate(100%) invert(73%) sepia(23%) saturate(1408%) hue-rotate(103deg) brightness(94%) contrast(92%);
   }
 
   .icon-blue {
-    filter: brightness(0) saturate(100%) invert(46%) sepia(95%) saturate(1279%)
-      hue-rotate(203deg) brightness(96%) contrast(93%);
+    filter: brightness(0) saturate(100%) invert(46%) sepia(95%) saturate(1279%) hue-rotate(203deg) brightness(96%) contrast(93%);
   }
 
   .icon-white {
@@ -654,7 +674,8 @@ html.light body {
 }
 
 .light .profile-nav-arrow {
-  filter: brightness(0); /* makes it black */
+  filter: brightness(0);
+  /* makes it black */
 }
 
 .light .profile-nav-icon.icon-cyan {
@@ -827,28 +848,23 @@ html.light body {
 }
 
 .light .icon-cyan {
-  filter: brightness(0) saturate(100%) invert(37%) sepia(81%) saturate(2183%)
-    hue-rotate(190deg) brightness(91%) contrast(92%);
+  filter: brightness(0) saturate(100%) invert(37%) sepia(81%) saturate(2183%) hue-rotate(190deg) brightness(91%) contrast(92%);
 }
 
 .light .icon-rose {
-  filter: brightness(0) saturate(100%) invert(34%) sepia(74%) saturate(2096%)
-    hue-rotate(324deg) brightness(99%) contrast(91%);
+  filter: brightness(0) saturate(100%) invert(34%) sepia(74%) saturate(2096%) hue-rotate(324deg) brightness(99%) contrast(91%);
 }
 
 .light .icon-emerald {
-  filter: brightness(0) saturate(100%) invert(42%) sepia(34%) saturate(1169%)
-    hue-rotate(108deg) brightness(92%) contrast(92%);
+  filter: brightness(0) saturate(100%) invert(42%) sepia(34%) saturate(1169%) hue-rotate(108deg) brightness(92%) contrast(92%);
 }
 
 .light .icon-blue {
-  filter: brightness(0) saturate(100%) invert(33%) sepia(91%) saturate(2097%)
-    hue-rotate(212deg) brightness(93%) contrast(94%);
+  filter: brightness(0) saturate(100%) invert(33%) sepia(91%) saturate(2097%) hue-rotate(212deg) brightness(93%) contrast(94%);
 }
 
 .light .icon-violet {
-  filter: brightness(0) saturate(100%) invert(28%) sepia(72%) saturate(2045%)
-    hue-rotate(244deg) brightness(92%) contrast(91%);
+  filter: brightness(0) saturate(100%) invert(28%) sepia(72%) saturate(2045%) hue-rotate(244deg) brightness(92%) contrast(91%);
 }
 
 /* ─── Tailwind Overrides ─── */
@@ -890,12 +906,15 @@ html.light body {
     transform: translateY(12px) rotate(-8deg);
     opacity: 0;
   }
+
   20% {
     opacity: 0.5;
   }
+
   80% {
     opacity: 0.35;
   }
+
   100% {
     transform: translateY(-140px) rotate(10deg);
     opacity: 0;
