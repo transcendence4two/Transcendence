@@ -111,7 +111,7 @@ html.light body {
   }
 
   .btn-hero {
-    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-cyan-500/50;
+    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)];
   }
 
   .card-feature {
@@ -139,7 +139,7 @@ html.light body {
   }
 
   .hamburger-trigger {
-    @apply relative z-10 flex h-9 w-9 items-center justify-center cursor-pointer rounded-xl border border-cyan-300/50 bg-linear-to-br from-sky-500 to-blue-700 text-white shadow-[0_8px_16px_-10px_rgba(14, 165, 233, 0.85)] hover:shadow-[0_12px_20px_-12px_rgba(14, 165, 233, 0.95)] transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70;
+    @apply relative z-10 flex h-9 w-9 items-center justify-center cursor-pointer rounded-xl border border-cyan-300/50 bg-linear-to-br from-sky-500 to-blue-700 text-white shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70;
   }
 
   .hamburger-trigger>svg {
@@ -244,11 +244,11 @@ html.light body {
   }
 
   .settings-avatar-circle {
-    @apply w-32 h-32 rounded-full border-4 border-slate-700/50 object-cover shadow-xl overflow-hidden;
+    @apply w-20 h-20 rounded-full bg-linear-to-r from-cyan-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg;
   }
 
   .settings-avatar-img-modern {
-    @apply w-full h-full object-cover;
+    @apply w-full h-full rounded-full object-cover;
   }
 
   .settings-edit-btn-modern {
@@ -342,7 +342,7 @@ html.light body {
   }
 
   .profile-nav-btn {
-    @apply inline-flex h-9 w-9 mr-0.5 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white cursor-pointer shadow-[0_8px_16px_-10px_rgba(14, 165, 233, 0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14, 165, 233, 0.95)] transition-all;
+    @apply inline-flex h-9 w-9 mr-0.5 items-center justify-center rounded-xl border border-cyan-400/60 bg-linear-to-br from-sky-500 to-blue-600 text-white cursor-pointer shadow-[0_8px_16px_-10px_rgba(14,165,233,0.85)] hover:brightness-110 hover:shadow-[0_12px_20px_-12px_rgba(14,165,233,0.95)] transition-all;
   }
 
   .profile-nav-title {
@@ -385,7 +385,7 @@ html.light body {
   }
 
   .help-fab {
-    @apply fixed right-4 bottom-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_4px_14px_rgba(0, 0, 0, 0.45)] transition-colors cursor-pointer;
+    @apply fixed right-4 bottom-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[0_4px_14px_rgba(0,0,0,0.45)] transition-colors cursor-pointer;
     background-color: #2d3139;
     border-color: #59606b;
   }

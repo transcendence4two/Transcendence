@@ -44,6 +44,7 @@ const ProfileSettingsPage = () => {
   const [confirmPasswordError, setConfirmPasswordError] = useState<
     string | null
   >(null);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -53,6 +54,12 @@ const ProfileSettingsPage = () => {
   }, [user, navigate]);
 
   if (!user) return null;
+
+  const initials = user.username
+    .split(/[\s_-]/)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("")
+    .slice(0, 2);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,8 +181,7 @@ const ProfileSettingsPage = () => {
     }
   };
 
-  const currentAvatarUrl =
-    tempPreviewUrl || user.profileImageUrl || "/default-avatar.png";
+  const avatarImageUrl = tempPreviewUrl || (user?.profileImageUrl ?? "").trim();
 
   return (
     <div className="container-main">
@@ -191,18 +197,20 @@ const ProfileSettingsPage = () => {
               </header>
 
               <form onSubmit={handleSave} className="settings-form">
-                <div className="settings-avatar-edit-modern">
+                <div className="flex flex-col items-center sm:items-start gap-4 mb-6">
                   <div className="settings-avatar-container">
                     <div className="settings-avatar-circle">
-                      <img
-                        src={currentAvatarUrl}
-                        alt="Profile Preview"
-                        className="settings-avatar-img-modern"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src =
-                            "/default-avatar.png";
-                        }}
-                      />
+                      {avatarImageUrl && !avatarLoadError ? (
+                        <img
+                          src={avatarImageUrl}
+                          alt={`Avatar of ${user?.username}`}
+                          className="settings-avatar-img-modern"
+                          onLoad={() => setAvatarLoadError(false)}
+                          onError={() => setAvatarLoadError(true)}
+                        />
+                      ) : (
+                        initials || "JG"
+                      )}
                     </div>
                     <label
                       htmlFor="avatar-upload"
