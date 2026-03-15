@@ -6,12 +6,15 @@ from src.domain.exceptions import (
     DatabaseError,
     DomainError,
     InvalidCredentialsError,
+    InvalidDeleteConfirmationError,
     InvalidOtpError,
     OAuthError,
     TokenExpiredError,
     TokenInvalidError,
     TokenMissingError,
+    UnauthorizedActionError,
     UserAlreadyExistsError,
+    UserNotFoundError,
 )
 
 logger = structlog.get_logger()
@@ -19,6 +22,9 @@ logger = structlog.get_logger()
 
 DOMAIN_ERROR_MAP: dict[type[DomainError], tuple[int, str]] = {
     UserAlreadyExistsError: (409, "USER_ALREADY_EXISTS"),
+    UserNotFoundError: (404, "USER_NOT_FOUND"),
+    UnauthorizedActionError: (403, "UNAUTHORIZED_ACTION"),
+    InvalidDeleteConfirmationError: (400, "INVALID_DELETE_CONFIRMATION"),
     InvalidCredentialsError: (401, "INVALID_CREDENTIALS"),
     InvalidOtpError: (401, "INVALID_OTP"),
     OAuthError: (400, "OAUTH_ERROR"),

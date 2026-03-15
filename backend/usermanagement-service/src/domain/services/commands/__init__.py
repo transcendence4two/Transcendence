@@ -1,4 +1,5 @@
 from src.domain.services.commands.base import Command
+from src.domain.services.commands.delete_user_profile import DeleteUserProfileCommand
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
 )
@@ -9,6 +10,7 @@ from src.domain.services.commands.verify_two_factor import VerifyTwoFactorComman
 
 __all__ = [
     "Command",
+    "DeleteUserProfileCommand",
     "RegisterUserCommand",
     "GetUserProfileCommand",
     "GetPaginatedUserProfilesCommand",

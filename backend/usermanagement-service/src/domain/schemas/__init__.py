@@ -1,4 +1,5 @@
 from .user import (
+    DeleteUserRequest,
     Login2FAResponse,
     LoginRequest,
     LoginResponse,
@@ -7,6 +8,7 @@ from .user import (
 )
 
 __all__ = [
+    "DeleteUserRequest",
     "UserRegisterRequest",
     "UserResponse",
     "LoginRequest",
