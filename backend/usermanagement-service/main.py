@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from shared import configure_logging, logging_middleware, request_context_middleware
 
 from src.controller import auth as auth_controller
+from src.controller import internal as internal_controller
 from src.controller import user as user_controller
 from src.core.exception_handlers import (
     app_exception_handler,
@@ -65,6 +66,7 @@ app.middleware("http")(request_context_middleware())
 # Routes
 app.include_router(user_controller.router, prefix="/users", tags=["users"])
 app.include_router(auth_controller.router, prefix="/auth", tags=["auth"])
+app.include_router(internal_controller.router, prefix="/internal", tags=["internal"])
 
 
 @app.get("/health")

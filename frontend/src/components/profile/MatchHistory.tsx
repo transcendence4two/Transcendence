@@ -17,17 +17,17 @@ type MatchHistoryProps = {
 const fallbackMatches: MatchHistoryItem[] = [
   {
     result: "win",
-    opponent: { username: "noob", score: 1 },
-    player: { score: 3 },
+    opponent: { username: "John Doe", score: 1 },
+    player: { score: 2 },
   },
   {
     result: "win",
-    opponent: { username: "noob", score: 0 },
-    player: { score: 3 },
+    opponent: { username: "Jane Smith", score: 0 },
+    player: { score: 2 },
   },
   {
     result: "loss",
-    opponent: { username: "noob", score: 3 },
+    opponent: { username: "Travis Scott", score: 2 },
     player: { score: 2 },
   },
 ];

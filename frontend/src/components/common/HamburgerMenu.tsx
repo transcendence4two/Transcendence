@@ -19,55 +19,81 @@ interface MenuItem {
 
 const PUBLIC_PATHS = ["/", "/register", "/login"];
 
-const handleLogout = () => {
+const handleLogout = async () => {
+  const token = localStorage.getItem("access_token");
+
+  if (token) {
+    await fetch("/api/users/presence/offline", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      keepalive: true,
+    }).catch(() => {
+    });
+  }
+
   localStorage.removeItem("access_token");
   localStorage.removeItem("temp_token");
   localStorage.removeItem("user");
   window.location.href = "/";
 };
 
-const menuItems: MenuItem[] = [
-  {
-    label: "Home",
-    href: "/",
-    icon: <HomeIcon className="w-5 h-5" />,
-    authRequired: false,
-  },
-  {
-    label: "Profile",
-    href: "/profile",
-    icon: <UserIcon className="w-5 h-5" />,
-    authRequired: true,
-  },
-  {
-    label: "Friends",
-    href: "/friends",
-    icon: <UsersIcon className="w-5 h-5" />,
-    authRequired: true,
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: <CogIcon className="w-5 h-5" />,
-    authRequired: true,
-  },
-  {
-    label: "Logout",
-    onClick: handleLogout,
-    icon: <LogoutIcon className="w-5 h-5" />,
-    danger: true,
-    authRequired: true,
-  },
-];
-
 const HamburgerMenu = () => {
   const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn] = useState(() => !!localStorage.getItem("access_token"));
+  const [profileHref] = useState(() => {
+    const userData = localStorage.getItem("user");
+    if (!userData) return "/profile";
+
+    try {
+      const parsed = JSON.parse(userData) as { id?: string };
+      if (!parsed.id) return "/profile";
+      return `/profile?&id=${encodeURIComponent(parsed.id)}`;
+    } catch {
+      return "/profile";
+    }
+  });
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const menuItems: MenuItem[] = [
+    {
+      label: "Home",
+      href: "/",
+      icon: <HomeIcon className="w-5 h-5" />,
+      authRequired: false,
+    },
+    {
+      label: "Profile",
+      href: profileHref,
+      icon: <UserIcon className="w-5 h-5" />,
+      authRequired: true,
+    },
+    {
+      label: "Friends",
+      href: "/friends",
+      icon: <UsersIcon className="w-5 h-5" />,
+      authRequired: true,
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: <CogIcon className="w-5 h-5" />,
+      authRequired: true,
+    },
+    {
+      label: "Logout",
+      onClick: () => {
+        void handleLogout();
+      },
+      icon: <LogoutIcon className="w-5 h-5" />,
+      danger: true,
+      authRequired: true,
+    },
+  ];
+
   const isPublicPage = PUBLIC_PATHS.includes(pathname);
-  const isHomePrivate = pathname === "/home" && isLoggedIn;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,9 +121,8 @@ const HamburgerMenu = () => {
     (item) => !item.authRequired || isLoggedIn,
   );
 
-  const triggerClass = isHomePrivate
-    ? "hamburger-trigger in-[.light]:bg-white in-[.light]:from-white in-[.light]:to-white in-[.light]:border-gray-300 in-[.light]:text-gray-700 in-[.light]:hover:text-gray-500 in-[.light]:hover:brightness-98 in-[.light]:shadow-none"
-    : "p-2 rounded-lg hover:bg-gray-700/50 in-[.light]:hover:bg-gray-200 transition-colors z-10";
+  const triggerClass =
+    "hamburger-trigger in-[.light]:bg-white in-[.light]:from-white in-[.light]:to-white in-[.light]:border-gray-300 in-[.light]:text-gray-700 in-[.light]:hover:text-gray-500 in-[.light]:hover:brightness-98 in-[.light]:shadow-none";
 
   return (
     <div ref={menuRef} className="relative">
