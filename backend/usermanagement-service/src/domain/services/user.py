@@ -16,6 +16,7 @@ from src.domain.schemas.user import (
     UserResponse,
     Verify2FARequest,
 )
+from src.domain.services.commands.delete_user_profile import DeleteUserProfileCommand
 from src.domain.services.commands.get_paginated_users import (
     GetPaginatedUserProfilesCommand,
 )
@@ -85,6 +86,10 @@ class UserService(UserRegister, UserOperations):
             self.password_service,
         )
         return await command.execute()
+
+    async def delete_user_profile(self, user_id: str, confirmation_text: str) -> None:
+        command = DeleteUserProfileCommand(self.session, user_id, confirmation_text)
+        await command.execute()
 
     async def upload_avatar(self, user_id: str, file_bytes: bytes, filename: str) -> User:
         user = await self.get_user_profile(user_id)

@@ -39,6 +39,10 @@ class UnauthorizedActionError(DomainError):
     """User not authorized to perform this action."""
 
 
+class InvalidDeleteConfirmationError(DomainError):
+    """Delete confirmation phrase is invalid."""
+
+
 class InvalidCredentialsError(DomainError):
     """Invalid email or password."""
 

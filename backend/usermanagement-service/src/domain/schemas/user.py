@@ -49,6 +49,12 @@ class UserProfileUpdateRequest(BaseModel):
     password: str | None = Field(None, min_length=6, max_length=255)
 
 
+class DeleteUserRequest(BaseModel):
+    """Schema for user delete confirmation."""
+
+    confirmation_text: str = Field(..., min_length=1)
+
+
 T = TypeVar("T")
 
 

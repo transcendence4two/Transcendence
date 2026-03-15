@@ -163,6 +163,7 @@ class MockSession:
         self.conflicting_user = conflicting_user
         self.executed_stmts = []
         self.added_entities = []
+        self.deleted_entities = []
         self.committed = False
         self.query_count = 0
         self._is_pagination = users_to_return is not None
@@ -184,6 +185,9 @@ class MockSession:
 
     def add(self, entity):
         self.added_entities.append(entity)
+
+    async def delete(self, entity):
+        self.deleted_entities.append(entity)
 
     async def commit(self):
         self.committed = True
