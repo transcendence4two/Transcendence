@@ -24,6 +24,7 @@ type FriendRequest = {
   username: string;
   initials: string;
   color: string;
+  avatarUrl?: string;
 };
 
 type Friend = {
@@ -33,6 +34,7 @@ type Friend = {
   initials: string;
   color: string;
   online: boolean;
+  avatarUrl?: string;
 };
 
 type ApiPaginatedResponse<T> = {
@@ -61,6 +63,7 @@ type ApiUserProfile = {
   id: string;
   username: string;
   email: string;
+  avatar_url?: string | null;
 };
 
 type ApiUserPresenceResponse = {
@@ -264,30 +267,37 @@ const FriendsPage = () => {
         userIds.map(async (id) => {
           try {
             const profile = await getUserProfileById(id);
-            return [id, profile.username] as const;
+            return [id, { username: profile.username, avatarUrl: profile.avatar_url ?? undefined }] as const;
           } catch {
-            return [id, `user-${id.slice(0, 8)}`] as const;
+            return [id, { username: `user-${id.slice(0, 8)}` }] as const;
           }
         }),
       );
 
-      const usernamesById = new Map<string, string>(users);
+      const userDataById = new Map<string, { username: string; avatarUrl?: string }>(users);
 
       const mappedRequests: FriendRequest[] = requestsData.items.map((item) => {
-        const username = usernamesById.get(item.requesterId) ?? "unknown";
+        const userData = userDataById.get(item.requesterId);
+        const username = userData?.username ?? "unknown";
+        const avatarUrl = userData?.avatarUrl;
+
         return {
           id: item.id,
           userId: item.requesterId,
           username,
           initials: getInitials(username),
           color: getColorFromSeed(username),
+          avatarUrl,
         };
       });
 
       const mappedFriends: Friend[] = friendsData.items.map((item) => {
         const friendUserId =
           item.userId1 === user.id ? item.userId2 : item.userId1;
-        const username = usernamesById.get(friendUserId) ?? "unknown";
+        const userData = userDataById.get(friendUserId);
+        const username = userData?.username ?? "unknown";
+        const avatarUrl = userData?.avatarUrl;
+
         return {
           id: item.id,
           userId: friendUserId,
@@ -295,6 +305,7 @@ const FriendsPage = () => {
           initials: getInitials(username),
           color: getColorFromSeed(username),
           online: onlineByUserId.get(friendUserId) ?? false,
+          avatarUrl,
         };
       });
 
@@ -469,9 +480,20 @@ const FriendsPage = () => {
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`${req.color} w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm`}
+                            className={`${req.color} w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden`}
                           >
-                            {req.initials}
+                            {req.avatarUrl ? (
+                              <img
+                                src={req.avatarUrl}
+                                alt={`Avatar of ${req.username}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              req.initials
+                            )}
                           </div>
                           <div>
                             <p className="friends-page-username">
@@ -532,9 +554,20 @@ const FriendsPage = () => {
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <div
-                              className={`${friend.color} w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm`}
+                              className={`${friend.color} w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden`}
                             >
-                              {friend.initials}
+                              {friend.avatarUrl ? (
+                                <img
+                                  src={friend.avatarUrl}
+                                  alt={`Avatar of ${friend.username}`}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                friend.initials
+                              )}
                             </div>
                             <span
                               className={`friends-page-mini-circle-status absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0d1b2a] ${friend.online ? "bg-green-500" : "bg-gray-500"}`}
