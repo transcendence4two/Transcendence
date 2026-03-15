@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     MINIO_ROOT_PASSWORD: str = "supersecret123"
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_PUBLIC_URL: str = "http://localhost:9000"
+    MINIO_BUCKET_NAME: str = "avatars"
 
     class Config:
         env_file = find_root_env()

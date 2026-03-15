@@ -23,7 +23,7 @@ class MockStorageService:
     def __init__(self):
         self.uploaded_files = {}
 
-    def upload_avatar(self, file_content: bytes, original_filename: str) -> str:
+    async def upload_avatar(self, file_content: bytes, original_filename: str) -> str:
         url = f"http://mock-minio/avatars/{original_filename}"
         self.uploaded_files[original_filename] = {"content": file_content, "url": url}
         return url

@@ -64,12 +64,27 @@ const ProfileSettingsPage = () => {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size must be less than 5MB");
+        return;
+      }
+
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!allowedTypes.includes(file.type)) {
+        setError("Invalid file type. Supported: JPG, PNG, GIF");
+        return;
+      }
+
+      setError(null);
       setTempImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setTempPreviewUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+
+      const url = URL.createObjectURL(file);
+
+      if (tempPreviewUrl && tempPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(tempPreviewUrl);
+      }
+
+      setTempPreviewUrl(url);
     }
   };
 
@@ -170,6 +185,9 @@ const ProfileSettingsPage = () => {
       }
 
       setTempImageFile(null);
+      if (tempPreviewUrl && tempPreviewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(tempPreviewUrl);
+      }
       setTempPreviewUrl("");
       setPassword("");
       setConfirmPassword("");

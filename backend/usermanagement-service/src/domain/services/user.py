@@ -29,6 +29,7 @@ from src.domain.services.commands.verify_two_factor import VerifyTwoFactorComman
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
+from src.domain.exceptions import UserNotFoundError
 from src.infrastructure.event_publisher import EventPublisher
 from src.infrastructure.storage import StorageService
 
@@ -96,11 +97,9 @@ class UserService(UserRegister, UserOperations):
     ) -> User:
         user = await self.get_user_profile(user_id)
         if not user:
-            from src.domain.exceptions import UserNotFoundError
-
             raise UserNotFoundError(f"User with id {user_id} not found")
 
-        avatar_url = self.storage_service.upload_avatar(file_bytes, filename)
+        avatar_url = await self.storage_service.upload_avatar(file_bytes, filename)
         user.avatar_url = avatar_url
         self.session.add(user)
         await self.session.commit()
