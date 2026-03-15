@@ -159,7 +159,7 @@ const ProfileSettingsPage = () => {
   return (
     <div className="container-main">
       <main className="content-main">
-        <PageNavbar title="Settings" icon={GearIcon} />
+        <PageNavbar title="Settings" icon={GearIcon} showHamburgerMenu />
 
         <div className="settings-page-content">
           <div className="settings-page-layout">

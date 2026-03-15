@@ -5,7 +5,6 @@ import {
   FriendsIcon,
   UserAddIcon,
   EyeIcon,
-  CombatIcon,
   CheckIcon,
   XIcon,
 } from "../components/icons/Icons";
@@ -62,6 +61,11 @@ type ApiUserProfile = {
   id: string;
   username: string;
   email: string;
+};
+
+type ApiUserPresenceResponse = {
+  user_id: string;
+  online: boolean;
 };
 
 function getInitialUser(): UserData | null {
@@ -186,6 +190,39 @@ const FriendsPage = () => {
     }
   };
 
+  const isUserOnline = async (userId: string): Promise<boolean> => {
+    try {
+      const presenceResponse = await fetch(
+        `/api/users/${userId}/presence`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!presenceResponse.ok) {
+        return false;
+      }
+
+      const presenceData =
+        (await presenceResponse.json()) as ApiUserPresenceResponse;
+      return Boolean(presenceData.online);
+    } catch {
+      return false;
+    }
+  };
+
+  const resolveOnlineStatuses = async (
+    userIds: string[],
+  ): Promise<Map<string, boolean>> => {
+    const statuses = await Promise.all(
+      userIds.map(async (id) => [id, await isUserOnline(id)] as const),
+    );
+
+    return new Map<string, boolean>(statuses);
+  };
+
   const loadFriendsData = async () => {
     if (!user) return;
 
@@ -221,6 +258,8 @@ const FriendsPage = () => {
       );
       const userIds = Array.from(new Set([...requesterIds, ...friendUserIds]));
 
+      const onlineByUserId = await resolveOnlineStatuses(friendUserIds);
+
       const users = await Promise.all(
         userIds.map(async (id) => {
           try {
@@ -255,7 +294,7 @@ const FriendsPage = () => {
           username,
           initials: getInitials(username),
           color: getColorFromSeed(username),
-          online: item.active,
+          online: onlineByUserId.get(friendUserId) ?? false,
         };
       });
 
@@ -370,7 +409,7 @@ const FriendsPage = () => {
   return (
     <div className="container-main">
       <main className="content-main">
-        <PageNavbar icon={FriendsIcon} title="Friends" />
+        <PageNavbar icon={FriendsIcon} title="Friends" showHamburgerMenu />
 
         <div className="friends-page-content">
           <div className="friends-page-layout">
@@ -514,15 +553,12 @@ const FriendsPage = () => {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            disabled={!friend.online}
-                            className="friends-page-challenge-btn"
-                          >
-                            <CombatIcon className="w-4 h-4" />
-                            Challenge
-                          </button>
-                          <button
                             className="friends-page-view-profile-btn"
-                            onClick={() => navigate("/profile")}
+                            onClick={() =>
+                              navigate(
+                                `/profile?&id=${encodeURIComponent(friend.userId)}`,
+                              )
+                            }
                           >
                             <EyeIcon className="w-4 h-4" />
                             View Profile
