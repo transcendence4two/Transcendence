@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.settings import settings as app_settings
 from src.domain.contracts import UserOperations, UserRegister
+from src.domain.exceptions import UserNotFoundError
 from src.domain.models.user import User
 from src.domain.schemas.user import (
     Login2FAResponse,
@@ -29,7 +30,6 @@ from src.domain.services.commands.verify_two_factor import VerifyTwoFactorComman
 from src.domain.services.otp import OtpService
 from src.domain.services.password import PasswordService
 from src.domain.services.token import TokenService
-from src.domain.exceptions import UserNotFoundError
 from src.infrastructure.event_publisher import EventPublisher
 from src.infrastructure.storage import StorageService
 

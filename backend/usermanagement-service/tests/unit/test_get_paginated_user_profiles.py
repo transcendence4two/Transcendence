@@ -181,6 +181,7 @@ class TestUserServiceGetPaginatedUserProfiles:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         users = [
             User(
@@ -206,6 +207,7 @@ class TestUserServiceGetPaginatedUserProfiles:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_paginated_user_profiles(page=1, page_size=10)
 
@@ -220,6 +222,7 @@ class TestUserServiceGetPaginatedUserProfiles:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         users = []
         session = mock_session(users_to_return=users, total_count=50)
@@ -230,6 +233,7 @@ class TestUserServiceGetPaginatedUserProfiles:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_paginated_user_profiles(page=3, page_size=20)
 
@@ -244,6 +248,7 @@ class TestUserServiceGetPaginatedUserProfiles:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         session = mock_session(users_to_return=[], total_count=0)
 
@@ -253,6 +258,7 @@ class TestUserServiceGetPaginatedUserProfiles:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_paginated_user_profiles()
 
@@ -267,6 +273,7 @@ class TestUserServiceGetPaginatedUserProfiles:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         users = [
             User(
@@ -285,6 +292,7 @@ class TestUserServiceGetPaginatedUserProfiles:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         result = await service.get_paginated_user_profiles()
 

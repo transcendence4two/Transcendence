@@ -228,6 +228,7 @@ class TestUserServiceUpdateProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="service-id-123",
@@ -244,6 +245,7 @@ class TestUserServiceUpdateProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         payload = UserProfileUpdateRequest(username="newname")
         result = await service.update_user_profile("service-id-123", payload)
@@ -258,6 +260,7 @@ class TestUserServiceUpdateProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         session = mock_session(user_to_return=None)
 
@@ -267,6 +270,7 @@ class TestUserServiceUpdateProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         payload = UserProfileUpdateRequest(username="newname")
 
@@ -280,6 +284,7 @@ class TestUserServiceUpdateProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="email-update-id",
@@ -296,6 +301,7 @@ class TestUserServiceUpdateProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         payload = UserProfileUpdateRequest(email="new@example.com")
         result = await service.update_user_profile("email-update-id", payload)
@@ -310,6 +316,7 @@ class TestUserServiceUpdateProfile:
         mock_token_service,
         mock_otp_service,
         mock_event_publisher,
+        mock_storage_service,
     ):
         user = User(
             id="password-update-id",
@@ -326,6 +333,7 @@ class TestUserServiceUpdateProfile:
             mock_token_service,
             mock_otp_service,
             mock_event_publisher,
+            mock_storage_service,
         )
         payload = UserProfileUpdateRequest(password="newpassword123")
         result = await service.update_user_profile("password-update-id", payload)
