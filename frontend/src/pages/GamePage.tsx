@@ -33,7 +33,6 @@ export default function GamePage() {
         gameState,
         gameOver,
         roundOver,
-        error,
         playerId,
         winningLine,
         connect,
@@ -221,8 +220,6 @@ export default function GamePage() {
                             )}
 
                             <div className="game-status">{getStatusText()}</div>
-
-                            {error && <div className="game-error">{error}</div>}
 
                             {/* Opponent disconnected banner */}
                             {opponentDisconnected && !gameOver && (
