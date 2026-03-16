@@ -4,7 +4,6 @@ import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
 import GameBoard from '../components/game/GameBoard'
 import { useGameSocket } from '../hooks/useGameSocket'
-import '../components/game/game.css'
 
 const EMPTY_BOARD = [['', '', ''], ['', '', ''], ['', '', '']]
 
@@ -34,8 +33,6 @@ export default function GamePage() {
         gameState,
         gameOver,
         roundOver,
-        error,
-        events,
         playerId,
         winningLine,
         connect,
@@ -43,11 +40,43 @@ export default function GamePage() {
         disconnect,
     } = useGameSocket(sessionId || '')
 
+    const [userMap, setUserMap] = useState<Record<string, { username: string; avatarUrl?: string }>>({})
+
     useEffect(() => {
         if (userId && sessionId && !connected) {
             connect(userId)
         }
     }, [userId, sessionId, connected, connect])
+
+    useEffect(() => {
+        const fetchUsernames = async () => {
+            const players = gameState?.players || []
+            const token = localStorage.getItem('access_token')
+
+            for (const p of players) {
+                if (p.id && !userMap[p.id]) {
+                    try {
+                        const res = await fetch(`/api/users/${p.id}`, {
+                            headers: token ? { Authorization: `Bearer ${token}` } : {},
+                        })
+                        if (res.ok) {
+                            const data = await res.json()
+                            setUserMap((prev) => ({
+                                ...prev,
+                                [p.id]: {
+                                    username: data.username,
+                                    avatarUrl: data.avatar_url
+                                }
+                            }))
+                        }
+                    } catch {
+                        continue
+                    }
+                }
+            }
+        }
+        fetchUsernames()
+    }, [gameState?.players]) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!gameOver) return
@@ -78,13 +107,15 @@ export default function GamePage() {
         const player = gameState?.players?.[index]
         if (!player) return `Player ${index + 1}`
         const isMe = player.id === playerId
-        return isMe ? 'You' : 'Opponent'
+        const pName = userMap[player.id]?.username || (isMe ? 'You' : 'Opponent')
+        return pName
     }
 
     const getStatusText = () => {
         if (gameOver) {
             if (gameOver.winner_id === playerId) return '🎉 You won the match!'
-            return `💀 You lost the match! (${gameOver.reason})`
+            const winnerName = gameOver.winner_id ? (userMap[gameOver.winner_id]?.username || 'Opponent') : 'Opponent'
+            return `💀 ${winnerName} won the match! (${gameOver.reason})`
         }
         if (roundOver) {
             if (roundOver.winner_id === playerId) return '✅ You won this round!'
@@ -94,7 +125,9 @@ export default function GamePage() {
         if (opponentDisconnected) return '⚠️ Waiting for opponent to reconnect...'
         if (opponentReconnected) return '✅ Opponent reconnected!'
         if (isMyTurn) return '🟢 Your turn'
-        return "🔴 Opponent's turn"
+        const oppName = gameState?.players?.find((p) => p.id !== playerId)?.id
+        const displayOppName = oppName ? userMap[oppName]?.username || 'Opponent' : 'Opponent'
+        return `🔴 ${displayOppName}'s turn`
     }
 
     const handleDisconnect = () => {
@@ -133,9 +166,38 @@ export default function GamePage() {
                         </div>
                     ) : connected ? (
                         <>
+                            {/* Avatars Container */}
+                            <div className="game-avatars-container">
+                                {gameState?.players?.map((p, index) => {
+                                    const user = userMap[p.id]
+                                    const isMe = p.id === playerId
+                                    const displayName = user?.username || (isMe ? 'You' : `Player ${index + 1}`)
+
+                                    return (
+                                        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                            {index === 1 && <span className="game-vs-badge">VS</span>}
+                                            <div className="game-avatar-wrapper">
+                                                <div className="game-avatar-circle">
+                                                    {user?.avatarUrl ? (
+                                                        <img src={user.avatarUrl} alt={displayName} className="game-avatar-image" />
+                                                    ) : (
+                                                        displayName.substring(0, 2).toUpperCase()
+                                                    )}
+                                                </div>
+                                                <span className="game-avatar-name" title={displayName}>
+                                                    {displayName}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+
                             <div className="game-info">
                                 <span className="game-badge game-badge--connected">Connected</span>
-                                <span className="game-badge">Player: <strong>{playerId}</strong></span>
+                                {playerId && (
+                                    <span className="game-badge">Player: <strong>{userMap[playerId]?.username || 'You'}</strong></span>
+                                )}
                                 {mySymbol && (
                                     <span className={`game-badge game-badge--${mySymbol.toLowerCase()}`}>
                                         Symbol: {mySymbol}
@@ -159,8 +221,6 @@ export default function GamePage() {
                             )}
 
                             <div className="game-status">{getStatusText()}</div>
-
-                            {error && <div className="game-error">{error}</div>}
 
                             {/* Opponent disconnected banner */}
                             {opponentDisconnected && !gameOver && (
@@ -204,18 +264,6 @@ export default function GamePage() {
                                     ? `Returning to Dashboard (${redirectCountdown}s)...`
                                     : 'Leave Game'}
                             </button>
-
-                            <details className="game-event-log">
-                                <summary>Event Log ({events.length})</summary>
-                                <div className="game-events">
-                                    {events.map((ev, i) => (
-                                        <div key={i} className="game-event">
-                                            <span className="game-event-type">[{ev.type}]</span>
-                                            <span>{ev.message || JSON.stringify(ev.data)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </details>
                         </>
                     ) : null}
                 </div>

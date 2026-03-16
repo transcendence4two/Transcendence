@@ -1,7 +1,16 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    text,
+)
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()

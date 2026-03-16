@@ -10,7 +10,7 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
-import HelpFab from "../components/common/HelpFab";
+import Footer from "../components/layout/Footer";
 
 type UserData = {
   id: string;
@@ -604,9 +604,9 @@ const FriendsPage = () => {
               </section>
             </div>
           </div>
-          <HelpFab />
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

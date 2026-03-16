@@ -1,4 +1,5 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, useRef, type ChangeEvent } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 import { GearIcon, UserIconUntitledUi } from "../components/icons/Icons";
@@ -10,6 +11,7 @@ interface UserData {
   username: string;
   email: string;
   avatar_url?: string;
+  enable_2fa?: boolean;
 }
 
 function getInitialUser(): UserData | null {
@@ -35,6 +37,10 @@ const ProfileSettingsPage = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [enable2FA, setEnable2FA] = useState(
+    () => getInitialUser()?.enable_2fa ?? false,
+  );
+
   const [tempImageFile, setTempImageFile] = useState<File | null>(null);
   const [tempPreviewUrl, setTempPreviewUrl] = useState<string>("");
 
@@ -47,11 +53,35 @@ const ProfileSettingsPage = () => {
   const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
+
+  const DELETE_PHRASE = "Yes, delete my user";
+
   useEffect(() => {
     if (!user) {
       navigate("/login", { replace: true });
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!showDeleteModal) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowDeleteModal(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showDeleteModal]);
 
   if (!user) return null;
 
@@ -97,9 +127,10 @@ const ProfileSettingsPage = () => {
     setSuccess(false);
 
     const token = localStorage.getItem("access_token");
-    const body: Record<string, string> = {};
+    const body: Record<string, string | boolean> = {};
     if (username !== user.username) body.username = username;
     if (email !== user.email) body.email = email;
+    if (enable2FA !== (user.enable_2fa ?? false)) body.enable_2fa = enable2FA;
     if (password.length > 0 || confirmPassword.length > 0) {
       if (password !== confirmPassword) {
         setConfirmPasswordError("Passwords do not match");
@@ -170,6 +201,7 @@ const ProfileSettingsPage = () => {
           ...user,
           username: updated.username,
           email: updated.email,
+          enable_2fa: updated.enable_2fa,
           avatar_url: currentAvatarUrl,
         };
         localStorage.setItem("user", JSON.stringify(newUserData));
@@ -200,6 +232,107 @@ const ProfileSettingsPage = () => {
 
   const avatarImageUrl = tempPreviewUrl || (user?.avatar_url ?? "").trim();
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== DELETE_PHRASE) return;
+    setDeleting(true);
+    setDeleteError(null);
+    const token = localStorage.getItem("access_token");
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ confirmation_text: DELETE_PHRASE }),
+      });
+      if (!res.ok && res.status !== 204) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.detail || "Failed to delete account.");
+      }
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+      navigate("/login", { replace: true });
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Unexpected error.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (deleteModalRef.current && !deleteModalRef.current.contains(e.target as Node)) {
+      setShowDeleteModal(false);
+    }
+  };
+
+  const deleteModal =
+    showDeleteModal &&
+    createPortal(
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        onClick={handleDeleteBackdropClick}
+      >
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+        <div
+          ref={deleteModalRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+          style={{ width: "100%", maxWidth: "500px", minWidth: "300px" }}
+          className="relative flex flex-col rounded-2xl border border-slate-700/50 in-[.light]:border-gray-200 bg-slate-900 in-[.light]:bg-white shadow-2xl"
+        >
+          <div className="px-6 sm:px-8 py-5 border-b border-slate-700/50 in-[.light]:border-gray-200">
+            <h3
+              id="delete-account-title"
+              className="text-xl font-bold text-white in-[.light]:text-gray-900"
+            >
+              Delete Account
+            </h3>
+          </div>
+
+          <div className="px-6 sm:px-8 py-6 space-y-4 text-slate-300 in-[.light]:text-gray-700">
+            <p>
+              This action is <strong className="text-white in-[.light]:text-gray-900">permanent</strong> and cannot be undone. All your
+              data will be deleted.
+            </p>
+            <p>
+              Type <strong className="text-white in-[.light]:text-gray-900">{DELETE_PHRASE}</strong> to confirm:
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={DELETE_PHRASE}
+              className="settings-input w-full"
+              autoFocus
+            />
+            {deleteError && <p className="settings-error">{deleteError}</p>}
+          </div>
+
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 px-6 sm:px-8 py-5 border-t border-slate-700/50 in-[.light]:border-gray-200 shrink-0">
+            <Button
+              type="button"
+              className="settings-delete-btn"
+              disabled={deleteConfirmText !== DELETE_PHRASE || deleting}
+              onClick={handleDeleteAccount}
+            >
+              {deleting ? "Deleting..." : "Confirm Delete"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="px-5 py-2 text-sm font-medium"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>,
+      document.body,
+    );
+
   return (
     <div className="container-main">
       <main className="content-main">
@@ -214,7 +347,7 @@ const ProfileSettingsPage = () => {
               </header>
 
               <form onSubmit={handleSave} className="settings-form">
-                <div className="flex flex-col items-center sm:items-start gap-4 mb-6">
+                <div className="flex flex-col items-center gap-4 mb-6">
                   <div className="settings-avatar-container">
                     <div className="settings-avatar-circle">
                       {avatarImageUrl && !avatarLoadError ? (
@@ -318,6 +451,26 @@ const ProfileSettingsPage = () => {
                   </p>
                 )}
 
+                <div className="settings-field-group">
+                  <label className="settings-label">Two-Factor Authentication</label>
+                  <div className="flex items-center gap-3 mt-1">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={enable2FA}
+                      onClick={() => setEnable2FA((v) => !v)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enable2FA ? "bg-cyan-500" : "bg-(--border-color)"}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enable2FA ? "translate-x-6" : "translate-x-1"}`}
+                      />
+                    </button>
+                    <span className="settings-hint">
+                      {enable2FA ? "Enabled — OTP required at login" : "Disabled"}
+                    </span>
+                  </div>
+                </div>
+
                 <Button
                   type="submit"
                   disabled={saving}
@@ -326,10 +479,30 @@ const ProfileSettingsPage = () => {
                   {saving ? "Saving..." : "Save Changes"}
                 </Button>
               </form>
+
+              <div className="settings-danger-zone">
+                <h3 className="settings-danger-title">Delete Account</h3>
+                <p className="settings-hint mb-3">
+                  Once you delete your account, there is no going back.
+                </p>
+                <Button
+                  type="button"
+                  className="settings-delete-btn"
+                  onClick={() => {
+                    setShowDeleteModal(true);
+                    setDeleteConfirmText("");
+                    setDeleteError(null);
+                  }}
+                >
+                  Delete Account
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {deleteModal}
     </div>
   );
 };
