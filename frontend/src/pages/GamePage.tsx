@@ -69,7 +69,8 @@ export default function GamePage() {
                                 }
                             }))
                         }
-                    } catch (e) {
+                    } catch {
+                        continue
                     }
                 }
             }
