@@ -22,7 +22,7 @@ Retention times were chosen based on each service's criticality and log access f
 | Service | ILM Policy | Reason |
 |--------|------------|--------|
 | `friends-service` | `transcendence-short` | Friend activity logs are less critical. Short retention avoids unnecessary storage. |
-| `managementuser-service` | `transcendence-medium` | User management logs may be needed for auditing. Medium retention ensures enough history. |
+| `usermanagement-service` | `transcendence-medium` | User management logs may be needed for auditing. Medium retention ensures enough history. |
 | `tournament-service` | `transcendence-long` | Tournament logs are critical for historical analysis and disputes. Long retention required. |
 | `emails-service` | `transcendence-medium` | Email send/failure logs are useful for troubleshooting and auditing. |
 | `game-service` | `transcendence-long` | Game session logs are essential for bug analysis and player behavior tracking. |
@@ -88,11 +88,11 @@ A snapshot policy periodically archives log indices from all services.
 
 ### Indices Included
 
-- `friends-service-*`
-- `managementuser-service-*`
-- `tournament-service-*`
-- `emails-service-*`
-- `game-service-*`
+- `friends-service-logs-*`
+- `usermanagement-service-logs-*`
+- `tournament-service-logs-*`
+- `emails-service-logs-*`
+- `game-service-logs-*`
 
 Snapshots are automatically retained according to the policy configuration, and older snapshots are removed to avoid excessive storage usage.
 
@@ -125,4 +125,4 @@ This mechanism ensures that historical logs remain recoverable even after ILM de
 
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-lifecycle-management.html
-- `Transcendence Logging Guidelines (docs/logging-guidelines.md)
+- [Transcendence Logging Guidelines](docs/logging-guidelines.md)

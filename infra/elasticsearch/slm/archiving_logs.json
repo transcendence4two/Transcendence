@@ -4,11 +4,11 @@
   "repository": "transcendence_local",
   "config": {
     "indices": [
-      "friends-service-*",
-      "managementuser-service-*",
-      "tournament-service-*",
-      "emails-service-*",
-      "game-service-*"
+      "friends-service-logs-*",
+      "usermanagement-service-logs-*",
+      "tournament-service-logs-*",
+      "emails-service-logs-*",
+      "game-service-logs-*"
     ],
     "ignore_unavailable": true
   },

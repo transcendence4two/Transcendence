@@ -23,7 +23,8 @@ services:
       - essnapshots:/snapshots
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     depends_on:
-      - elasticsearch-init
+      elasticsearch-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
