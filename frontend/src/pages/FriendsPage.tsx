@@ -10,7 +10,6 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
-import HelpFab from "../components/common/HelpFab";
 
 type UserData = {
   id: string;
@@ -604,7 +603,6 @@ const FriendsPage = () => {
               </section>
             </div>
           </div>
-          <HelpFab />
         </div>
       </main>
     </div>
