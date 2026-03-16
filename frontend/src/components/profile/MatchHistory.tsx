@@ -34,7 +34,7 @@ const MatchHistory = (props: MatchHistoryProps) => {
   const heading = props.title;
 
   return (
-    <section className={props.className}>
+    <section className={`flex flex-col flex-1 min-h-0 ${props.className ?? ""}`}>
       {heading && <h3 className="profile-section-title text-sm">{heading}</h3>}
       {history.length > 0 ? (
         <dl
