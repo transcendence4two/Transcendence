@@ -481,7 +481,7 @@ const ProfileSettingsPage = () => {
               </form>
 
               <div className="settings-danger-zone">
-                <h3 className="settings-danger-title">Danger Zone</h3>
+                <h3 className="settings-danger-title">Delete Account</h3>
                 <p className="settings-hint mb-3">
                   Once you delete your account, there is no going back.
                 </p>
