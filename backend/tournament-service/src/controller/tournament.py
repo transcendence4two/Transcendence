@@ -120,6 +120,25 @@ async def get_player_stats(
     return PlayerStatsResponse.model_validate(player_stats)
 
 
+@router.get(
+    "/stats/players/{user_id}/matches",
+    response_model=list[MatchRecordSaveResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_player_match_history(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    history = await tournament_service.get_player_match_history(user_id)
+    return [
+        _build_match_record_save_response(
+            match_record=record,
+            match_players=players,
+        )
+        for record, players in history
+    ]
+
+
 @router.post(
     "/matchmaking/leave/{user_id}",
     status_code=status.HTTP_200_OK,
