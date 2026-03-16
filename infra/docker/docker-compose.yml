@@ -1,4 +1,9 @@
 services:
+  elasticsearch-init:
+      image: busybox
+      command: sh -c "chown 1000:0 /snapshots && chmod 775 /snapshots"
+      volumes:
+        - essnapshots:/snapshots
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:9.2.6
@@ -15,7 +20,11 @@ services:
       - transcendence-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
+      - essnapshots:/snapshots
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    depends_on:
+      elasticsearch-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -309,6 +318,7 @@ services:
 
 volumes:
   esdata:
+  essnapshots:
   kibana_data:
   postgres_data:
   minio_data:
