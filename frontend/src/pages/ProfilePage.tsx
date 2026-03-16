@@ -9,6 +9,7 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
+import Footer from "../components/layout/Footer";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
@@ -124,14 +125,22 @@ const ProfilePage = () => {
           return;
         }
 
-        const rawMatches = data;
+        type MatchPlayerRaw = {
+          user_id: string;
+          is_winner: boolean;
+          display_name?: string;
+          score: number;
+        };
+        type MatchRecordRaw = { players?: MatchPlayerRaw[] };
+
+        const rawMatches = data as MatchRecordRaw[];
 
         // Resolve opponent usernames to avoid displaying user_hash_id
         const uniqueOpponentIds = Array.from(
           new Set(
             rawMatches
-              .map((matchData: any) => {
-                const opponents = matchData.players?.find((p: any) => p.user_id !== user.id);
+              .map((matchData) => {
+                const opponents = matchData.players?.find((p) => p.user_id !== user.id);
                 return opponents?.user_id;
               })
               .filter(Boolean) as string[]
@@ -154,16 +163,16 @@ const ProfilePage = () => {
           )
         );
 
-        const history: MatchHistoryItem[] = rawMatches.map((matchData: any) => {
-          const players: any[] = matchData.players || [];
-          const playerSnapshot = players.find((p: any) => p.user_id === user.id);
-          const opponentSnapshot = players.find((p: any) => p.user_id !== user.id);
+        const history: MatchHistoryItem[] = rawMatches.map((matchData) => {
+          const players = matchData.players || [];
+          const playerSnapshot = players.find((p) => p.user_id === user.id);
+          const opponentSnapshot = players.find((p) => p.user_id !== user.id);
 
           const result = (playerSnapshot && playerSnapshot.is_winner) ? "win" : "loss";
           const resolvedUsername = opponentSnapshot?.user_id
             ? opponentMap[opponentSnapshot.user_id]
             : undefined;
-          
+
           return {
             result,
             opponent: {
@@ -278,6 +287,7 @@ const ProfilePage = () => {
 
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

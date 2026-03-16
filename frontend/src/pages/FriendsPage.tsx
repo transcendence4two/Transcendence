@@ -10,6 +10,7 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
+import Footer from "../components/layout/Footer";
 
 type UserData = {
   id: string;
@@ -605,6 +606,7 @@ const FriendsPage = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
