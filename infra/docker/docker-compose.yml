@@ -270,6 +270,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      logstash:
+        condition: service_healthy
 
   minio:
     build:
