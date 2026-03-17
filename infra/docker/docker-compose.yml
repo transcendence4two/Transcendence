@@ -9,15 +9,13 @@ services:
     image: elasticsearch:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     restart: unless-stopped
     networks:
-      - transcendence-network
+      - elk-ingest-network
+      - elk-storage-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
       - essnapshots:/snapshots
@@ -29,7 +27,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -u elastic:${ELASTIC_PASSWORD} http://localhost:9200 >/dev/null || exit 1",
+          "curl -u elastic:${ELASTIC_PASSWORD} http://elasticsearch:9200 >/dev/null || exit 1",
         ]
       interval: 10s
       timeout: 10s
@@ -62,7 +60,7 @@ services:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
     restart: "no"
     networks:
-      - transcendence-network
+      - elk-storage-network
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -72,18 +70,22 @@ services:
     image: elasticsearch:9.2.6
     env_file:
       - ../../.env
-    entrypoint: ["/bin/bash", "/scripts/bootstrap-indices.sh"]
+    entrypoint: ["/bin/bash", "/scripts/bootstrap-elasticsearch.sh"]
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ES_URL=http://elasticsearch:9200
       - ILM_DIR=/scripts/ilm
+      - SLM_DIR=/scripts/slm
     restart: "no"
     networks:
-      - transcendence-network
+      - elk-storage-network
     volumes:
-      - ../scripts/bootstrap-indices.sh:/scripts/bootstrap-indices.sh:ro
+      - ../scripts/bootstrap-elasticsearch.sh:/scripts/bootstrap-elasticsearch.sh:ro
       - ../elasticsearch/ilm:/scripts/ilm:ro
+      - ../elasticsearch/slm:/scripts/slm:ro
     depends_on:
+      elasticsearch:
+        condition: service_healthy
       elasticsearch-setup:
         condition: service_completed_successfully
 
@@ -92,9 +94,6 @@ services:
     image: logstash:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "5000:5000"
-      - "5044:5044"
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     restart: unless-stopped
@@ -103,6 +102,7 @@ services:
       - ../logstash/pipeline/service_mapping.yml:/usr/share/logstash/config/service_mapping.yml:ro
     networks:
       - transcendence-network
+      - elk-ingest-network
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -127,7 +127,7 @@ services:
       - XPACK_REPORTING_ENCRYPTIONKEY=${XPACK_REPORTING_ENCRYPTIONKEY}
     restart: unless-stopped
     networks:
-      - transcendence-network
+      - elk-storage-network
     volumes:
       - kibana_data:/usr/share/kibana/data
       - ../kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
@@ -337,3 +337,9 @@ volumes:
 networks:
   transcendence-network:
     driver: bridge
+  elk-ingest-network:
+    driver: bridge
+    internal: true
+  elk-storage-network:
+    driver: bridge
+    internal: true
