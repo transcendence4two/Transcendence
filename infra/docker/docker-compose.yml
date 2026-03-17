@@ -60,7 +60,7 @@ services:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
     restart: "no"
     networks:
-      - elk-ingest-network
+      - elk-storage-network
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -77,7 +77,7 @@ services:
       - ILM_DIR=/scripts/ilm
     restart: "no"
     networks:
-      - elk-ingest-network
+      - elk-storage-network
     volumes:
       - ../scripts/bootstrap-indices.sh:/scripts/bootstrap-indices.sh:ro
       - ../elasticsearch/ilm:/scripts/ilm:ro
@@ -328,4 +328,3 @@ networks:
   elk-storage-network:
     driver: bridge
     internal: true
-
