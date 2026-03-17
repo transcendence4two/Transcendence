@@ -8,7 +8,7 @@ infra-up:
 	@echo "Starting infrastructure services..."
 	$(DOCKER_COMPOSE) up -d redis
 
-all: infra-up ilm slm
+all: infra-up slm
 	@echo "Starting backend service locally..."
 	cd backend/usermanagement-service && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
@@ -29,11 +29,6 @@ certs-clean:
 deploy: certs
 	@echo "Deploying all Docker images..."
 	$(DOCKER_COMPOSE) up --build -d
-
-ilm:
-	@echo "Starting to create ILM policies..."
-	@chmod +x infra/scripts/create-ilm.sh
-	@./infra/scripts/create-ilm.sh
 
 slm:
 	@echo "Starting to create SLM policies"
