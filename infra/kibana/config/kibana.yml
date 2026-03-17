@@ -11,4 +11,3 @@ xpack.security.encryptionKey: "${XPACK_SECURITY_ENCRYPTIONKEY}"
 xpack.reporting.encryptionKey: "${XPACK_REPORTING_ENCRYPTIONKEY}"
 
 xpack.fleet.agents.enabled: true
-xpack.fleet.registryProxyUrl: ""

@@ -128,6 +128,7 @@ services:
     restart: unless-stopped
     networks:
       - elk-storage-network
+      - transcendence-network
     volumes:
       - kibana_data:/usr/share/kibana/data
       - ../kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
