@@ -40,10 +40,15 @@ func newLogstashHandler(host string, port int, serviceName, serviceEnv string) *
 }
 
 func (h *logstashHandler) connect() {
-	conn, err := net.DialTimeout("tcp", h.addr, 5*time.Second)
-	if err == nil {
-		h.shared.conn = conn
+	if h.shared.conn != nil {
+		_ = h.shared.conn.Close()
+		h.shared.conn = nil
 	}
+	conn, err := net.DialTimeout("tcp", h.addr, 5*time.Second)
+	if err != nil {
+		return
+	}
+	h.shared.conn = conn
 }
 
 func (h *logstashHandler) Enabled(_ context.Context, _ slog.Level) bool {
