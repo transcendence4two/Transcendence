@@ -54,8 +54,6 @@ async def general_exception_handler(
     logger.exception(
         "Unexpected error occurred",
         error_type=exception.__class__.__name__,
-        url_path=request.url.path,
-        http_method=request.method,
     )
     return _create_error_response(
         status_code=500,
