@@ -12,13 +12,17 @@ import (
 	"time"
 )
 
+type sharedConn struct {
+	mu   sync.Mutex
+	conn net.Conn
+}
+
 type logstashHandler struct {
 	serviceName string
 	serviceEnv  string
 	addr        string
 
-	mu   sync.Mutex
-	conn net.Conn
+	shared *sharedConn
 
 	attrs  []slog.Attr
 	groups []string
@@ -29,6 +33,7 @@ func newLogstashHandler(host string, port int, serviceName, serviceEnv string) *
 		serviceName: serviceName,
 		serviceEnv:  serviceEnv,
 		addr:        fmt.Sprintf("%s:%d", host, port),
+		shared:      &sharedConn{},
 	}
 	h.connect()
 	return h
@@ -37,7 +42,7 @@ func newLogstashHandler(host string, port int, serviceName, serviceEnv string) *
 func (h *logstashHandler) connect() {
 	conn, err := net.DialTimeout("tcp", h.addr, 5*time.Second)
 	if err == nil {
-		h.conn = conn
+		h.shared.conn = conn
 	}
 }
 
@@ -70,8 +75,8 @@ func (h *logstashHandler) Handle(_ context.Context, r slog.Record) error {
 	}
 	data = append(data, '\n')
 
-	h.mu.Lock()
-	defer h.mu.Unlock()
+	h.shared.mu.Lock()
+	defer h.shared.mu.Unlock()
 
 	if err := h.write(data); err != nil {
 		h.connect()
@@ -81,11 +86,11 @@ func (h *logstashHandler) Handle(_ context.Context, r slog.Record) error {
 }
 
 func (h *logstashHandler) write(data []byte) error {
-	if h.conn == nil {
+	if h.shared.conn == nil {
 		return io.ErrClosedPipe
 	}
-	_ = h.conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
-	_, err := h.conn.Write(data)
+	_ = h.shared.conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
+	_, err := h.shared.conn.Write(data)
 	return err
 }
 
@@ -102,13 +107,11 @@ func (h *logstashHandler) WithGroup(name string) slog.Handler {
 }
 
 func (h *logstashHandler) clone() *logstashHandler {
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	return &logstashHandler{
 		serviceName: h.serviceName,
 		serviceEnv:  h.serviceEnv,
 		addr:        h.addr,
-		conn:        h.conn,
+		shared:      h.shared, // shared pointer — all clones use the same mutex + conn
 		attrs:       append([]slog.Attr(nil), h.attrs...),
 		groups:      append([]string(nil), h.groups...),
 	}
