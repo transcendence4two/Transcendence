@@ -925,8 +925,8 @@ class TournamentService(TournamentManager):
             )
         except Exception as exc:
             logger.error(
-                "Failed to create game session: %s",
-                exc,
+                "Failed to create game session",
+                error=str(exc),
                 exc_info=True,
             )
             return None

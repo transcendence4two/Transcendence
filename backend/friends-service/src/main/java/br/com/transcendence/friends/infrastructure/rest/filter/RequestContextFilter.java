@@ -7,6 +7,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
+import org.jboss.logging.Logger;
 import org.jboss.logging.MDC;
 
 import java.util.Optional;
@@ -15,6 +16,8 @@ import java.util.UUID;
 @Provider
 @Priority(Priorities.USER - 100)
 public class RequestContextFilter implements ContainerRequestFilter, ContainerResponseFilter {
+
+    private static final Logger log = Logger.getLogger(RequestContextFilter.class);
 
     @Override
     public void filter(ContainerRequestContext ctx) {
@@ -39,6 +42,7 @@ public class RequestContextFilter implements ContainerRequestFilter, ContainerRe
     @Override
     public void filter(ContainerRequestContext req, ContainerResponseContext res) {
         MDC.put("http.response.status_code", String.valueOf(res.getStatus()));
+        log.info("request completed");
         MDC.clear();
     }
 }

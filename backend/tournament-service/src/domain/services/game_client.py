@@ -35,9 +35,9 @@ class HTTPGameServiceClient(GameServiceClient):
 
         session_id = data["session_id"]
         logger.info(
-            "Game session created: session_id=%s player1=%s player2=%s",
-            session_id,
-            player1_user_id,
-            player2_user_id,
+            "Game session created",
+            session_id=session_id,
+            player1_user_id=player1_user_id,
+            player2_user_id=player2_user_id,
         )
         return session_id
