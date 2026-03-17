@@ -24,6 +24,7 @@ build/
 
 # IDE
 .vscode/
+.DS_Store
 .idea/
 *.swp
 *.swo

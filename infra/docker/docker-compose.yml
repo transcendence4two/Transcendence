@@ -82,6 +82,8 @@ services:
       - ../scripts/bootstrap-indices.sh:/scripts/bootstrap-indices.sh:ro
       - ../elasticsearch/ilm:/scripts/ilm:ro
     depends_on:
+      elasticsearch:
+        condition: service_healthy
       elasticsearch-setup:
         condition: service_completed_successfully
 
