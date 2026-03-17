@@ -106,14 +106,18 @@ services:
     depends_on:
       elasticsearch:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9600 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
   kibana:
     container_name: kibana
     image: kibana:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "5601:5601"
     environment:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY}
@@ -122,6 +126,7 @@ services:
     restart: unless-stopped
     networks:
       - elk-storage-network
+      - transcendence-network
     volumes:
       - kibana_data:/usr/share/kibana/data
       - ../kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
@@ -183,6 +188,7 @@ services:
       - game-service
       - friends-service
       - frontend
+      - kibana
     restart: unless-stopped
     container_name: nginx
     networks:
@@ -229,6 +235,9 @@ services:
     container_name: game-service
     networks:
       - transcendence-network
+    depends_on:
+      logstash:
+        condition: service_healthy
 
   tournament-service:
     build:
@@ -260,6 +269,8 @@ services:
       - transcendence-network
     depends_on:
       redis:
+        condition: service_healthy
+      logstash:
         condition: service_healthy
 
   minio:

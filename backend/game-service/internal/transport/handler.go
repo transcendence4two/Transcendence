@@ -30,24 +30,24 @@ func newUpgrader(allowedOrigins []string) websocket.Upgrader {
 }
 
 func RegisterRoutes(mux *http.ServeMux, hub *Hub) {
-	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/ws", WithRequestContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		handleWebSocket(hub, w, r)
-	})
-	mux.HandleFunc("/health", handleHealth)
-	mux.HandleFunc("/api/sessions", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	mux.Handle("/health", WithRequestContext(http.HandlerFunc(handleHealth)))
+	mux.Handle("/api/sessions", WithRequestContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
 			return
 		}
 		handleCreateSession(hub, w, r)
-	})
-	mux.HandleFunc("/api/sessions/active", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	mux.Handle("/api/sessions/active", WithRequestContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
 			return
 		}
 		handleActiveSession(hub, w, r)
-	})
+	})))
 }
 
 func handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
@@ -60,7 +60,7 @@ func handleWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	upgrader := newUpgrader(hub.Config().AllowedOrigins)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		slog.Error("websocket upgrade failed", "error", err)
+		LoggerFromContext(r.Context()).Error("websocket upgrade failed", "error", err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func handleCreateSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	sessionID := hub.SessionManager().CreateSessionWithConfig(cfg)
 
-	slog.Info("tournament session created",
+	LoggerFromContext(r.Context()).Info("tournament session created",
 		"session_id", sessionID,
 		"tournament_id", req.TournamentID,
 		"match_id", req.MatchID,

@@ -1,4 +1,4 @@
-import logging
+import structlog
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -39,7 +39,8 @@ from src.domain.schemas.tournament import (
     TournamentParticipantRegisterRequest,
 )
 
-logger = logging.getLogger(__name__)
+
+logger = structlog.get_logger()
 
 
 class TournamentService(TournamentManager):
@@ -924,8 +925,8 @@ class TournamentService(TournamentManager):
             )
         except Exception as exc:
             logger.error(
-                "Failed to create game session: %s",
-                exc,
+                "Failed to create game session",
+                error=str(exc),
                 exc_info=True,
             )
             return None
