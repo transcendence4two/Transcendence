@@ -11,17 +11,15 @@ import (
 	"time"
 
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/config"
+	applog "github.com/transcendence4two/Transcendence/backend/game-service/internal/logging"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/tournament"
 	"github.com/transcendence4two/Transcendence/backend/game-service/internal/transport"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
-	slog.SetDefault(logger)
-
 	cfg := config.Load()
+
+	applog.Setup(cfg)
 
 	tc := tournament.NewHTTPClient(cfg.TournamentServiceURL, cfg.WebhookSharedSecret)
 	slog.Info("tournament client configured", "url", cfg.TournamentServiceURL)

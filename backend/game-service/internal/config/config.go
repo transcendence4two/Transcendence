@@ -26,6 +26,9 @@ type Config struct {
 	TournamentServiceURL string
 	WebhookSharedSecret  string
 	AllowedOrigins       []string
+	LogstashHost         string
+	LogstashPort         int
+	ServiceEnvironment   string
 }
 
 func Load() Config {
@@ -35,6 +38,9 @@ func Load() Config {
 		TournamentServiceURL: getEnv("TOURNAMENT_SERVICE_URL", "http://tournament-service:8002"),
 		WebhookSharedSecret:  getEnv("WEBHOOK_SHARED_SECRET", "local-webhook-token"),
 		AllowedOrigins:       parseOrigins(getEnv("ALLOWED_ORIGINS", "")),
+		LogstashHost:         getEnv("LOGSTASH_HOST", "logstash"),
+		LogstashPort:         getEnvInt("LOGSTASH_PORT", 5000),
+		ServiceEnvironment:   getEnv("ENV", "development"),
 	}
 }
 
