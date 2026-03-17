@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 
 from src.core.auth import get_token_payload
 from src.core.settings import settings
@@ -125,6 +125,23 @@ async def get_profile(
     user_service: UserService = Depends(get_user_service),
 ):
     user = await user_service.get_user_profile(user_id)
+    return UserProfileResponse.model_validate(user)
+
+
+@router.post("/me/avatar", response_model=UserProfileResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    payload: dict = Depends(get_token_payload),
+    user_service: UserService = Depends(get_user_service),
+):
+    user_id = payload.get("sub")
+    if not user_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    content = await file.read()
+    user = await user_service.upload_avatar(user_id, content, file.filename)
     return UserProfileResponse.model_validate(user)
 
 

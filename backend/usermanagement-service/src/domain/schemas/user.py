@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+    avatar_url: str | None = None
 
     class Config:
         from_attributes = True
@@ -32,6 +33,7 @@ class UserProfileResponse(BaseModel):
     username: str
     email: str
     enable_2fa: bool
+    avatar_url: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -45,6 +47,7 @@ class UserProfileUpdateRequest(BaseModel):
     username: str | None = Field(None, min_length=1, max_length=255)
     email: EmailStr | None = None
     password: str | None = Field(None, min_length=6, max_length=255)
+    enable_2fa: bool | None = None
 
 
 class DeleteUserRequest(BaseModel):

@@ -3,3 +3,7 @@ network.host: 0.0.0.0
 discovery.type: single-node
 
 xpack.security.enabled: true
+
+# If you try to create a snapshot in a non listed directory, Elasticsearch will block
+path.repo:
+  - /snapshots

@@ -1,4 +1,9 @@
 services:
+  elasticsearch-init:
+      image: busybox
+      command: sh -c "chown 1000:0 /snapshots && chmod 775 /snapshots"
+      volumes:
+        - essnapshots:/snapshots
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:9.2.6
@@ -15,7 +20,11 @@ services:
       - transcendence-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
+      - essnapshots:/snapshots
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    depends_on:
+      elasticsearch-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
@@ -253,6 +262,35 @@ services:
       redis:
         condition: service_healthy
 
+  minio:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-minio
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}
+    volumes:
+      - minio_data:/data
+    networks:
+      - transcendence-network
+
+  minio-setup:
+    build:
+      context: ../..
+      dockerfile: infra/docker/dockerfile-minio-setup
+    container_name: minio-setup
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}
+    networks:
+      - transcendence-network
+
   friends-service:
     build:
       context: ../..
@@ -280,8 +318,10 @@ services:
 
 volumes:
   esdata:
+  essnapshots:
   kibana_data:
   postgres_data:
+  minio_data:
 
 networks:
   transcendence-network:

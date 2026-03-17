@@ -8,7 +8,7 @@ infra-up:
 	@echo "Starting infrastructure services..."
 	$(DOCKER_COMPOSE) up -d redis
 
-all: infra-up ilm
+all: infra-up ilm slm
 	@echo "Starting backend service locally..."
 	cd backend/usermanagement-service && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
@@ -34,6 +34,13 @@ ilm:
 	@echo "Starting to create ILM policies..."
 	@chmod +x infra/scripts/create-ilm.sh
 	@./infra/scripts/create-ilm.sh
+
+slm:
+	@echo "Starting to create SLM policies"
+	@chmod +x infra/scripts/setup-snapshot-repository.sh
+	@./infra/scripts/setup-snapshot-repository.sh
+	@chmod +x infra/scripts/setup-slm-policy.sh
+	@./infra/scripts/setup-slm-policy.sh
 
 down:
 	@echo "Stopping all services..."

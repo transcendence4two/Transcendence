@@ -24,12 +24,7 @@ func (s *Session) reportToTournament(winnerID, loserID string) {
 		return
 	}
 
-	winnerScore, loserScore := 1, 0
-
-	p1Score, p2Score := winnerScore, loserScore
-	if s.Players[1] != nil && s.Players[1].ID == winnerID {
-		p1Score, p2Score = loserScore, winnerScore
-	}
+	p1Score, p2Score := s.Score[0], s.Score[1]
 
 	payload := tournament.MatchResultPayload{
 		WinnerParticipantID: winnerParticipant,
@@ -65,10 +60,9 @@ func (s *Session) saveMatchRecordViaWebhook(winnerID, loserID string) {
 		if i == 1 {
 			side = "O"
 		}
-		score := 0
+		score := s.Score[i]
 		isWinner := false
 		if p.ID == winnerID {
-			score = 1
 			isWinner = true
 		}
 		players = append(players, tournament.MatchPlayerSnapshot{

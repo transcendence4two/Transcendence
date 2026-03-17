@@ -29,7 +29,7 @@ const StatGrid = ({
   return (
     <div className={`text-left space-y-3 ${className}`}>
       {title && (
-        <h3 className="profile-section-title mt-10 mb-3 text-sm">{title}</h3>
+        <h3 className="profile-section-title mt-4 mb-2 text-sm">{title}</h3>
       )}
 
       <div className={`grid ${columnClasses[columns]} gap-3`}>

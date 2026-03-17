@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.contracts import GameServiceClient, TournamentManager
 from src.domain.exceptions import (
-
     DatabaseError,
     MatchmakingQueueError,
     MatchRecordValidationError,
@@ -19,12 +18,12 @@ from src.domain.exceptions import (
     TournamentStateError,
 )
 from src.domain.models.tournament import (
-    MatchPlayerSnapshot,
-    MatchRecord,
-    MatchRecordStatus,
     MatchmakingQueueEntry,
     MatchmakingQueueStatus,
     MatchmakingTransactionLock,
+    MatchPlayerSnapshot,
+    MatchRecord,
+    MatchRecordStatus,
     MatchStatus,
     PlayerStats,
     Tournament,
@@ -246,6 +245,46 @@ class TournamentService(TournamentManager):
             return query_result.scalar_one_or_none()
         except SQLAlchemyError as database_exception:
             raise DatabaseError("Failed to fetch player stats") from database_exception
+
+    async def get_player_match_history(self, user_id: str) -> list[tuple[MatchRecord, list[MatchPlayerSnapshot]]]:
+        # 1. First fetch all match_record_id for this user
+        user_matches_stmt = (
+            select(MatchPlayerSnapshot.match_record_id)
+            .where(MatchPlayerSnapshot.user_id == user_id)
+        )
+        try:
+            match_ids_result = await self.session.execute(user_matches_stmt)
+            match_ids = [row[0] for row in match_ids_result.all()]
+
+            if not match_ids:
+                return []
+
+            # 2. Fetch the MatchRecords, ordered by created_at DESC
+            records_stmt = (
+                select(MatchRecord)
+                .where(MatchRecord.id.in_(match_ids))
+                .order_by(MatchRecord.created_at.desc())
+            )
+            records_result = await self.session.execute(records_stmt)
+            records = records_result.scalars().all()
+
+            # 3. Fetch all associated players for these matches
+            players_stmt = select(MatchPlayerSnapshot).where(
+                MatchPlayerSnapshot.match_record_id.in_(match_ids)
+            )
+            players_result = await self.session.execute(players_stmt)
+            all_players = players_result.scalars().all()
+
+            # 4. Group players by match_record_id
+            from collections import defaultdict
+            players_by_match = defaultdict(list)
+            for p in all_players:
+                players_by_match[p.match_record_id].append(p)
+
+            return [(record, players_by_match[record.id]) for record in records]
+
+        except SQLAlchemyError as database_exception:
+            raise DatabaseError("Failed to fetch player match history") from database_exception
 
     async def join_matchmaking_queue(
         self,

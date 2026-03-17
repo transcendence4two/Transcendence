@@ -1,0 +1,6 @@
+FROM minio/mc:latest
+
+COPY infra/scripts/setup-minio.sh /scripts/setup-minio.sh
+RUN chmod +x /scripts/setup-minio.sh
+
+ENTRYPOINT ["/scripts/setup-minio.sh"]

@@ -16,7 +16,7 @@ interface UserData {
   id: string;
   username: string;
   email: string;
-  profileImageUrl?: string;
+  avatar_url?: string;
 }
 
 interface PlayerStats {
@@ -41,7 +41,7 @@ const DashboardPage = () => {
   const [user] = useState<UserData | null>(getInitialUser);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
-  const avatarImageUrl = (user?.profileImageUrl ?? "").trim();
+  const avatarImageUrl = (user?.avatar_url ?? "").trim();
 
   useEffect(() => {
     if (!user) {
@@ -118,10 +118,8 @@ const DashboardPage = () => {
       <PageNavbar />
       <main className="content-main dashboard-main">
         <div className="dashboard-layout">
-          {/* Profile Card */}
           <div className="dashboard-card dashboard-profile-card">
             <div className="dashboard-card-content">
-              {/* Avatar */}
               <div className="dashboard-avatar-wrap">
                 <div className="dashboard-avatar">
                   {avatarImageUrl && !avatarLoadError ? (
@@ -138,13 +136,11 @@ const DashboardPage = () => {
                 </div>
               </div>
 
-              {/* User Info */}
               <div>
                 <h2 className="dashboard-user-name">{user.username}</h2>
                 <p className="dashboard-user-email">{user.email}</p>
               </div>
 
-              {/* Start Game Card */}
               <div className="dashboard-card dashboard-game-card">
                 <div className="dashboard-game-animation-bg">
                   <TicTacToeAnimation />
