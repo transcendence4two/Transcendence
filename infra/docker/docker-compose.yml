@@ -118,8 +118,6 @@ services:
     image: kibana:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "5601:5601"
     environment:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY}
@@ -190,6 +188,7 @@ services:
       - game-service
       - friends-service
       - frontend
+      - kibana
     restart: unless-stopped
     container_name: nginx
     networks:
