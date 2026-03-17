@@ -1,15 +1,6 @@
 #!/bin/bash
 set -e
 
-if [ -f .env ]; then
-  source .env
-elif [ -f ../../.env ]; then
-  source ../../.env
-else
-  echo ".env file not found"
-  exit 1
-fi
-
 ES_URL="${ES_URL:-http://localhost:9200}"
 
 echo "Waiting for Elasticsearch at ${ES_URL}..."
