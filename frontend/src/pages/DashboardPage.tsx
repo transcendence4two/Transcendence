@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { normalizeAvatarUrl } from "../utils";
 import Footer from "../components/layout/Footer";
 import Button from "../components/common/Button";
 import StatGrid from "../components/common/StatGrid";
@@ -41,7 +42,7 @@ const DashboardPage = () => {
   const [user] = useState<UserData | null>(getInitialUser);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
-  const avatarImageUrl = (user?.avatar_url ?? "").trim();
+  const avatarImageUrl = normalizeAvatarUrl(user?.avatar_url);
 
   useEffect(() => {
     if (!user) {

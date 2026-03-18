@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { normalizeAvatarUrl } from "../utils";
 import {
   TrophyIcon,
   BullseyeIcon,
@@ -61,7 +62,7 @@ const ProfilePage = () => {
     (!remoteProfileState.loaded ||
       remoteProfileState.requestedUserId !== effectiveUserId);
 
-  const avatarImageUrl = (user?.avatar_url ?? "").trim();
+  const avatarImageUrl = normalizeAvatarUrl(user?.avatar_url);
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
