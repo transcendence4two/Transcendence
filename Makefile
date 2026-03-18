@@ -22,9 +22,10 @@ certs:
 	@./infra/scripts/generate-certs.sh
 
 certs-prod:
-	@echo "Generating SSL certificates for production IP 157.230.58.126..."
+	@echo "Generating Let's Encrypt certificate for transcendentes.space..."
+	@echo "  Requires: CERTBOT_EMAIL=you@email.com make certs-prod"
 	@chmod +x infra/scripts/generate-certs.sh
-	@SERVER_IP=157.230.58.126 ./infra/scripts/generate-certs.sh
+	@DOMAIN=transcendentes.space ./infra/scripts/generate-certs.sh
 
 certs-clean:
 	@echo "Removing existing certificates..."

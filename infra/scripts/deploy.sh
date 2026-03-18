@@ -1,11 +1,13 @@
 #!/bin/bash
 # Production deploy script for Ubuntu 24.04 VPS
+# Usage: CERTBOT_EMAIL=you@email.com bash infra/scripts/deploy.sh
 set -euo pipefail
 
-SERVER_IP="157.230.58.126"
+DOMAIN="transcendentes.space"
+CERTBOT_EMAIL="${CERTBOT_EMAIL:-}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
-echo "==> Deploying Transcendence on $SERVER_IP"
+echo "==> Deploying Transcendence at https://$DOMAIN"
 echo "    Repo root: $REPO_ROOT"
 cd "$REPO_ROOT"
 
@@ -53,8 +55,13 @@ echo "  .env OK"
 
 # ── 3. SSL certificates ────────────────────────────────────────────────────
 echo ""
-echo "[3/5] Generating SSL certificates for $SERVER_IP..."
-SERVER_IP="$SERVER_IP" bash infra/scripts/generate-certs.sh
+echo "[3/5] Generating SSL certificates for $DOMAIN..."
+# certbot standalone needs port 80 free — stop nginx if already running
+if $COMPOSE --env-file .env -f infra/docker/docker-compose.yml ps nginx 2>/dev/null | grep -q "Up"; then
+    echo "  Stopping nginx temporarily for certbot..."
+    $COMPOSE --env-file .env -f infra/docker/docker-compose.yml stop nginx
+fi
+DOMAIN="$DOMAIN" CERTBOT_EMAIL="$CERTBOT_EMAIL" bash infra/scripts/generate-certs.sh
 
 # ── 4. Build & start ───────────────────────────────────────────────────────
 echo ""
@@ -68,7 +75,7 @@ sleep 10
 
 MAX=24
 for i in $(seq 1 $MAX); do
-    STATUS=$(curl -sk -o /dev/null -w "%{http_code}" "https://$SERVER_IP/api/health" || true)
+    STATUS=$(curl -sk -o /dev/null -w "%{http_code}" "https://$DOMAIN/api/health" || true)
     if [ "$STATUS" = "200" ]; then
         echo "  ✓  /api/health returned 200"
         break
@@ -80,11 +87,10 @@ done
 echo ""
 echo "============================================"
 echo " Deploy complete!"
-echo " Application: https://$SERVER_IP"
-echo " Kibana:      https://$SERVER_IP/kibana/"
+echo " Application: https://$DOMAIN"
+echo " Kibana:      https://$DOMAIN/kibana/"
 echo "============================================"
 echo ""
-echo "NOTE: The SSL certificate is self-signed."
-echo "Browsers will show a security warning — this is expected when using a raw IP."
-echo "To eliminate the warning, point a domain at this IP and use Let's Encrypt:"
-echo "  apt install certbot && certbot certonly --standalone -d yourdomain.com"
+echo "Certificate auto-renewal (Let's Encrypt expires in 90 days):"
+echo "  Run once to configure cron:"
+echo "  echo '0 3 * * * certbot renew --pre-hook \"docker stop nginx\" --post-hook \"docker start nginx\" --quiet' | crontab -"
