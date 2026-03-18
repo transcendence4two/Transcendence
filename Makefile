@@ -1,4 +1,4 @@
-DOCKER_COMPOSE = docker-compose --env-file .env -f infra/docker/docker-compose.yml
+DOCKER_COMPOSE = docker compose --env-file .env -f infra/docker/docker-compose.yml
 
 frontend:
 	@echo "Starting frontend service locally..."
