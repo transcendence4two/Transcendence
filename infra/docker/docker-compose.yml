@@ -138,8 +138,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     restart: unless-stopped
     container_name: redis
     networks:
@@ -179,6 +179,7 @@ services:
       context: ../..
       dockerfile: infra/docker/dockerfile-nginx
     ports:
+      - "80:80"
       - "443:443"
     volumes:
       - ../certs:/etc/nginx/certs:ro
@@ -261,8 +262,8 @@ services:
       dockerfile: infra/docker/dockerfile-emails-service
     env_file:
       - ../../.env
-    ports:
-      - "4001:4001"
+    expose:
+      - "4001"
     restart: unless-stopped
     container_name: emails-service
     networks:
@@ -278,9 +279,9 @@ services:
       context: ../..
       dockerfile: infra/docker/dockerfile-minio
     container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+    expose:
+      - "9000"
+      - "9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-supersecret123}

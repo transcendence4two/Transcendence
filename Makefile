@@ -17,9 +17,14 @@ deps:
 	cd backend/usermanagement-service && uv sync
 
 certs:
-	@echo "Generating SSL certificates..."
+	@echo "Generating SSL certificates (dev - localhost)..."
 	@chmod +x infra/scripts/generate-certs.sh
 	@./infra/scripts/generate-certs.sh
+
+certs-prod:
+	@echo "Generating SSL certificates for production IP 157.230.58.126..."
+	@chmod +x infra/scripts/generate-certs.sh
+	@SERVER_IP=157.230.58.126 ./infra/scripts/generate-certs.sh
 
 certs-clean:
 	@echo "Removing existing certificates..."
@@ -29,6 +34,11 @@ certs-clean:
 deploy: certs
 	@echo "Deploying all Docker images..."
 	$(DOCKER_COMPOSE) up --build -d
+
+deploy-prod:
+	@echo "Deploying to production VPS..."
+	@chmod +x infra/scripts/deploy.sh
+	@bash infra/scripts/deploy.sh
 
 slm:
 	@echo "Starting to create SLM policies"
@@ -67,4 +77,4 @@ clean: down
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all certs certs-clean deploy down logs tests lint format clean
+.PHONY: deps all certs certs-prod certs-clean deploy deploy-prod down logs tests lint format clean
