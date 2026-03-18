@@ -74,8 +74,12 @@ format:
 	cd backend/usermanagement-service && uv run ruff format .
 
 clean: down
-	@echo "Removing volumes and cleaning up..."
+	@echo "Removing unused Docker resources (volumes are preserved)..."
+	docker system prune -f
+
+fclean: down
+	@echo "WARNING: Removing ALL volumes (database, minio, elasticsearch data will be lost)..."
 	$(DOCKER_COMPOSE) down -v
 	docker system prune -f
 
-.PHONY: deps all certs certs-prod certs-clean deploy deploy-prod down logs tests lint format clean
+.PHONY: deps all certs certs-prod certs-clean deploy deploy-prod down logs tests lint format clean fclean
