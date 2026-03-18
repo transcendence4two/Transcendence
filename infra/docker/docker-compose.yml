@@ -140,6 +140,7 @@ services:
     image: prom/prometheus:v2.52.0
     container_name: prometheus
     volumes:
+      - prometheus_data:/prometheus
       - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     restart: unless-stopped
     networks:
@@ -342,6 +343,7 @@ volumes:
   kibana_data:
   postgres_data:
   minio_data:
+  prometheus_data:
 
 networks:
   transcendence-network:

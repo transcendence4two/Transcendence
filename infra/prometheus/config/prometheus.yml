@@ -1,11 +1,3 @@
-# global:
-#   scrape_interval: 15s #prometheus coleta métricas a cada 15 segundos
-
-# scrape_configs: #lista de jobs que o prometheus vai fazer scrapping
-#   - job_name: 'game-service'
-#     static_configs:
-#       - targets: ['game-service:9100']  # endpoint do serviço Python
-
 global:
   scrape_interval:     15s # By default, scrape targets every 15 seconds.
 
