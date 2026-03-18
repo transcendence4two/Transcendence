@@ -73,7 +73,7 @@ const RegisterForm = () => {
                     username: formData.username,
                     email: formData.email,
                     password: formData.password,
-                    enable_2fa: true
+                    enable_2fa: false
                 }),
             })
 
