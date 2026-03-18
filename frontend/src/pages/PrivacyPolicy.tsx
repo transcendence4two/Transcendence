@@ -12,7 +12,7 @@ const PrivacyPolicy = () => {
                         Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our website.
                     </p>
                     <h2 className='heading-2'>Information We Collect</h2>
-                    <ul className='list-disc list-inside mb-4 text-gray-300 break-words'>
+                    <ul className='list-disc list-inside mb-4 text-gray-300 wrap-break-word'>
                         <li>Personal identification information (name, email address, phone number, etc.)</li>
                         <li>Usage data (pages visited, time spent on pages, etc.)</li>
                         <li>Cookies and tracking technologies</li>

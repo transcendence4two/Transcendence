@@ -11,7 +11,8 @@ html,
 body {
   background-color: #1e293b;
   font-family: "DM Sans", sans-serif;
-  min-width: max-content;
+  width: 100%;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   user-select: none;
@@ -192,7 +193,7 @@ html.light body {
   }
 
   .settings-page-layout {
-    @apply mx-auto w-full min-w-max max-w-2xl;
+    @apply mx-auto w-full max-w-2xl;
   }
 
   .settings-page-card {
