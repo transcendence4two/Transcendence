@@ -1,26 +1,33 @@
 services:
+  elasticsearch-init:
+      image: busybox
+      command: sh -c "chown 1000:0 /snapshots && chmod 775 /snapshots"
+      volumes:
+        - essnapshots:/snapshots
   elasticsearch:
     container_name: elasticsearch
     image: elasticsearch:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     restart: unless-stopped
     networks:
-      - transcendence-network
+      - elk-ingest-network
+      - elk-storage-network
     volumes:
       - esdata:/usr/share/elasticsearch/data
+      - essnapshots:/snapshots
       - ../elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    depends_on:
+      elasticsearch-init:
+        condition: service_completed_successfully
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "curl -u elastic:${ELASTIC_PASSWORD} http://localhost:9200 >/dev/null || exit 1",
+          "curl -u elastic:${ELASTIC_PASSWORD} http://elasticsearch:9200 >/dev/null || exit 1",
         ]
       interval: 10s
       timeout: 10s
@@ -53,7 +60,7 @@ services:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
     restart: "no"
     networks:
-      - transcendence-network
+      - elk-storage-network
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -63,18 +70,22 @@ services:
     image: elasticsearch:9.2.6
     env_file:
       - ../../.env
-    entrypoint: ["/bin/bash", "/scripts/bootstrap-indices.sh"]
+    entrypoint: ["/bin/bash", "/scripts/bootstrap-elasticsearch.sh"]
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ES_URL=http://elasticsearch:9200
       - ILM_DIR=/scripts/ilm
+      - SLM_DIR=/scripts/slm
     restart: "no"
     networks:
-      - transcendence-network
+      - elk-storage-network
     volumes:
-      - ../scripts/bootstrap-indices.sh:/scripts/bootstrap-indices.sh:ro
+      - ../scripts/bootstrap-elasticsearch.sh:/scripts/bootstrap-elasticsearch.sh:ro
       - ../elasticsearch/ilm:/scripts/ilm:ro
+      - ../elasticsearch/slm:/scripts/slm:ro
     depends_on:
+      elasticsearch:
+        condition: service_healthy
       elasticsearch-setup:
         condition: service_completed_successfully
 
@@ -83,9 +94,6 @@ services:
     image: logstash:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "5000:5000"
-      - "5044:5044"
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     restart: unless-stopped
@@ -94,17 +102,22 @@ services:
       - ../logstash/pipeline/service_mapping.yml:/usr/share/logstash/config/service_mapping.yml:ro
     networks:
       - transcendence-network
+      - elk-ingest-network
     depends_on:
       elasticsearch:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9600 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
 
   kibana:
     container_name: kibana
     image: kibana:9.2.6
     env_file:
       - ../../.env
-    ports:
-      - "5601:5601"
     environment:
       - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
       - XPACK_SECURITY_ENCRYPTIONKEY=${XPACK_SECURITY_ENCRYPTIONKEY}
@@ -112,6 +125,7 @@ services:
       - XPACK_REPORTING_ENCRYPTIONKEY=${XPACK_REPORTING_ENCRYPTIONKEY}
     restart: unless-stopped
     networks:
+      - elk-storage-network
       - transcendence-network
     volumes:
       - kibana_data:/usr/share/kibana/data
@@ -183,6 +197,7 @@ services:
       - game-service
       - friends-service
       - frontend
+      - kibana
     restart: unless-stopped
     container_name: nginx
     networks:
@@ -229,6 +244,9 @@ services:
     container_name: game-service
     networks:
       - transcendence-network
+    depends_on:
+      logstash:
+        condition: service_healthy
 
   tournament-service:
     build:
@@ -260,6 +278,8 @@ services:
       - transcendence-network
     depends_on:
       redis:
+        condition: service_healthy
+      logstash:
         condition: service_healthy
 
   minio:
@@ -318,6 +338,7 @@ services:
 
 volumes:
   esdata:
+  essnapshots:
   kibana_data:
   postgres_data:
   minio_data:
@@ -325,3 +346,9 @@ volumes:
 networks:
   transcendence-network:
     driver: bridge
+  elk-ingest-network:
+    driver: bridge
+    internal: true
+  elk-storage-network:
+    driver: bridge
+    internal: true

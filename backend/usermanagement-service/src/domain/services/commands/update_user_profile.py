@@ -47,6 +47,10 @@ class UpdateUserProfileCommand(Command):
             )
             updated_fields.append("password")
 
+        if self.payload.enable_2fa is not None:
+            user.enable_2fa = self.payload.enable_2fa
+            updated_fields.append("enable_2fa")
+
         updated_user = await self._persist(user)
 
         logger.info(

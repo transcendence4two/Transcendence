@@ -1,6 +1,6 @@
-import logging
 from typing import Tuple
 
+import structlog
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
@@ -16,7 +16,7 @@ from src.domain.exceptions import (
     TournamentStateError,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger()
 
 DOMAIN_ERROR_MAP: dict[type[DomainError], Tuple[int, str]] = {
     TournamentNotFoundError: (404, "TOURNAMENT_NOT_FOUND"),
@@ -51,11 +51,9 @@ async def general_exception_handler(
     request: Request,
     exception: Exception,
 ) -> JSONResponse:
-    logger.error(
-        "Unexpected error occurred: %s",
-        str(exception),
-        exc_info=True,
-        extra={"path": request.url.path, "method": request.method},
+    logger.exception(
+        "Unexpected error occurred",
+        error_type=exception.__class__.__name__,
     )
     return _create_error_response(
         status_code=500,
@@ -73,16 +71,14 @@ def _log_exception(
     exception: DomainError,
     status_code: int,
 ) -> None:
-    log_level = (
-        logging.ERROR if status_code >= SERVER_ERROR_THRESHOLD else logging.WARNING
+    bound_logger = logger.bind(
+        error_type=error_type,
+        exception_class=exception.__class__.__name__,
     )
-    logger.log(
-        log_level,
-        "%s: %s",
-        error_type,
-        str(exception),
-        extra={"error_type": error_type, "exception": exception.__class__.__name__},
-    )
+    if status_code >= SERVER_ERROR_THRESHOLD:
+        bound_logger.error(str(exception))
+    else:
+        bound_logger.warning(str(exception))
 
 
 def _create_error_response(

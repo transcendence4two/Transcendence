@@ -9,8 +9,8 @@ const HomePage = () => {
     return (
         <div className='container-main'>
             <Header />
-            <main className='content-main flex items-center justify-center p-8'>
-                <div className='max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50'>
+            <main className='content-main p-4 sm:p-8'>
+                <div className='max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-slate-700/50'>
                     <HeroSection />
                 </div>
             </main>

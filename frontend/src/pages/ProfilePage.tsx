@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { normalizeAvatarUrl } from "../utils";
 import {
   TrophyIcon,
   BullseyeIcon,
@@ -9,9 +10,9 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
+import Footer from "../components/layout/Footer";
 import StatGrid from "../components/common/StatGrid";
 import MatchHistory from "../components/profile/MatchHistory";
-import HelpFab from "../components/common/HelpFab";
 import type { MatchHistoryItem } from "../components/profile/MatchHistory";
 
 type UserData = {
@@ -61,7 +62,7 @@ const ProfilePage = () => {
     (!remoteProfileState.loaded ||
       remoteProfileState.requestedUserId !== effectiveUserId);
 
-  const avatarImageUrl = (user?.avatar_url ?? "").trim();
+  const avatarImageUrl = normalizeAvatarUrl(user?.avatar_url);
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
@@ -115,13 +116,85 @@ const ProfilePage = () => {
       .then((data: PlayerStats) => setStats(data))
       .catch(() => setStats(null));
 
-    fetch(`/api/users/${user.username}/matches`, {
+    fetch(`/api/tournaments/stats/players/${user.id}/matches`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: unknown) =>
-        setMatches(Array.isArray(data) ? (data as MatchHistoryItem[]) : []),
-      )
+      .then(async (data: unknown) => {
+        if (!Array.isArray(data)) {
+          setMatches([]);
+          return;
+        }
+
+        type MatchPlayerRaw = {
+          user_id: string;
+          is_winner: boolean;
+          display_name?: string;
+          score: number;
+        };
+        type MatchRecordRaw = { players?: MatchPlayerRaw[] };
+
+        const rawMatches = data as MatchRecordRaw[];
+
+        // Resolve opponent usernames to avoid displaying user_hash_id
+        const uniqueOpponentIds = Array.from(
+          new Set(
+            rawMatches
+              .map((matchData) => {
+                const opponents = matchData.players?.find((p) => p.user_id !== user.id);
+                return opponents?.user_id;
+              })
+              .filter(Boolean) as string[]
+          )
+        );
+
+        const opponentMap: Record<string, string> = {};
+        await Promise.allSettled(
+          uniqueOpponentIds.map(async (id) => {
+            try {
+              const res = await fetch(`/api/users/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) {
+                const userData: UserData & { deleted?: boolean } = await res.json();
+                if (userData?.username && !userData.deleted) {
+                  opponentMap[id] = userData.username;
+                } else {
+                  opponentMap[id] = `#${id.slice(0, 8)}`;
+                }
+              } else {
+                opponentMap[id] = `#${id.slice(0, 8)}`;
+              }
+            } catch {
+              opponentMap[id] = `#${id.slice(0, 8)}`;
+            }
+          })
+        );
+
+        const history: MatchHistoryItem[] = rawMatches.map((matchData) => {
+          const players = matchData.players || [];
+          const playerSnapshot = players.find((p) => p.user_id === user.id);
+          const opponentSnapshot = players.find((p) => p.user_id !== user.id);
+
+          const result = (playerSnapshot && playerSnapshot.is_winner) ? "win" : "loss";
+          const resolvedUsername = opponentSnapshot?.user_id
+            ? opponentMap[opponentSnapshot.user_id]
+            : undefined;
+
+          return {
+            result,
+            opponent: {
+              username: resolvedUsername || opponentSnapshot?.display_name || `#${opponentSnapshot?.user_id?.slice(0, 8) ?? "unknown"}`,
+              score: opponentSnapshot?.score || 0
+            },
+            player: {
+              score: playerSnapshot?.score || 0
+            }
+          };
+        });
+
+        setMatches(history);
+      })
       .catch(() => setMatches([]));
   }, [user]);
 
@@ -220,9 +293,9 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          <HelpFab />
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

@@ -1,5 +1,3 @@
-import './game.css'
-
 interface WinningCell {
     row: number
     col: number

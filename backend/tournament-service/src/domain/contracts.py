@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 from src.domain.models.tournament import (
-    MatchRecord,
     MatchmakingQueueEntry,
     MatchPlayerSnapshot,
+    MatchRecord,
     PlayerStats,
     Tournament,
     TournamentMatch,
@@ -72,6 +72,11 @@ class TournamentManager(ABC):
 
     @abstractmethod
     async def get_player_stats(self, user_id: str) -> PlayerStats | None: ...
+
+    @abstractmethod
+    async def get_player_match_history(
+        self, user_id: str
+    ) -> list[tuple[MatchRecord, list[MatchPlayerSnapshot]]]: ...
 
     @abstractmethod
     async def join_matchmaking_queue(

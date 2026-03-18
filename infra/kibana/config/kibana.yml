@@ -1,5 +1,7 @@
 server.name: kibana
 server.host: "0.0.0.0"
+server.basePath: "/kibana"
+server.rewriteBasePath: true
 
 elasticsearch.username: kibana_system
 elasticsearch.password: ${ELASTICSEARCH_PASSWORD}

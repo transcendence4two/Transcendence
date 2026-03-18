@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status
+from shared.logging.context import set_business_context
 
 from src.core.webhook_auth import require_valid_webhook_token
 from src.di_config import get_tournament_service
@@ -46,6 +47,7 @@ async def create_tournament(
     request: TournamentCreateRequest,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="create_tournament")
     created_tournament = await tournament_service.create_tournament(request)
     return TournamentResponse.model_validate(created_tournament)
 
@@ -59,6 +61,7 @@ async def join_matchmaking_queue(
     request: TournamentJoinQueueRequest,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="join_matchmaking_queue")
     queue_entry = await tournament_service.join_matchmaking_queue(request)
     return MatchmakingQueueEntryResponse.model_validate(queue_entry)
 
@@ -72,6 +75,7 @@ async def save_match_record(
     request: MatchRecordSaveRequest,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="save_match_record")
     match_record, match_players = await tournament_service.save_match_record(request)
     return _build_match_record_save_response(
         match_record=match_record,
@@ -89,6 +93,7 @@ async def save_match_record_from_game_webhook(
     _validated_webhook_token: None = Depends(require_valid_webhook_token),
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="save_match_record_webhook")
     match_record, match_players = await tournament_service.save_match_record(request)
     return _build_match_record_save_response(
         match_record=match_record,
@@ -106,6 +111,7 @@ async def get_player_stats(
     user_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="get_player_stats")
     player_stats = await tournament_service.get_player_stats(user_id)
     if player_stats is None:
         return PlayerStatsResponse(
@@ -120,6 +126,26 @@ async def get_player_stats(
     return PlayerStatsResponse.model_validate(player_stats)
 
 
+@router.get(
+    "/stats/players/{user_id}/matches",
+    response_model=list[MatchRecordSaveResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_player_match_history(
+    user_id: str,
+    tournament_service: TournamentManager = Depends(get_tournament_service),
+):
+    set_business_context(action="get_player_match_history")
+    history = await tournament_service.get_player_match_history(user_id)
+    return [
+        _build_match_record_save_response(
+            match_record=record,
+            match_players=players,
+        )
+        for record, players in history
+    ]
+
+
 @router.post(
     "/matchmaking/leave/{user_id}",
     status_code=status.HTTP_200_OK,
@@ -128,6 +154,7 @@ async def leave_matchmaking_queue(
     user_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="leave_matchmaking_queue")
     await tournament_service.leave_matchmaking_queue(user_id)
     return {"status": "ok"}
 
@@ -141,6 +168,7 @@ async def get_matchmaking_status(
     user_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(action="get_matchmaking_status")
     queue_entry = await tournament_service.get_matchmaking_status(user_id)
     if queue_entry is None:
         return MatchmakingStatusResponse(
@@ -164,6 +192,7 @@ async def get_tournament_by_id(
     tournament_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="get_tournament")
     tournament = await tournament_service.get_tournament_by_id(tournament_id)
     return TournamentResponse.model_validate(tournament)
 
@@ -178,6 +207,7 @@ async def register_participant(
     request: TournamentParticipantRegisterRequest,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="register_participant")
     participant = await tournament_service.register_participant(
         tournament_id=tournament_id,
         payload=request,
@@ -194,6 +224,7 @@ async def list_participants(
     tournament_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="list_participants")
     participants = await tournament_service.list_tournament_participants(tournament_id)
     return [
         TournamentParticipantResponse.model_validate(participant)
@@ -210,6 +241,7 @@ async def start_tournament(
     tournament_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="start_tournament")
     generated_matches = await tournament_service.start_tournament(tournament_id)
     return [TournamentMatchResponse.model_validate(match) for match in generated_matches]
 
@@ -223,6 +255,7 @@ async def list_matches(
     tournament_id: str,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="list_matches")
     matches = await tournament_service.list_tournament_matches(tournament_id)
     return [TournamentMatchResponse.model_validate(match) for match in matches]
 
@@ -238,6 +271,7 @@ async def register_match_result(
     request: TournamentMatchResultRequest,
     tournament_service: TournamentManager = Depends(get_tournament_service),
 ):
+    set_business_context(tournament_id=tournament_id, action="register_match_result")
     updated_match = await tournament_service.register_match_result(
         tournament_id=tournament_id,
         match_id=match_id,

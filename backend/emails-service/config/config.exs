@@ -3,8 +3,8 @@ import Config
 config :swoosh,
   :api_client, false
 
-config :logger, :console,
-  format: "[$level] $message\n",
+config :logger,
+  backends: [EmailsService.LogstashBackend],
   level: :info
 
 # Import environment specific config

@@ -34,8 +34,10 @@ defmodule EmailsService.EventSubscriber do
         {:redix_pubsub, _pubsub, _ref, :message, %{channel: @channel_welcome, payload: payload}},
         state
       ) do
+    Logger.metadata(channel: "welcome", email_type: "welcome")
     Logger.info("Received event on #{@channel_welcome}: #{payload}")
     process_welcome_event(payload)
+    Logger.metadata(channel: nil, email_type: nil, action: nil)
     {:noreply, state}
   end
 
@@ -44,8 +46,10 @@ defmodule EmailsService.EventSubscriber do
         {:redix_pubsub, _pubsub, _ref, :message, %{channel: @channel_otp, payload: payload}},
         state
       ) do
+    Logger.metadata(channel: "otp", email_type: "otp")
     Logger.info("Received event on #{@channel_otp}: #{payload}")
     process_otp_event(payload)
+    Logger.metadata(channel: nil, email_type: nil, action: nil)
     {:noreply, state}
   end
 
@@ -86,13 +90,16 @@ defmodule EmailsService.EventSubscriber do
   end
 
   defp send_welcome_email({:ok, %{"email" => email} = _data}) do
+    Logger.metadata(action: "processing")
     Logger.info("Processing welcome email for: #{email}")
 
     case EmailsService.Mailer.send_welcome_email(email) do
       {:ok, _} ->
+        Logger.metadata(action: "sent")
         Logger.info("Welcome email sent successfully to: #{email}")
 
       {:error, reason} ->
+        Logger.metadata(action: "failed")
         Logger.error("Failed to send welcome email: #{inspect(reason)}")
     end
   end
@@ -100,13 +107,16 @@ defmodule EmailsService.EventSubscriber do
   defp send_welcome_email({:error, _reason}), do: :ok
 
   defp send_otp_email({:ok, %{"email" => email, "otp_code" => otp_code} = _data}) do
+    Logger.metadata(action: "processing")
     Logger.info("Processing OTP email for: #{email}")
 
     case EmailsService.Mailer.send_otp_email(email, otp_code) do
       {:ok, _} ->
+        Logger.metadata(action: "sent")
         Logger.info("OTP email sent successfully to: #{email}")
 
       {:error, reason} ->
+        Logger.metadata(action: "failed")
         Logger.error("Failed to send OTP email: #{inspect(reason)}")
     end
   end

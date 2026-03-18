@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
+import { normalizeAvatarUrl } from "../utils";
 
 import {
   FriendsIcon,
@@ -10,7 +11,7 @@ import {
 } from "../components/icons/Icons";
 
 import PageNavbar from "../components/common/PageNavbar";
-import HelpFab from "../components/common/HelpFab";
+import Footer from "../components/layout/Footer";
 
 type UserData = {
   id: string;
@@ -267,7 +268,7 @@ const FriendsPage = () => {
         userIds.map(async (id) => {
           try {
             const profile = await getUserProfileById(id);
-            return [id, { username: profile.username, avatarUrl: profile.avatar_url ?? undefined }] as const;
+            return [id, { username: profile.username, avatarUrl: normalizeAvatarUrl(profile.avatar_url) || undefined }] as const;
           } catch {
             return [id, { username: `user-${id.slice(0, 8)}` }] as const;
           }
@@ -604,9 +605,9 @@ const FriendsPage = () => {
               </section>
             </div>
           </div>
-          <HelpFab />
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
