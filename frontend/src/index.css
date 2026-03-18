@@ -97,11 +97,11 @@ html.light body {
   }
 
   .heading-1 {
-    @apply text-4xl font-bold mb-6 text-white;
+    @apply text-2xl sm:text-4xl font-bold mb-6 text-white;
   }
 
   .heading-2 {
-    @apply text-2xl font-semibold mb-4 text-white;
+    @apply text-xl sm:text-2xl font-semibold mb-4 text-white;
   }
 
   .container-main {
@@ -109,15 +109,15 @@ html.light body {
   }
 
   .content-main {
-    @apply flex-1 overflow-y-auto flex flex-col;
+    @apply flex-1 overflow-y-auto overflow-x-hidden flex flex-col;
   }
 
   .btn-hero {
-    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-12 py-4 rounded-full font-semibold text-lg flex items-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)];
+    @apply bg-linear-to-r from-cyan-400 to-blue-600 text-white px-6 sm:px-12 py-4 rounded-full font-semibold text-lg flex items-center justify-center gap-3 hover:from-cyan-500 hover:to-blue-700 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] w-full sm:w-auto;
   }
 
   .card-feature {
-    @apply border border-cyan-500/30 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 w-64 hover:border-cyan-500/60 transition-all;
+    @apply border border-cyan-500/30 bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 w-full sm:w-64 hover:border-cyan-500/60 transition-all;
   }
 
   .profile-shell {
@@ -951,7 +951,7 @@ html.light body {
 
 .game-main {
     padding: clamp(0.5rem, 2vh, 1.5rem) 1rem;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .game-title {
@@ -1582,8 +1582,8 @@ html.light .game-cell--removed {
 }
 
 .game-avatar-circle {
-    width: 64px;
-    height: 64px;
+    width: clamp(44px, 10vw, 64px);
+    height: clamp(44px, 10vw, 64px);
     border-radius: 9999px;
     background: linear-gradient(to right, #22d3ee, #9333ea);
     display: flex;

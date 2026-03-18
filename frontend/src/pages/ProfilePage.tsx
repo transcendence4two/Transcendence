@@ -156,9 +156,11 @@ const ProfilePage = () => {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (res.ok) {
-                const userData: UserData = await res.json();
-                if (userData?.username) {
+                const userData: UserData & { deleted?: boolean } = await res.json();
+                if (userData?.username && !userData.deleted) {
                   opponentMap[id] = userData.username;
+                } else {
+                  opponentMap[id] = `#${id.slice(0, 8)}`;
                 }
               } else {
                 opponentMap[id] = `#${id.slice(0, 8)}`;

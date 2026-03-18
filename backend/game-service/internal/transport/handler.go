@@ -146,8 +146,8 @@ func handleActiveSession(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	sess := hub.SessionManager().FindActiveSessionByPlayer(playerID)
 	if sess == nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]string{"error": "no active session"})
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ActiveSessionResponse{SessionID: "", State: ""})
 		return
 	}
 
