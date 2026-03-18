@@ -60,7 +60,7 @@ const HamburgerMenu = () => {
   const menuItems: MenuItem[] = [
     {
       label: "Home",
-      href: "/",
+      href: "/home",
       icon: <HomeIcon className="w-5 h-5" />,
       authRequired: false,
     },

@@ -5,14 +5,14 @@ const PrivacyPolicy = () => {
     return (
         <div className='container-main'>
             <PageNavbar />
-            <main className='content-main p-8'>
-                <div className='max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50'>
+            <main className='content-main p-4 sm:p-8'>
+                <div className='w-full max-w-4xl mx-auto bg-slate-800/50 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-slate-700/50 overflow-hidden'>
                     <h1 className='heading-1'>Privacy Policy</h1>
                     <p className='mb-4 text-gray-300'>
                         Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our website.
                     </p>
                     <h2 className='heading-2'>Information We Collect</h2>
-                    <ul className='list-disc list-inside mb-4 text-gray-300'>
+                    <ul className='list-disc list-inside mb-4 text-gray-300 wrap-break-word'>
                         <li>Personal identification information (name, email address, phone number, etc.)</li>
                         <li>Usage data (pages visited, time spent on pages, etc.)</li>
                         <li>Cookies and tracking technologies</li>

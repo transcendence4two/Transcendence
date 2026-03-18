@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type ChangeEvent } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
+import { normalizeAvatarUrl } from "../utils";
 
 import { GearIcon, UserIconUntitledUi } from "../components/icons/Icons";
 import PageNavbar from "../components/common/PageNavbar";
@@ -230,7 +231,7 @@ const ProfileSettingsPage = () => {
     }
   };
 
-  const avatarImageUrl = tempPreviewUrl || (user?.avatar_url ?? "").trim();
+  const avatarImageUrl = tempPreviewUrl || normalizeAvatarUrl(user?.avatar_url);
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== DELETE_PHRASE) return;

@@ -30,12 +30,13 @@ class UserProfileResponse(BaseModel):
     """Schema for user profile response"""
 
     id: str
-    username: str
-    email: str
-    enable_2fa: bool
+    username: str | None = None
+    email: str | None = None
+    enable_2fa: bool = False
     avatar_url: str | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    deleted: bool = False
 
     class Config:
         from_attributes = True
