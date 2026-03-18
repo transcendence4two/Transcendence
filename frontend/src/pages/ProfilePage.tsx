@@ -150,18 +150,23 @@ const ProfilePage = () => {
 
         const opponentMap: Record<string, string> = {};
         await Promise.allSettled(
-          uniqueOpponentIds.map((id) =>
-            fetch(`/api/users/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-              .then((res) => (res.ok ? res.json() : Promise.reject()))
-              .then((userData: UserData) => {
+          uniqueOpponentIds.map(async (id) => {
+            try {
+              const res = await fetch(`/api/users/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) {
+                const userData: UserData = await res.json();
                 if (userData?.username) {
                   opponentMap[id] = userData.username;
                 }
-              })
-              .catch(() => {})
-          )
+              } else {
+                opponentMap[id] = `#${id.slice(0, 8)}`;
+              }
+            } catch {
+              opponentMap[id] = `#${id.slice(0, 8)}`;
+            }
+          })
         );
 
         const history: MatchHistoryItem[] = rawMatches.map((matchData) => {
@@ -177,7 +182,7 @@ const ProfilePage = () => {
           return {
             result,
             opponent: {
-              username: resolvedUsername || opponentSnapshot?.display_name || "Unknown",
+              username: resolvedUsername || opponentSnapshot?.display_name || `#${opponentSnapshot?.user_id?.slice(0, 8) ?? "unknown"}`,
               score: opponentSnapshot?.score || 0
             },
             player: {
