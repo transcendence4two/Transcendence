@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
+import { normalizeAvatarUrl } from "../utils";
 
 import {
   FriendsIcon,
@@ -267,7 +268,7 @@ const FriendsPage = () => {
         userIds.map(async (id) => {
           try {
             const profile = await getUserProfileById(id);
-            return [id, { username: profile.username, avatarUrl: profile.avatar_url ?? undefined }] as const;
+            return [id, { username: profile.username, avatarUrl: normalizeAvatarUrl(profile.avatar_url) || undefined }] as const;
           } catch {
             return [id, { username: `user-${id.slice(0, 8)}` }] as const;
           }

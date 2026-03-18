@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, statu
 from src.core.auth import get_token_payload
 from src.core.settings import settings
 from src.di_config import get_presence_service, get_user_service
-from src.domain.exceptions import UnauthorizedActionError
+from src.domain.exceptions import UnauthorizedActionError, UserNotFoundError
 from src.domain.schemas.user import (
     DeleteUserRequest,
     GithubOAuthRequest,
@@ -124,8 +124,11 @@ async def get_profile(
     payload: dict = Depends(get_token_payload),
     user_service: UserService = Depends(get_user_service),
 ):
-    user = await user_service.get_user_profile(user_id)
-    return UserProfileResponse.model_validate(user)
+    try:
+        user = await user_service.get_user_profile(user_id)
+        return UserProfileResponse.model_validate(user)
+    except UserNotFoundError:
+        return UserProfileResponse(id=user_id, deleted=True)
 
 
 @router.post("/me/avatar", response_model=UserProfileResponse)

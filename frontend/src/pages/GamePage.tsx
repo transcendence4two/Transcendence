@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../components/layout/Header'
-import Footer from '../components/layout/Footer'
+import { normalizeAvatarUrl } from '../utils'
 import GameBoard from '../components/game/GameBoard'
 import { useGameSocket } from '../hooks/useGameSocket'
 
@@ -65,7 +65,7 @@ export default function GamePage() {
                                 ...prev,
                                 [p.id]: {
                                     username: data.username,
-                                    avatarUrl: data.avatar_url
+                                    avatarUrl: normalizeAvatarUrl(data.avatar_url) || undefined
                                 }
                             }))
                         }
@@ -147,7 +147,7 @@ export default function GamePage() {
     return (
         <div className="container-main">
             <Header />
-            <main className="content-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+            <main className="content-main game-main">
                 <div className="game-container">
                     <h1 className="game-title">Tic Tac Infinity</h1>
 
@@ -268,7 +268,6 @@ export default function GamePage() {
                     ) : null}
                 </div>
             </main>
-            <Footer />
         </div>
     )
 }

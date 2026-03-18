@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { normalizeAvatarUrl } from "../utils";
 import {
   TrophyIcon,
   BullseyeIcon,
@@ -61,7 +62,7 @@ const ProfilePage = () => {
     (!remoteProfileState.loaded ||
       remoteProfileState.requestedUserId !== effectiveUserId);
 
-  const avatarImageUrl = (user?.avatar_url ?? "").trim();
+  const avatarImageUrl = normalizeAvatarUrl(user?.avatar_url);
   const nick = user?.username ?? "player";
   const initials = nick
     .split(/[\s._-]+/)
@@ -149,18 +150,25 @@ const ProfilePage = () => {
 
         const opponentMap: Record<string, string> = {};
         await Promise.allSettled(
-          uniqueOpponentIds.map((id) =>
-            fetch(`/api/users/${id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-              .then((res) => (res.ok ? res.json() : Promise.reject()))
-              .then((userData: UserData) => {
-                if (userData?.username) {
+          uniqueOpponentIds.map(async (id) => {
+            try {
+              const res = await fetch(`/api/users/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) {
+                const userData: UserData & { deleted?: boolean } = await res.json();
+                if (userData?.username && !userData.deleted) {
                   opponentMap[id] = userData.username;
+                } else {
+                  opponentMap[id] = `#${id.slice(0, 8)}`;
                 }
-              })
-              .catch(() => {})
-          )
+              } else {
+                opponentMap[id] = `#${id.slice(0, 8)}`;
+              }
+            } catch {
+              opponentMap[id] = `#${id.slice(0, 8)}`;
+            }
+          })
         );
 
         const history: MatchHistoryItem[] = rawMatches.map((matchData) => {
@@ -176,7 +184,7 @@ const ProfilePage = () => {
           return {
             result,
             opponent: {
-              username: resolvedUsername || opponentSnapshot?.display_name || "Unknown",
+              username: resolvedUsername || opponentSnapshot?.display_name || `#${opponentSnapshot?.user_id?.slice(0, 8) ?? "unknown"}`,
               score: opponentSnapshot?.score || 0
             },
             player: {
