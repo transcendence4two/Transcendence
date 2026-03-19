@@ -60,7 +60,7 @@ app = FastAPI(
 app.add_exception_handler(DomainError, app_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
-app.middleware("http")(logging_middleware())
+app.middleware("http")(logging_middleware(skip_paths=["/users/presence/heartbeat"]))
 app.middleware("http")(request_context_middleware())
 
 # Routes

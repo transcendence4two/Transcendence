@@ -1,12 +1,18 @@
 import time
+from typing import Iterable, Optional
 
 import structlog
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
-def logging_middleware():
+def logging_middleware(skip_paths: Optional[Iterable[str]] = None):
+    _skip = set(skip_paths or [])
+
     async def middleware(request: Request, call_next):
+        if request.url.path in _skip:
+            return await call_next(request)
+
         error = None
         response = None
         logger = structlog.get_logger()
