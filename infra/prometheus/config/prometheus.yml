@@ -1,5 +1,5 @@
 global:
-  scrape_interval:     15s
+  scrape_interval: 15s
 
   external_labels:
     monitor: 'codelab-monitor'
@@ -7,7 +7,7 @@ global:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
 
   - job_name: 'node'
     static_configs:
@@ -21,7 +21,7 @@ scrape_configs:
     static_configs:
       - targets: ["redis-exporter:9121"]
 
-  - job_name: "blackbox"
+  - job_name: 'blackbox'
     metrics_path: /probe
     params:
       module: [http_2xx]
@@ -30,6 +30,8 @@ scrape_configs:
       - targets:
           - https://nginx:443
           - https://nginx:443/api/health
+          - https://nginx:443/api/users/health
+          - https://nginx:443/api/tournaments/health
 
     relabel_configs:
       - source_labels: [__address__]

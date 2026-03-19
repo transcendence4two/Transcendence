@@ -199,8 +199,6 @@ services:
     image: prom/blackbox-exporter:v0.25.0
     container_name: blackbox-exporter
     restart: unless-stopped
-    command:
-      - --config.file=/etc/blackbox_exporter/config.yml
     volumes:
       - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     networks:
