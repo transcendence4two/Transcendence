@@ -150,6 +150,7 @@ services:
     restart: unless-stopped
     networks:
       - transcendence-network
+      - grafana-monitoring-network
 
   node-exporter:
     container_name: node-exporter
@@ -221,10 +222,12 @@ services:
       - ../grafana/config/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
+    expose:
+    - "3000"
     depends_on:
       - prometheus
     networks:
-      - transcendence-network
+      - grafana-monitoring-network
 
   redis:
     image: redis:7-alpine
@@ -433,5 +436,8 @@ networks:
     driver: bridge
     internal: true
   elk-storage-network:
+    driver: bridge
+    internal: true
+  grafana-monitoring-network:
     driver: bridge
     internal: true
