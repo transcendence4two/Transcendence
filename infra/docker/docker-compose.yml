@@ -221,7 +221,7 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_METRICS_ENABLED=true
     volumes:
-      - ../grafana/config/provisioning/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ../grafana/provisioning/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
     expose:
