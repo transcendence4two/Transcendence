@@ -136,6 +136,33 @@ services:
       elasticsearch-setup:
         condition: service_completed_successfully
 
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v2.52.0
+    volumes:
+      - prometheus_data:/prometheus
+      - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter:v1.8.1
+    pid: host #container sees host's process namespace
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
   redis:
     image: redis:7-alpine
     ports:
@@ -333,6 +360,7 @@ volumes:
   kibana_data:
   postgres_data:
   minio_data:
+  prometheus_data:
 
 networks:
   transcendence-network:
