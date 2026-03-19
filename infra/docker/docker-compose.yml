@@ -184,6 +184,17 @@ services:
     depends_on:
       - postgres
 
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    restart: unless-stopped
+    depends_on:
+      - redis
+    networks:
+      - transcendence-network
+
   redis:
     image: redis:7-alpine
     ports:
