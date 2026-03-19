@@ -12,47 +12,57 @@ This section have to clearly presents the project, its goal and brief overview.
 
 # Team Information
 ### aldantas
-#### **Roles**
+```
+Roles
 - Tech Lead
 - Developer
 
-**Responsabilities**
+Responsabilities
 - Resp1
 - Resp2
+```
 
 ### dbessa
-**Roles**
+```
+Roles
 - Project Manager
 - Developer
 
-**Responsabilities**
+Responsabilities
 - Resp1
 - Resp2
+```
 
 ### jveras
-**Role**
+```
+Role
 - Developer
 
-**Responsabilities**
+Responsabilities
 - Resp1
 - Resp2
+```
 
 ### lraggio
-**Roles**
+```
+Roles
 - Product Owner
 - Developer
 
-**Responsabilities**
+Responsabilities
 - Resp1
 - Resp2
+```
 
 ### marcribe
-**Role**
+```
+Role
 - Developer
 
-**Responsabilities**
+Responsabilities
 - Resp1
 - Resp2
+```
 
 # Project Management
 How the team organized the work (task distribution, meetings, etc.).
@@ -85,13 +95,18 @@ Major: Use a framework for both the frontend and backend.
 ◦ Full-stack frameworks (Next.js, Nuxt.js, SvelteKit) count as both if you use both their frontend and backend capabilities.
 ```
 Why this module?
-`To faster development using well-knwon and tested market frameworks`
+
+R: `To faster development using well-knwon and tested market frameworks`
 
 How it was implemented?
-`In frontend we've used React and for backend we've used Java Quarkus for friends-service and Python FastAPI for tournament-service and usermanagement-service`
+
+R: `In frontend we've used React and for backend we've used Java Quarkus for friends-service, Mix for email-service and Python FastAPI for tournament-service and usermanagement-service`
 
 Who implemented?
-`Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe`
+
+R: `Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe. All the integrations was made by the team`
+
+***
 
 ```
 Major: Implement real-time features using WebSockets or similar technology.
@@ -99,9 +114,268 @@ Major: Implement real-time features using WebSockets or similar technology.
 ◦ Handle connection/disconnection gracefully.
 ◦ Efficient message broadcasting.
 ```
+Why this module?
 
-List of all chosen modules (Major and Minor).
-Point calculation (Major = 2pts, Minor = 1pt).
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: A public API to interact with the database with a secured API key, rate
+limiting, documentation, and at least 5 endpoints:
+◦ GET /api/{something}
+◦ POST /api/{something}
+◦ PUT /api/{something}
+◦ DELETE /api/{something}
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Minor: Use an ORM for the database.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+
+***
+
+```
+Major: Standard user management and authentication.
+◦ Users can update their profile information.
+◦ Users can upload an avatar (with a default avatar if none provided).
+◦ Users can add other users as friends and see their online status.
+◦ Users have a profile page displaying their information.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+
+***
+
+```
+Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.).
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+
+***
+
+```
+Minor: Implement a complete 2FA (Two-Factor Authentication) system for the users.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: Implement a complete web-based game where users can play against each other.
+◦ The game can be real-time multiplayer (e.g., Pong, Chess, Tic-Tac-Toe, Card games, etc.).
+◦ Players must be able to play live matches.
+◦ The game must have clear rules and win/loss conditions.
+◦ The game can be 2D or 3D.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: Remote players — Enable two players on separate computers to play the
+same game in real-time.
+◦ Handle network latency and disconnections gracefully.
+◦ Provide a smooth user experience for remote gameplay.
+◦ Implement reconnection logic.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: Infrastructure for log management using ELK (Elasticsearch, Logstash,
+Kibana).
+◦ Elasticsearch to store and index logs.
+◦ Logstash to collect and transform logs.
+◦ Kibana for visualization and dashboards.
+◦ Implement log retention and archiving policies.
+◦ Secure access to all components.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: Monitoring system with Prometheus and Grafana.
+◦ Set up Prometheus to collect metrics.
+◦ Configure exporters and integrations.
+◦ Create custom Grafana dashboards.
+◦ Set up alerting rules.
+◦ Secure access to Grafana.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Major: Backend as microservices.
+◦ Design loosely-coupled services with clear interfaces.
+◦ Use REST APIs or message queues for communication.
+◦ Each service should have a single responsibility.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Minor: Support for additional browsers.
+◦ Full compatibility with at least 2 additional browsers (Firefox, Safari, Edge, etc.).
+◦ Test and fix all features in each browser.
+◦ Document any browser-specific limitations.
+◦ Consistent UI/UX across all supported browsers.
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Minor: Custom-made design system with reusable components, including a proper
+color palette, typography, and icons (minimum: 10 reusable components).
+```
+Why this module?
+
+R: `|`
+
+How it was implemented?
+
+R: `|`
+
+Who implemented?
+
+R: `|`
+
+***
+
+```
+Points calculation
+2 + 2 + 2 + 1 + 2 + 1 + 1 + 2 + 2 + 2 + 2 + 2 + 1 + 1 = 23
+```
+
 Justification for each module choice, especially for custom "Modules of choice".
 How each module was implemented.
 Which team member(s) worked on each module.
