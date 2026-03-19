@@ -136,6 +136,16 @@ services:
       elasticsearch-setup:
         condition: service_completed_successfully
 
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: prometheus
+    volumes:
+      - prometheus_data:/prometheus
+      - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+    networks:
+      - transcendence-network
+
   redis:
     image: redis:7-alpine
     ports:
@@ -333,6 +343,7 @@ volumes:
   kibana_data:
   postgres_data:
   minio_data:
+  prometheus_data:
 
 networks:
   transcendence-network:
