@@ -77,6 +77,29 @@ Which team member(s) worked on each feature.
 Brief description of each feature’s functionality.
 
 # Modules
+
+```
+Major: Use a framework for both the frontend and backend.
+◦ Use a frontend framework (React, Vue, Angular, Svelte, etc.).
+◦ Use a backend framework (Express, NestJS, Django, Flask, Ruby on Rails, etc.).
+◦ Full-stack frameworks (Next.js, Nuxt.js, SvelteKit) count as both if you use both their frontend and backend capabilities.
+```
+Why this module?
+`To faster development using well-knwon and tested market frameworks`
+
+How it was implemented?
+`In frontend we've used React and for backend we've used Java Quarkus for friends-service and Python FastAPI for tournament-service and usermanagement-service`
+
+Who implemented?
+`Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe`
+
+```
+Major: Implement real-time features using WebSockets or similar technology.
+◦ Real-time updates across clients.
+◦ Handle connection/disconnection gracefully.
+◦ Efficient message broadcasting.
+```
+
 List of all chosen modules (Major and Minor).
 Point calculation (Major = 2pts, Minor = 1pt).
 Justification for each module choice, especially for custom "Modules of choice".
