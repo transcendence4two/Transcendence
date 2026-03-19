@@ -554,7 +554,7 @@ html.light body {
   }
 
   .history-item {
-    @apply rounded-xl border border-cyan-800/40 bg-slate-700/20 px-4 py-4 flex items-center justify-between gap-3 transition-all duration-200 hover:border-slate-500/70 hover:bg-slate-900/60;
+    @apply rounded-xl border border-cyan-800/40 bg-slate-700/20 px-4 py-3 flex items-center justify-between gap-4 transition-all duration-200 hover:border-slate-500/70 hover:bg-slate-900/60;
   }
 
   .history-icon {
@@ -562,7 +562,7 @@ html.light body {
   }
 
   .history-icon-badge {
-    @apply w-10 h-10 rounded-full grid place-items-center border shrink-0;
+    @apply w-9 h-9 rounded-full grid place-items-center border;
   }
 
   .history-icon-badge-win {
@@ -574,11 +574,11 @@ html.light body {
   }
 
   .history-text {
-    @apply flex-1 text-sm text-white text-left leading-5;
+    @apply flex-1 text-sm sm:text-base text-white text-left;
   }
 
   .history-score {
-    @apply text-sm font-semibold px-3 py-1.5 rounded-md bg-slate-900/50 border border-slate-700/60 min-w-18 text-center;
+    @apply text-sm font-semibold px-2.5 py-1 rounded-md bg-slate-900/50 border border-slate-700/60 min-w-18 text-center;
   }
 
   .history-score-win {
