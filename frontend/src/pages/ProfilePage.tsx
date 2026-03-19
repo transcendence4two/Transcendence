@@ -141,11 +141,13 @@ const ProfilePage = () => {
           new Set(
             rawMatches
               .map((matchData) => {
-                const opponents = matchData.players?.find((p) => p.user_id !== user.id);
+                const opponents = matchData.players?.find(
+                  (p) => p.user_id !== user.id,
+                );
                 return opponents?.user_id;
               })
-              .filter(Boolean) as string[]
-          )
+              .filter(Boolean) as string[],
+          ),
         );
 
         const opponentMap: Record<string, string> = {};
@@ -156,7 +158,8 @@ const ProfilePage = () => {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (res.ok) {
-                const userData: UserData & { deleted?: boolean } = await res.json();
+                const userData: UserData & { deleted?: boolean } =
+                  await res.json();
                 if (userData?.username && !userData.deleted) {
                   opponentMap[id] = userData.username;
                 } else {
@@ -168,7 +171,7 @@ const ProfilePage = () => {
             } catch {
               opponentMap[id] = `#${id.slice(0, 8)}`;
             }
-          })
+          }),
         );
 
         const history: MatchHistoryItem[] = rawMatches.map((matchData) => {
@@ -176,7 +179,8 @@ const ProfilePage = () => {
           const playerSnapshot = players.find((p) => p.user_id === user.id);
           const opponentSnapshot = players.find((p) => p.user_id !== user.id);
 
-          const result = (playerSnapshot && playerSnapshot.is_winner) ? "win" : "loss";
+          const result =
+            playerSnapshot && playerSnapshot.is_winner ? "win" : "loss";
           const resolvedUsername = opponentSnapshot?.user_id
             ? opponentMap[opponentSnapshot.user_id]
             : undefined;
@@ -184,12 +188,15 @@ const ProfilePage = () => {
           return {
             result,
             opponent: {
-              username: resolvedUsername || opponentSnapshot?.display_name || `#${opponentSnapshot?.user_id?.slice(0, 8) ?? "unknown"}`,
-              score: opponentSnapshot?.score || 0
+              username:
+                resolvedUsername ||
+                opponentSnapshot?.display_name ||
+                `#${opponentSnapshot?.user_id?.slice(0, 8) ?? "unknown"}`,
+              score: opponentSnapshot?.score || 0,
             },
             player: {
-              score: playerSnapshot?.score || 0
-            }
+              score: playerSnapshot?.score || 0,
+            },
           };
         });
 
@@ -292,7 +299,6 @@ const ProfilePage = () => {
               />
             </div>
           </div>
-
         </div>
       </main>
       <Footer />

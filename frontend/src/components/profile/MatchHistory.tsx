@@ -34,8 +34,15 @@ const MatchHistory = (props: MatchHistoryProps) => {
   const heading = props.title;
 
   return (
-    <section className={`flex flex-col flex-1 min-h-0 ${props.className ?? ""}`}>
-      {heading && <h3 className="profile-section-title text-sm">{heading}</h3>}
+    <section
+      className={`flex flex-col flex-1 min-h-0 text-left space-y-3 ${props.className ?? ""}`}
+    >
+      {heading && history.length > 0 && (
+        <h3 className="profile-section-title mt-4 mb-2 text-sm">{heading}</h3>
+      )}
+      {heading && history.length === 0 && (
+        <hr className="history-empty-divider" aria-hidden="true" />
+      )}
       {history.length > 0 ? (
         <dl
           aria-label={`${props.username} match history`}
@@ -65,8 +72,30 @@ const MatchHistory = (props: MatchHistoryProps) => {
           ))}
         </dl>
       ) : (
-        <div className="flex items-center justify-center p-6 text-slate-500 in-[.light]:text-gray-500">
-          <p>No matches played yet.</p>
+        <div className="history-empty-state" role="status" aria-live="polite">
+          <div className="history-empty-icon-ring" aria-hidden="true">
+            <span className="history-empty-ring-pulse" />
+            <span className="history-empty-ring-pulse history-empty-ring-pulse-2" />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="history-empty-icon"
+            >
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </div>
+          <div className="history-empty-text-wrap">
+            <p className="history-empty-title">No matches played yet</p>
+            <p className="history-empty-subtitle">
+              Play your first match to start building your history
+            </p>
+          </div>
         </div>
       )}
     </section>
