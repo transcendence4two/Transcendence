@@ -142,6 +142,11 @@ services:
     volumes:
       - prometheus_data:/prometheus
       - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
     restart: unless-stopped
     networks:
       - transcendence-network
@@ -176,6 +181,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
     restart: unless-stopped
+    depends_on:
+      - postgres
 
   redis:
     image: redis:7-alpine
