@@ -1,233 +1,268 @@
-# Arquitetura do Projeto
+# Project Architecture
 
-![Arquitetura](./architecture.png)
+![Architecture](./architecture.png)
 
-## Visão Geral
-O projeto de microserviços construído com múltiplas linguagens e frameworks, orquestrado com Docker Compose.
-A arquitetura segue um padrão de API-first com separação clara de responsabilidades entre serviços especializados.
+## Overview
+A microservices project built with multiple languages and frameworks, orchestrated with Docker Compose.
+The architecture follows an API-first pattern with clear separation of responsibilities between specialized services.
 
-### Stack Tecnológico
+### Technology Stack
 - **Backend**: Python, Elixir, Go
 - **Frontend**: TypeScript/React com Vite
 - **Infraestrutura**: Docker, Docker Compose, Nginx
-- **Autenticação**: JWT (Stateless)
+- **Authentication**: JWT (Stateless)
 - **Message Broker**: Redis (pub/sub e cache)
 - **Database**: SQLite (dev), PostgreSQL (prod)
 - **DevOps**: ELK Stack, Prometheus e Grafana
 
 ---
 
-## Serviços
+## Services
 
 ### 1. Usermanagement Service
-**Linguagem**: Python 3.13+
+**Language**: Python 3.13+
 **Framework**: FastAPI  
-**Porta**: 8000 (interno), `/api/users/` (via Nginx HTTPS)
+**Port**: 8000 (internal), `/api/users/` (via Nginx HTTPS)
 
-#### Responsabilidades
-- Gerenciamento de usuários (CRUD)
-- Autenticação e autorização (com base no JWT)
-- Validação de email
-- Hashing seguro de senhas (bcrypt)
+#### Responsibilities
+- User management (CRUD)
+- Authentication and authorization (JWT-based)
+- Email validation
+- Secure password hashing (bcrypt)
 
-#### Stack de Dependências
-- **FastAPI**: Framework web assíncrono
-- **Uvicorn**: Servidor ASGI
-- **SQLAlchemy**: ORM para banco de dados
-- **asyncpg**: Driver PostgreSQL assíncrono
-- **aiosqlite**: Driver SQLite assíncrono
-- **Redis**: Cliente para cache e eventos
-- **Pydantic**: Validação de dados
-- **passlib[bcrypt]**: Hashing de senhas
-- **email-validator**: Validação de emails
+#### Dependency Stack
+- **FastAPI**: Async web framework
+- **Uvicorn**: ASGI server
+- **SQLAlchemy**: Database ORM
+- **asyncpg**: Async PostgreSQL driver
+- **aiosqlite**: Async SQLite driver
+- **Redis**: Client for cache and events
+- **Pydantic**: Data validation
+- **passlib[bcrypt]**: Password hashing
+- **email-validator**: Email validation
 
-#### Arquitetura Interna (Clean Architecture)
+#### Internal Architecture (Clean Architecture)
 ```
 src/
-├── controller/          # Camada de apresentação (Rotas FastAPI)
+├── controller/          # Presentation layer (FastAPI routes)
 │
-├── core/               # Configurações e utilitários
-│   ├── settings.py     # Variáveis de ambiente
-│   ├── exception_handlers.py  # Tratamento de exceções
-│   └── utils.py        # Funções utilitárias
-├── domain/             # Lógica de negócio
-│   ├── models/         # Modelos de domínio
+├── core/               # Settings and utilities
+│   ├── settings.py     # Environment variables
+│   ├── exception_handlers.py  # Exception handling
+│   └── utils.py        # Utility functions
+├── domain/             # Business logic
+│   ├── models/         # Domain models
 │   ├── schemas/        # DTOs
-│   └── services/       # Serviços
+│   └── services/       # Services
 ├── infrastructure/
-│   └── event_publisher.py  # Publicação de eventos
-└── di_config.py        # Injeção de dependências
+│   └── event_publisher.py  # Event publishing
+└── di_config.py        # Dependency injection
 ```
 
 ---
 
 ### 2. Emails Service
-**Linguagem**: Elixir 1.14+
+**Language**: Elixir 1.14+
 **Framework**: Plug (Cowboy)
-**Porta**: 4001 (externo)
+**Port**: 4001 (external)
 
-#### Responsabilidades
-- Envio de emails assíncrono
-- Subscriber de eventos Redis (pub/sub)
+#### Responsibilities
+- Asynchronous email delivery
+- Redis event subscriber (pub/sub)
 
-#### Padrão Event-Driven
-O serviço de emails funciona como subscriber de eventos:
-1. User Management publica evento no Redis quando usuário se registra/altera email
-2. Emails Service escuta eventos no canal Redis
-3. Processa e envia email
-
----
-
-### 3. Game Service
-**Linguagem**: Go  
-**Protocolo**: WebSocket 
-**Porta**: 8001
-
-#### Responsabilidades
-- Lógica principal do jogo
-- Gerenciamento de salas de jogo
-- Comunicação em tempo real via WebSocket
-- Sincronização de estado do jogo
-- Broadcast de eventos para múltiplos clientes
-
-#### Características
-- Conexões WebSocket persistentes
-- Estado do jogo em memória
-- Sincronização com serviço de torneios para resultados
+#### Event-Driven Pattern
+The emails service operates as an event subscriber:
+1. User Management publishes an event to Redis when a user registers or changes their email
+2. Emails Service listens to events on the Redis channel
+3. Processes and sends the email
 
 ---
 
-### 4. Tournament Service
-**Linguagem**: Python 3.13+  
+### 3. Friends Service
+**Language**: Java 21+  
+**Framework**: Quarkus (RESTEasy Reactive)  
+**Port**: 8003 (internal), `/api/friends/` (via Nginx HTTPS)
+
+#### Responsibilities
+- Managing friendship links between users
+- Sending, accepting, and rejecting friend requests
+- Paginated listing of friends and pending requests
+- Removing friendships (soft delete)
+
+#### Internal Architecture (Hexagonal)
+```
+domain/          # Immutable models (records), repository interfaces, exceptions
+application/     # Use cases (one per operation), output ports
+infrastructure/  # REST resources, JPA repositories, REST client for usermanagement
+```
+
+#### Integration
+- Calls usermanagement-service (`GET /internal/users/{id}/exists`) before creating requests
+- Receives `X-User-Id` via header injected by Nginx after JWT validation
+- Propagates `X-Request-ID` and `X-Trace-ID` on outgoing calls (log correlation)
+
+---
+
+### 4. Game Service
+**Language**: Go  
+**Protocol**: WebSocket 
+**Port**: 8001
+
+#### Responsibilities
+- Core game logic
+- Game room management
+- Real-time communication via WebSocket
+- Game state synchronization
+- Event broadcasting to multiple clients
+
+#### Characteristics
+- Persistent WebSocket connections
+- In-memory game state
+- Synchronization with the tournament service for results
+
+---
+
+### 5. Tournament Service
+**Language**: Python 3.13+  
 **Framework**: FastAPI  
-**Porta**: 8002
+**Port**: 8002
 
-#### Responsabilidades
-- Gerenciamento de torneios
-- Sistema de matchmaking
-- Persistência de resultados de partidas
-- Rankings e estatísticas de jogadores
-- Histórico de torneios
+#### Responsibilities
+- Tournament management
+- Matchmaking system
+- Match result persistence
+- Player rankings and statistics
+- Tournament history
 
-#### Integração
-- Consome resultados do Game Service
-- Publica eventos para notificações via Email Service
+#### Integration
+- Receives results from the Game Service via webhook (`POST /api/tournaments/webhooks/game-match-finished`)
+- Calls the Game Service to create game sessions during matchmaking
+- Maintains permanent match history (MatchRecord) and per-player statistics
 
 ---
 
-## Camada de Infra
+## Infrastructure Layer
 
 ### Nginx (Reverse Proxy)
-**Porta**: 443 (HTTPS)
+**Port**: 443 (HTTPS)
 
-#### Função
-- Ponto único de entrada para o frontend
-- Roteamento de requisições para serviços backend
+#### Role
+- Single entry point for the frontend
+- Request routing to backend services
 - SSL/TLS
 
-#### Roteamento
+#### Routing
 ```
 https://localhost:443/
-├── / → Frontend (Static Files)
-├── /api/users/ → Usermanagement Service:8000
-└── /api/health → Usermanagement Service:8000
+├── /                        → Frontend (Static Files)
+├── /api/users/              → Usermanagement Service:8000
+├── /api/friends/            → Friends Service:8003
+├── /api/tournaments/        → Tournament Service:8002
+└── /api/health              → Usermanagement Service:8000
 ```
 
-#### Redis
-1. **Cache**: Armazenamento de dados frequentemente acessados
-2. **Message Broker**: Pub/Sub para comunicação entre serviços
-3. **Eventos**: Stream de eventos para auditoria e logs
+#### Authentication via auth_request
+For protected routes, Nginx makes a sub-request to `GET /auth/validate` on the usermanagement-service before forwarding the request. If the JWT is valid, the usermanagement-service returns `200` with the `X-User-Id` header, which Nginx then injects into the original request.
 
-#### Tópicos Pub/Sub
-- `user:registered` - Novo usuário registrado
-- `user:updated` - Dados de usuário alterados
-- `user:deleted` - Usuário removido
-- `game:finished` - Partida finalizada
-- `tournament:updated` - Torneio atualizado
+#### Redis
+1. **Cache**: Storage of frequently accessed data
+2. **Message Broker**: Pub/Sub for inter-service communication
+3. **Events**: Event stream for auditing and logs
+
+#### Pub/Sub Topics
+- `user:registered` - New user registered
+- `user:updated` - User data changed
+- `user:deleted` - User removed
+- `game:finished` - Match finished
+- `tournament:updated` - Tournament updated
 
 ---
 
 ## Frontend
 
-**Tecnologia**: React + TypeScript  
+**Technology**: React + TypeScript  
 **Build**: Vite  
-**Porta**: 80 (interno), 443 (via Nginx)
+**Port**: 80 (internal), 443 (via Nginx)
 
-#### Recursos
-- Autenticação JWT armazenada em localStorage
-- WebSocket para comunicação em tempo real do jogo
+#### Features
+- JWT authentication stored in localStorage
+- WebSocket for real-time game communication
 
-#### Integração Backend
-- REST API para gerenciamento de usuários
-- WebSocket com Game Service para gameplay
+#### Backend Integration
+- REST API for user management
+- WebSocket with Game Service for gameplay
 
 ---
 
-## Fluxo de Dados
+## Data Flow
 
-### Ciclo de Vida de um Usuário
+### User Lifecycle
 ```
-1. Registro
+1. Registration
    Frontend → Nginx → Usermanagement
-   └─ Valida dados
-   └─ Cria usuário
-   └─ Publica evento "user:registered" no Redis
-   └─ Emails Service recebe evento
-   └─ Envia email de boas-vindas
+   └─ Validates data
+   └─ Creates user
+   └─ Publishes "user:registered" event to Redis
+   └─ Emails Service receives event
+   └─ Sends welcome email
 
 2. Login
    Frontend → Usermanagement
-   └─ Valida credenciais
-   └─ Gera JWT
-   └─ Retorna token ao client
+   └─ Validates credentials
+   └─ Generates JWT
+   └─ Returns token to client
 
-3. Jogo
+3. Game
    Frontend → Game Service (WS)
-   └─ Autentralizado via JWT
-   └─ Conectado a sala de jogo
-   └─ Broadcasting de movimentos
-   └─ Resultado enviado para Tournament Service
+   └─ Authenticated via JWT
+   └─ Connected to game room
+   └─ Broadcasting moves
+   └─ Result sent to Tournament Service
 
-4. Torneios
+4. Tournaments
    Game Service → Tournament Service
-   └─ Salva resultado
-   └─ Atualiza rankings
-   └─ Publica evento de conclusão
+   └─ Saves result
+   └─ Updates rankings
+   └─ Publishes completion event
 ```
 
 ---
 
-### Estrutura do Projeto
+### Project Structure
 
 ```
 Transcendence/
 ├── backend/
-│   ├── emails-service/      # Serviço de emails (Elixir)
-│   ├── game-service/        # Server de jogo (Go)
-│   ├── tournament-service/  # Gerenciador de torneios (Python)
-│   └── usermanagement-service/  # API de usuários (Python)
-├── frontend/                # Aplicação React (TypeScript)
+│   ├── emails-service/          # Email service (Elixir)
+│   ├── friends-service/         # Friendship management (Java/Quarkus)
+│   ├── game-service/            # Real-time game server (Go)
+│   ├── tournament-service/      # Tournaments and matchmaking (Python)
+│   └── usermanagement-service/  # User and authentication API (Python)
+├── frontend/                    # React application (TypeScript/Vite)
 ├── infra/
-│   ├── docker/             # Dockerfiles e docker-compose.yml
-│   ├── nginx/              # Configurações do Nginx
-│   ├── certs/              # Certificados SSL
-│   └── scripts/
+│   ├── docker/                  # Dockerfiles and docker-compose.yml
+│   ├── nginx/                   # Reverse proxy configuration
+│   ├── elasticsearch/           # ILM, SLM and index configuration
+│   ├── logstash/                # Log ingestion pipelines
+│   ├── kibana/                  # Dashboards
+│   ├── certs/                   # SSL certificates
+│   └── scripts/                 # Bootstrap and setup
 ├── docs/
 └── Makefile
 ```
 
 ---
 
-## Observabilidade
+## Observability
 
 ### Logging
-- Logs estruturados em JSON
-- ELK Stack para centralização
-- Kibana para visualização
+- Structured logs in JSON
+- ELK Stack for centralization
+- Kibana for visualization
 
-### Métricas
-- Prometheus para coleta
-- Grafana para visualização
-- Endpoints `/metrics` em cada serviço
+### Metrics
+- Prometheus for collection
+- Grafana for visualization
+- `/metrics` endpoints on each service
 
 ---

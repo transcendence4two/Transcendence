@@ -1,38 +1,38 @@
-# Game Service — Documentação Técnica
+# Game Service — Technical Documentation
 
-## Visão Geral
+## Overview
 
-O **game-service** é um servidor Go que gerencia partidas de Tic Tac Infinity em tempo real via WebSocket. Ele é consumido pelo frontend React e se integra com o **tournament-service** para registrar resultados de partidas.
+The **game-service** is a Go server that manages real-time Tic Tac Infinity matches via WebSocket. It is consumed by the React frontend and integrates with the **tournament-service** to register match results.
 
-### Variante "Infinity"
-Cada jogador pode ter no máximo **3 peças** no tabuleiro. Quando coloca a 4ª peça, a mais antiga é automaticamente removida (FIFO). Isso faz com que o jogo nunca empate.
+### "Infinity" Variant
+Each player can have at most **3 pieces** on the board. When placing the 4th piece, the oldest one is automatically removed (FIFO). This ensures the game never ends in a draw.
 
 ---
 
-## Arquitetura do Serviço
+## Service Architecture
 
 ```
 cmd/server/main.go          ← entrypoint, HTTP server, graceful shutdown
 internal/
-├── config/config.go        ← variáveis de ambiente (SERVER_PORT, ALLOWED_ORIGINS, etc.)
+├── config/config.go        ← environment variables (SERVER_PORT, ALLOWED_ORIGINS, etc.)
 ├── domain/
-│   ├── game.go             ← tipos do domínio (Board, Player, Move, GameState)
-│   └── engine.go           ← regras do jogo (ValidateMove, ApplyMoveInfinity, CheckWinner)
-├── protocol/message.go     ← mensagens WebSocket (client→server e server→client)
+│   ├── game.go             ← domain types (Board, Player, Move, GameState)
+│   └── engine.go           ← game rules (ValidateMove, ApplyMoveInfinity, CheckWinner)
+├── protocol/message.go     ← WebSocket messages (client→server and server→client)
 ├── session/
-│   ├── config.go           ← SessionConfig (contexto de torneio opcional)
-│   ├── session.go          ← lógica de uma partida (Join, HandleMove, Disconnect)
-│   └── manager.go          ← gerencia múltiplas sessões + limpeza automática
-├── tournament/client.go    ← HTTP client para reportar resultados ao tournament-service
+│   ├── config.go           ← SessionConfig (optional tournament context)
+│   ├── session.go          ← match logic (Join, HandleMove, Disconnect)
+│   └── manager.go          ← manages multiple sessions + automatic cleanup
+├── tournament/client.go    ← HTTP client to report results to tournament-service
 └── transport/
-    ├── client.go           ← leitura/escrita WebSocket por conexão
-    ├── handler.go          ← rotas HTTP (/ws, /health, /api/sessions)
-    └── hub.go              ← coordena conexões, broadcast por sessão
+    ├── client.go           ← per-connection WebSocket read/write
+    ├── handler.go          ← HTTP routes (/ws, /health, /api/sessions)
+    └── hub.go              ← coordinates connections, per-session broadcast
 ```
 
 ---
 
-## Fluxo Completo: Matchmaking → Partida → Resultado
+## Complete Flow: Matchmaking → Match → Result
 
 ### 1. Matchmaking (tournament-service + frontend)
 
@@ -41,7 +41,7 @@ internal/
     │                                         │                                │
     ├── POST /api/tournaments/join ──────────►│                                │
     │   { user_id, display_name }             │                                │
-    │                                         │── (encontra par) ─────────────►│
+    │                                         │───────────────────────────────►│
     │                                         │   POST /api/sessions           │
     │                                         │   { tournament_id, match_id,   │
     │                                         │     players: [...] }           │
@@ -50,9 +50,9 @@ internal/
     │     game_session_id }                   │                                │
 ```
 
-O frontend faz polling em `GET /api/tournaments/matchmaking/status/{user_id}` até receber `status: "matched"` com o `game_session_id`. Então navega para `/game/{sessionId}`.
+The frontend polls `GET /api/tournaments/matchmaking/status/{user_id}` until it receives `status: "matched"` with the `game_session_id`. Then it navigates to `/game/{sessionId}`.
 
-### 2. Conexão WebSocket e Join
+### 2. WebSocket Connection and Join
 
 ```
 [Frontend]                                     [game-service]
@@ -82,12 +82,12 @@ O frontend faz polling em `GET /api/tournaments/matchmaking/status/{user_id}` at
     │                                               │     - ApplyMoveInfinity
     │                                               │     - CheckWinner
     │                                               │
-    │◄── { type: "game_state",                      │  (broadcast atualizado
+    │◄── { type: "game_state",                      │  broadcast atualizado
     │     payload: { board, current_turn,           │   com removed_piece e
-    │       removed_piece, next_removed } } ────────│   next_removed_piece)
+    │       removed_piece, next_removed } } ────────│   next_removed_piece
 ```
 
-### 4. Fim de Jogo
+### 4. End of game
 
 ```
 [game-service]                              [tournament-service]
@@ -100,28 +100,28 @@ O frontend faz polling em `GET /api/tournaments/matchmaking/status/{user_id}` at
     │   { winner_user_id, players, ... }            │
 ```
 
-Motivos de fim: `checkmate` (3 em linha) ou desconexão
+End reasons: `checkmate` (3 in a row) or disconnection
 ---
 
-## Pontos Importantes
+## Key Points
 
-### Reconexão com Grace Period
-Se um jogador desconecta durante uma partida ativa, o servidor **não declara vitoria imediatamente**. Há uma janela de **15 segundos** para reconexão:
-- O backend inicia um timer ao detectar desconexão
-- Se o jogador reconecta (mesmo `player_id` faz `Join` novamente), o timer é cancelado e o jogo continua
-- Se o timer expira, o oponente vence por forfeit
+### Reconnection with Grace Period
+If a player disconnects during an active match, the server **does not immediately declare a winner**. There is a **15-second** window for reconnection:
+- The backend starts a timer when a disconnection is detected
+- If the player reconnects (same `player_id` calls `Join` again), the timer is cancelled and the game continues
+- If the timer expires, the opponent wins by forfeit
 
-O frontend implementa *auto-reconnect*
+The frontend implements *auto-reconnect*
 
-### Broadcast por Sessão
-O Hub mantém um índice `rooms: map[sessionID] → set[Client]`. Ao fazer broadcast, o servidor consulta apenas os clients daquela sessão em vez de varrer todos os clients conectados.
+### Per-Session Broadcast
+The Hub maintains a `rooms: map[sessionID] → set[Client]` index. When broadcasting, the server looks up only the clients for that session instead of scanning all connected clients.
 
-### Limpeza Automática de Sessões
+### Automatic Session Cleanup
 
-O `Manager` roda um goroutine que a cada 1 minuto limpa:
+The `Manager` runs a goroutine every 1 minute to clean up:
 
-| Tipo | TTL | Motivo |
+| Type | TTL | Reason |
 |:---|:---|:---|
-| Sessões finalizadas | 30 segundos | Permite que clientes leiam o resultado final |
-| Sessões órfãs (waiting) | 5 minutos | Sessões criadas mas nunca preenchidas |
+| Finished sessions | 30 seconds | Allows clients to read the final result |
+| Orphan (waiting) sessions | 5 minutes | Sessions created but never filled |
 ---
