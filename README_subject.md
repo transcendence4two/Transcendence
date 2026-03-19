@@ -1,4 +1,4 @@
-This project has been created as part of the 42 curriculum by [aldantas](https://profile-v3.intra.42.fr/users/aldantas), [dbessa](https://profile-v3.intra.42.fr/users/dbessa), [jveras](https://profile-v3.intra.42.fr/users/jveras), [lraggio](https://profile-v3.intra.42.fr/users/lraggio) e [marcribe](https://profile-v3.intra.42.fr/users/marcribe)
+_This project has been created as part of the 42 curriculum by [aldantas](https://profile-v3.intra.42.fr/users/aldantas), [dbessa](https://profile-v3.intra.42.fr/users/dbessa), [jveras](https://profile-v3.intra.42.fr/users/jveras), [lraggio](https://profile-v3.intra.42.fr/users/lraggio) e [marcribe](https://profile-v3.intra.42.fr/users/marcribe)_
 
 # Description
 ## Tic Tac Infinity
@@ -65,13 +65,25 @@ Responsabilities
 ```
 
 # Project Management
-How the team organized the work (task distribution, meetings, etc.).
-Tools used for project management (GitHub Issues, Trello, etc.).
-Communication channels used (Discord, Slack, etc.).
+The team have used the Github Projects for project management, using the Kanban System. We've followed some cerimonies of scrum, like planning and review.
+
+At the begining of the project we've created the majority of tasks and then we've incremented as we've needed. Task distribution was on demand.
+If a team member have disponibility to take a task, it was taken without deeper or meaningful distribution.
+
+We'd made weekly meetings for next steps alingment for the project using discord, but we had daily communications about the project in our WhatsApp group.
 
 # Technical Stack
 Frontend technologies and frameworks used.
+- Bun for fast bundler
+- Vite for fast build
+- React with TypeScript for frontend development
+
 Backend technologies and frameworks used.
+- Python FastAPI for User Management and Tournament services.
+- Golang for Game Service
+- Elixir for Email Service
+- Java Quarkus for Friends Service
+
 Database system and why it was chosen.
 Any other significant technologies or libraries.
 Justification for major technical choices.
@@ -104,7 +116,7 @@ R: `In frontend we've used React and for backend we've used Java Quarkus for fri
 
 Who implemented?
 
-R: `Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe. All the integrations was made by the team`
+R: `Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe. All the integrations was made by the whole team`
 
 ***
 
@@ -116,7 +128,7 @@ Major: Implement real-time features using WebSockets or similar technology.
 ```
 Why this module?
 
-R: `|`
+R: `This module is required to us successfully implement a real time game.`
 
 How it was implemented?
 
@@ -124,7 +136,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas`
 
 ***
 
@@ -146,7 +158,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, dbessa`
 
 ***
 
@@ -163,7 +175,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, veras`
 
 
 ***
@@ -185,7 +197,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, dbessa`
 
 
 ***
@@ -195,15 +207,15 @@ Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.)
 ```
 Why this module?
 
-R: `|`
+R: `Make the acess easy has the purpose to make old users do sign in faster and new users to enter the application easily, lowering the drop rates.`
 
 How it was implemented?
 
-R: `|`
+R: `We've implemented via Github OAuth. We created the OAuth app at github, setted the homepage and callback page at github and then implemented in the frontend.`
 
 Who implemented?
 
-R: `|`
+R: `dbessa`
 
 
 ***
@@ -221,7 +233,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas`
 
 ***
 
@@ -234,7 +246,7 @@ Major: Implement a complete web-based game where users can play against each oth
 ```
 Why this module?
 
-R: `|`
+R: `Since the old transcendence was made to build a Pong Game and in the new we have the flexibility to choose, we've decided to keep doing a game and choose the Tic Tac Toe with a few differences`
 
 How it was implemented?
 
@@ -242,7 +254,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, dbessa, jveras, lraggio, marcribe`
 
 ***
 
@@ -263,7 +275,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `aldantas`
 
 ***
 
@@ -286,7 +298,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `jveras, lraggio`
 
 ***
 
@@ -308,7 +320,7 @@ R: `|`
 
 Who implemented?
 
-R: `|`
+R: `jveras, lraggio`
 
 ***
 
@@ -320,15 +332,15 @@ Major: Backend as microservices.
 ```
 Why this module?
 
-R: `|`
+R: `This is the right approach for our context. Using microservices allow us to pick the right tool for each service. Usermanagement and Tournament services we have chosen FastAPI for better team development, since is a common known framework. For the game we've chosen Go since it has a high-speed networking and work with thread efficiently. The loosely-coupled services helped us to deliver a good final product.`
 
 How it was implemented?
 
-R: `|`
+R: `We've separated each service inside the backend folder and picked the right language for each service we wanted.`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, marcribe`
 
 ***
 
@@ -341,15 +353,15 @@ Minor: Support for additional browsers.
 ```
 Why this module?
 
-R: `|`
+R: `It was another easy win. We focused our development in Google Chrome. And then we saw that all chromium based browsers are compatible with our application`
 
 How it was implemented?
 
-R: `|`
+R: `Implemented with our normal development flow.`
 
 Who implemented?
 
-R: `|`
+R: `aldantas, dbessa, jveras, lraggio, marcribe`
 
 ***
 
@@ -359,15 +371,15 @@ color palette, typography, and icons (minimum: 10 reusable components).
 ```
 Why this module?
 
-R: `|`
+R: `Making reusable components in front end is a very productive development decision, because we can use the same element in different contexts in order to save development hours. And it is a market good practice.`
 
 How it was implemented?
 
-R: `|`
+R: ``
 
 Who implemented?
 
-R: `|`
+R: `dbessa, jveras`
 
 ***
 
@@ -375,10 +387,6 @@ R: `|`
 Points calculation
 2 + 2 + 2 + 1 + 2 + 1 + 1 + 2 + 2 + 2 + 2 + 2 + 1 + 1 = 23
 ```
-
-Justification for each module choice, especially for custom "Modules of choice".
-How each module was implemented.
-Which team member(s) worked on each module.
 
 # Individual Contributions
 Detailed breakdown of what each team member contributed.
