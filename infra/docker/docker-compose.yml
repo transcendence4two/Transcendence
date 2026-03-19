@@ -201,13 +201,15 @@ services:
     container_name: blackbox-exporter
     restart: unless-stopped
     volumes:
-      - ./blackbox/config/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+      - ../blackbox/config/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     networks:
       - transcendence-network
 
   grafana:
     image: grafana/grafana:11.2.2
     container_name: grafana
+    env_file:
+      - ../../.env
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
