@@ -147,10 +147,15 @@ services:
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d
       - --web.enable-lifecycle
+      - --web.external-url=https://localhost/prometheus
+      - --web.route-prefix=/prometheus
     restart: unless-stopped
     networks:
       - transcendence-network
       - grafana-monitoring-network
+    expose:
+     - "9090"
+
 
   node-exporter:
     container_name: node-exporter
@@ -168,6 +173,8 @@ services:
       - '--path.rootfs=/rootfs'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($|/)'
     restart: unless-stopped
+    expose:
+      - "9100"
 
   postgres-exporter:
     container_name: postgres-exporter
@@ -184,6 +191,8 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
+    expose:
+      - "9187"
 
   redis-exporter:
     image: oliver006/redis_exporter:v1.62.0
@@ -195,6 +204,8 @@ services:
       - redis
     networks:
       - transcendence-network
+    expose:
+      - "9121"
 
   blackbox-exporter:
     image: prom/blackbox-exporter:v0.25.0
@@ -204,6 +215,8 @@ services:
       - ../blackbox/config/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
     networks:
       - transcendence-network
+    expose:
+      - "9115"
 
   grafana:
     image: grafana/grafana:11.2.2
@@ -225,7 +238,7 @@ services:
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
     expose:
-    - "3000"
+      - "3000"
     depends_on:
       - prometheus
     networks:
