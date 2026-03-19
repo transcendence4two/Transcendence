@@ -288,6 +288,7 @@ services:
     container_name: nginx
     networks:
       - transcendence-network
+      - grafana-monitoring-network
 
   frontend:
     build:
