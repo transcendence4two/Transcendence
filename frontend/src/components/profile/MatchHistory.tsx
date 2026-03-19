@@ -35,10 +35,10 @@ const MatchHistory = (props: MatchHistoryProps) => {
 
   return (
     <section
-      className={`flex flex-col flex-1 min-h-0 ${props.className ?? ""}`}
+      className={`flex flex-col flex-1 min-h-0 text-left space-y-3 ${props.className ?? ""}`}
     >
       {heading && history.length > 0 && (
-        <h3 className="profile-section-title text-sm">{heading}</h3>
+        <h3 className="profile-section-title mt-4 mb-2 text-sm">{heading}</h3>
       )}
       {heading && history.length === 0 && (
         <hr className="history-empty-divider" aria-hidden="true" />
