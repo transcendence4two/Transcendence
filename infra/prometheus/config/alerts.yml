@@ -1,0 +1,30 @@
+groups:
+  - name: infra-alerts
+    rules:
+
+      - alert: InstanceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instância caiu"
+          description: "{{ $labels.instance }} está offline"
+
+      - alert: EndpointDown
+        expr: probe_success == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Endpoint fora do ar"
+          description: "{{ $labels.instance }} não está respondendo"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU alta"
+          description: "{{ $labels.instance }} com uso de CPU acima de 80%"

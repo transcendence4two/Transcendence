@@ -141,7 +141,7 @@ services:
     image: prom/prometheus:v2.52.0
     volumes:
       - prometheus_data:/prometheus
-      - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/config:/etc/prometheus:ro
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -155,7 +155,6 @@ services:
       - grafana-monitoring-network
     expose:
      - "9090"
-
 
   node-exporter:
     container_name: node-exporter
