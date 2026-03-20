@@ -2,7 +2,21 @@ _This project has been created as part of the 42 curriculum by [aldantas](https:
 
 # Description
 ## Tic Tac Infinity
-This section have to clearly presents the project, its goal and brief overview.
+
+Tic Tac Infinity is a real-time multiplayer web application built as the final project of the 42 Common Core curriculum. The goal is to deliver a fully functional, production-grade platform where users can register, manage their profiles, and compete against each other in a custom online game — all backed by a microservices architecture with monitoring and observability.
+
+The game is a twist on classic Tic Tac Toe: each player can have at most **3 pieces** on the board at a time. When a 4th piece is placed, the oldest one is automatically removed — creating an "infinite" loop of strategic placement. Players compete in real-time over WebSockets, with support for matchmaking, tournaments, and multi-round matches.
+
+### Key Features
+- **Infinity Tic Tac Toe** — a strategic variant where pieces cycle off the board, keeping every match dynamic
+- **Real-time multiplayer** — live games over WebSockets with reconnection support and a 15-second grace period on disconnect
+- **User accounts & profiles** — registration, login, avatar upload, match history, and player statistics
+- **Social system** — friend requests, friend list, and real-time online status via heartbeat
+- **Authentication** — JWT-based auth, GitHub OAuth 2.0 sign-in, and email-based 2FA
+- **Matchmaking & tournaments** — queue-based matchmaking and structured tournament brackets with score tracking
+- **Microservices backend** — five independent services (Go, Python, Elixir, Java) communicating via REST APIs
+- **Monitoring & observability** — Prometheus + Grafana dashboards and full ELK stack for centralized logging
+- **Responsive UI** — React + TypeScript frontend with a custom dark/light design system built on Tailwind CSS
 
 # Instructions
 
