@@ -215,9 +215,7 @@ Any other significant technologies or libraries.
 Justification for major technical choices.
 
 # Database Schema
-Visual representation or description of the database structure.
-Tables/collections and their relationships.
-Key fields and data types.
+![DataSchema](./docs/data_schema.png)
 
 # Feature list
 Complete list of implemented features.
