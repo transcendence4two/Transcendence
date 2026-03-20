@@ -263,10 +263,36 @@ The microservices architecture allowed each service to be built with the languag
 # Database Schema
 ![DataSchema](./docs/database_schema.png)
 
-# Feature list
-Complete list of implemented features.
-Which team member(s) worked on each feature.
-Brief description of each feature’s functionality.
+# Feature List
+
+| Feature | Description | Who |
+|---------|-------------|-----|
+| **Infinity Tic Tac Toe** | Custom game with max-3-pieces rule, automatic removal of oldest piece, multi-round matches with score tracking | aldantas (backend), dbessa & jveras (frontend) |
+| **Real-time multiplayer (WebSocket)** | Go-based WebSocket hub with per-client goroutines, game state broadcasting, and session management | aldantas |
+| **Reconnection & grace period** | 15-second grace period on disconnect, exponential backoff on frontend, forfeit on timeout | aldantas |
+| **User registration & login** | Email/password registration with bcrypt hashing, JWT-based authentication | aldantas (backend), dbessa (frontend) |
+| **GitHub OAuth 2.0** | Sign in via GitHub, automatic account creation/linking | dbessa |
+| **Two-Factor Authentication (2FA)** | Email-based OTP with 6-digit code, Redis-stored with 5-min TTL, temporary JWT flow | aldantas (backend OTP + verification), dbessa (frontend 2FA page + toggle) |
+| **User profile management** | View/edit username, email, password; profile page with stats and match history | aldantas (backend), dbessa & jveras (frontend) |
+| **Avatar upload** | Multipart file upload stored in MinIO, default avatar on registration | aldantas (MinIO integration), jveras (frontend avatar display) |
+| **Online presence** | Redis-based heartbeat with TTL, automatic offline detection | dbessa (endpoints + frontend heartbeat) |
+| **Friends system** | Send/accept/reject friend requests, list friends, remove friends, online status indicator | aldantas (Java Quarkus service), jveras (frontend friends page), dbessa (integration) |
+| **Matchmaking** | Queue-based matchmaking with skill rating, join/leave queue, automatic session creation | marcribe (backend), aldantas (game-service integration) |
+| **Tournaments** | Create tournaments, register participants, bracket progression, match scheduling, champion tracking | marcribe |
+| **Match history & player stats** | Per-player stats (wins, losses, total points), match records with duration and scores | dbessa (history endpoint + frontend), marcribe (persistence models) |
+| **Terms of service & privacy policy** | Acceptance flow on registration, dedicated pages | dbessa |
+| **Dashboard page** | Animated tic-tac-toe background, stat cards/grid, quick-play access | dbessa (initial structure), jveras (animations + styling) |
+| **Settings page** | Profile editing, password change, 2FA toggle, account deletion with confirmation | jveras (page layout), dbessa (2FA toggle + deletion flow) |
+| **Custom design system** | Reusable components (Button, Card, StatCard, StatGrid, PageNavbar, HamburgerMenu), dark/light mode, cyan/blue palette | dbessa & jveras |
+| **Responsive layout** | Mobile-first breakpoints, no unwanted scrolling on any resolution | dbessa |
+| **Nginx reverse proxy** | SSL termination, rate limiting (10 req/s), JWT auth validation via subrequest, service routing | aldantas, jveras |
+| **API documentation** | Auto-generated Swagger/OpenAPI docs at `/api/{service}/docs` | aldantas, marcribe |
+| **ELK centralized logging** | Elasticsearch indexing, Logstash pipelines (TCP + Beats), Kibana dashboards, structured logging middleware | jveras (ELK stack + shared middleware), lraggio (ILM/SLM policies + security) |
+| **Log retention & archiving** | ILM policies per service, SLM snapshot automation, Elasticsearch bootstrap container | lraggio |
+| **Prometheus monitoring** | Metric scraping from Node, Postgres, Redis, and Blackbox exporters every 15s | lraggio (exporters + config), jveras (scrape rules + alerts) |
+| **Grafana dashboards** | Service health and platform overview dashboards, Prometheus datasource provisioning | jveras (dashboards), lraggio (Grafana setup + Nginx proxy) |
+| **Docker & deployment** | Multi-service docker-compose, per-service Dockerfiles, Makefile automation, production config | aldantas |
+| **CI/CD & testing** | GitHub Actions pipeline, unit + integration tests for usermanagement and tournament services | aldantas (backend tests + CI), dbessa (frontend tests) |
 
 # Modules
 
@@ -432,7 +458,82 @@ Points calculation
 ```
 
 # Individual Contributions
-Detailed breakdown of what each team member contributed.
 
-Specific features, modules, or components implemented by each person.
-Any challenges faced and how they were overcome.
+### aldantas (Tech Lead, Backend Developer)
+**Modules:** Frameworks (backend), WebSockets, Public API, ORM, User Management, 2FA, Web Game, Remote Players, Microservices, ELK (log integration)
+
+**Key contributions:**
+- Bootstrapped the entire backend architecture: usermanagement-service, game-service, friends-service, emails-service
+- Wrote the full Game Service in Go — WebSocket hub, game logic (Infinity Tic Tac Toe rules), state machine, reconnection with 15s grace period
+- Implemented user registration, login, JWT auth middleware, 2FA OTP generation/verification, and user CRUD in FastAPI
+- Built the Friends Service in Java Quarkus with Hibernate Panache (friend requests, friendship management, pagination)
+- Integrated MinIO for avatar storage, Redis pub/sub for OTP email delivery, and structured logging across all backend services
+- Set up Nginx (reverse proxy, rate limiting, SSL, auth subrequest), Docker/docker-compose, and production deployment
+
+**Challenges:** Implementing real-time game state synchronization over WebSockets while handling disconnections gracefully required careful goroutine management and a hub-based broadcast pattern. Coordinating five services written in four different languages required consistent API contracts and a shared auth layer at the Nginx level.
+
+---
+
+### dbessa (Project Manager, Frontend Developer)
+**Modules:** Frameworks (frontend), Public API, User Management, OAuth 2.0, 2FA (frontend), Web Game, Design System
+
+**Key contributions:**
+- Managed the project backlog and task coordination through GitHub Projects with Kanban
+- Built the frontend foundation: React + Vite + TypeScript project setup, routing, Tailwind configuration, and initial page structure
+- Implemented all core user-facing pages: registration, login, 2FA verification, dashboard, profile, settings, terms of service, privacy policy, and 404
+- Developed the GitHub OAuth 2.0 flow end-to-end (frontend redirect + backend token exchange)
+- Built the Redis-based presence heartbeat system (backend endpoints + frontend periodic calls)
+- Implemented match history with real opponent name resolution and player stats display
+- Created the account deletion flow with confirmation phrase and the 2FA enable/disable toggle
+- Fixed responsive layout issues across all pages and ensured cross-page UI consistency
+
+**Challenges:** Integrating multiple backend services from the frontend required handling different API response formats and auth flows consistently. The 2FA flow was particularly complex, requiring coordination between temporary JWTs, OTP input, and final token issuance across frontend state management.
+
+---
+
+### jveras (Frontend Developer, Observability Engineer)
+**Modules:** Frameworks (frontend), Public API, User Management (frontend), ELK (stack + middleware), Prometheus/Grafana (dashboards + alerts), Design System
+
+**Key contributions:**
+- Designed and built the UI/UX for profile page, dashboard, friends page, and settings page with polished styling and animations
+- Created the custom design system: reusable components (Button, Card, StatCard, StatGrid, PageNavbar, HamburgerMenu), color palette, typography, dark/light mode
+- Built the animated tic-tac-toe background for the dashboard and the profile page component architecture
+- Set up the complete ELK stack from scratch: Elasticsearch and Kibana Dockerfiles/configs, Logstash pipeline with TCP/Beats inputs and dynamic index routing
+- Built the shared Python logging middleware (structlog, ECS-compliant format, request context with trace ID, latency tracking)
+- Configured the Prometheus + Grafana monitoring overlay: scrape configuration, alert rules, Blackbox probing, service health and platform overview dashboards, Alertmanager routing
+- Contributed to friends-service frontend integration and Nginx reverse proxy improvements
+
+**Challenges:** Building the shared logging middleware required deep understanding of structlog processors, ECS field naming, and how to inject request context (trace ID, user ID, route) without polluting application code. Aligning the ELK pipeline to route logs from five services into correctly named indices with per-service retention policies added significant configuration complexity.
+
+---
+
+### lraggio (Product Owner, Infrastructure Engineer)
+**Modules:** ELK (retention + security), Prometheus/Grafana (exporters + infra)
+
+**Key contributions:**
+- Defined product requirements and feature priorities from the user's perspective
+- Configured all Prometheus exporters: Node Exporter, Postgres Exporter, Redis Exporter, and Blackbox Exporter with scrape targets
+- Set up Grafana with datasource provisioning, Nginx proxy at `/grafana`, internal network isolation, and credential-based access
+- Implemented Elasticsearch ILM (Index Lifecycle Management) policies for per-service log retention with automatic rollover
+- Built SLM (Snapshot Lifecycle Management) for automated log archiving with a bootstrap container
+- Created the Elasticsearch security setup (users, passwords, xpack) and internal Docker networks to isolate ELK and monitoring components
+- Added Makefile rules for infrastructure operations (SLM setup, ILM policy creation, monitoring stack)
+- Configured Logstash service mapping for personalized log retention per service
+
+**Challenges:** Configuring Elasticsearch security and automated lifecycle policies (ILM + SLM) required iterating through multiple approaches — from localhost scripts to dedicated bootstrap containers — to ensure policies were applied consistently in a containerized environment.
+
+---
+
+### marcribe (Backend Developer)
+**Modules:** Frameworks (backend), Public API, ORM, Microservices
+
+**Key contributions:**
+- Bootstrapped the Tournament Service from scratch: FastAPI project structure, domain models, and test setup
+- Implemented the full tournament lifecycle: creation, participant registration, bracket progression, match scheduling, and champion determination
+- Built the matchmaking system: queue join/leave, automatic match pairing, and match record persistence with player stat snapshots
+- Created the secure game webhook for match result persistence between game-service and tournament-service
+- Implemented data race mitigation for concurrent matchmaking joins with serialized queue access
+- Integrated the tournament-service into docker-compose and Nginx routing
+- Documented review guides and concurrency testing instructions for the team
+
+**Challenges:** The matchmaking system required solving a data race condition where concurrent join requests could create duplicate queue entries. This was resolved by serializing matchmaking joins and adding explicit duplicate validation before match pairing.
