@@ -243,6 +243,21 @@ services:
     networks:
       - grafana-monitoring-network
 
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ../alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    expose:
+      - "9093"
+    restart: unless-stopped
+    networks:
+      - grafana-monitoring-network
+
   redis:
     image: redis:7-alpine
     ports:
@@ -443,6 +458,7 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+  alertmanager_data:
 
 networks:
   transcendence-network:
