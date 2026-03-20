@@ -245,288 +245,161 @@ Brief description of each feature’s functionality.
 
 # Modules
 
-```
-Major: Use a framework for both the frontend and backend.
-◦ Use a frontend framework (React, Vue, Angular, Svelte, etc.).
-◦ Use a backend framework (Express, NestJS, Django, Flask, Ruby on Rails, etc.).
-◦ Full-stack frameworks (Next.js, Nuxt.js, SvelteKit) count as both if you use both their frontend and backend capabilities.
-```
-Why this module?
+---
 
-R: `To faster development using well-knwon and tested market frameworks`
+### Major: Use a framework for both the frontend and backend
+> Use a frontend framework (React, Vue, Angular, Svelte, etc.). Use a backend framework (Express, NestJS, Django, Flask, Ruby on Rails, etc.). Full-stack frameworks (Next.js, Nuxt.js, SvelteKit) count as both if you use both their frontend and backend capabilities.
 
-How it was implemented?
+**Why?** To accelerate development using well-known, battle-tested frameworks with strong community support and documentation.
 
-R: `In frontend we've used React and for backend we've used Java Quarkus for friends-service, Mix for email-service and Python FastAPI for tournament-service and usermanagement-service`
+**How?** On the frontend we used React with TypeScript and Vite. On the backend, each microservice uses its own framework: Python FastAPI for usermanagement-service and tournament-service, Elixir with Plug/Cowboy for emails-service, and Java Quarkus for friends-service.
 
-Who implemented?
+**Who?** Frontend: dbessa, jveras | Backend: aldantas, lraggio, marcribe | Integrations: whole team
 
-R: `Front end was implemented by both dbessa and jveras, while Backend was implemented by aldantas, lraggio and marcribe. All the integrations was made by the whole team`
+---
 
-***
+### Major: Real-time features using WebSockets
+> Real-time updates across clients. Handle connection/disconnection gracefully. Efficient message broadcasting.
 
-```
-Major: Implement real-time features using WebSockets or similar technology.
-◦ Real-time updates across clients.
-◦ Handle connection/disconnection gracefully.
-◦ Efficient message broadcasting.
-```
-Why this module?
+**Why?** The game requires real-time bidirectional communication between players — HTTP polling would introduce unacceptable latency for a live multiplayer experience.
 
-R: `This module is required to us successfully implement a real time game.`
+**How?** The Game Service (Go) uses Gorilla WebSocket with a Hub pattern: a central Hub maintains a map of active clients and game rooms. Each client runs two goroutines — a ReadPump for incoming messages and a WritePump for outgoing ones. Clients connect via `/ws?session_id=<ID>`, and the Hub broadcasts game state updates (board, turns, scores, game over) to all players in a session. Disconnections trigger a 15-second grace period before forfeit.
 
-How it was implemented?
+**Who?** aldantas
 
-R: `|`
+---
 
-Who implemented?
+### Major: Public API with rate limiting and documentation
+> Interact with the database with a secured API key, rate limiting, documentation, and at least 5 endpoints (GET, POST, PUT, DELETE).
 
-R: `aldantas`
+**Why?** A well-structured API is the backbone of a microservices architecture — it provides a clean interface between the frontend and each backend service while ensuring security and stability through rate limiting.
 
-***
+**How?** Each service exposes RESTful endpoints: User Management (`/api/users/` — register, login, profile CRUD, avatar upload, presence), Tournament (`/api/tournaments/` — create, join, matchmaking, stats, match history), Friends (`/api/friends/` — requests, accept/reject, list, remove), and Game (`/api/sessions/` — create session, get active session). Authentication is handled via JWT tokens validated at the Nginx layer through an `auth_request` subrequest. Rate limiting is configured in Nginx: 10 req/s for general API, 50 req/s for health checks, and 10 concurrent connections per IP. API documentation is auto-generated via Swagger/OpenAPI at `/api/{service}/docs`.
 
-```
-Major: A public API to interact with the database with a secured API key, rate
-limiting, documentation, and at least 5 endpoints:
-◦ GET /api/{something}
-◦ POST /api/{something}
-◦ PUT /api/{something}
-◦ DELETE /api/{something}
-```
-Why this module?
+**Who?** aldantas, dbessa
 
-R: `|`
+---
 
-How it was implemented?
+### Minor: Use an ORM for the database
+> Use an ORM to abstract database operations.
 
-R: `|`
+**Why?** ORMs reduce boilerplate SQL, enforce consistent data models across services, and make migrations safer by keeping the schema in code.
 
-Who implemented?
+**How?** Python services use SQLAlchemy with async sessions (AsyncEngine + AsyncSession) to define models like User, Tournament, MatchRecord, and PlayerStats. The Java Friends Service uses Hibernate ORM Panache with JPA annotations for FriendshipEntity and FriendRequestEntity, including domain mappers and pagination support.
 
-R: `aldantas, dbessa`
+**Who?** aldantas, jveras
 
-***
+---
 
-```
-Minor: Use an ORM for the database.
-```
-Why this module?
+### Major: Standard user management and authentication
+> Users can update their profile information. Users can upload an avatar (with a default avatar if none provided). Users can add other users as friends and see their online status. Users have a profile page displaying their information.
 
-R: `|`
+**Why?** User identity and social features are essential for a multiplayer game — players need accounts to track their stats, find opponents, and build a friends list.
 
-How it was implemented?
+**How?** The usermanagement-service (FastAPI) handles registration, login (with bcrypt password hashing), and profile updates. Avatars are uploaded as multipart files and stored in MinIO (S3-compatible object storage), with a default avatar assigned on registration. Online status is tracked via Redis: the frontend sends periodic heartbeat requests (`POST /presence/heartbeat`) that update a TTL-based key, so presence is automatically cleared when a player goes offline. The friends-service (Java Quarkus) manages friend requests and friendships through a RESTful API. The frontend displays profile pages with user info, stats, match history, and friend lists.
 
-R: `|`
+**Who?** aldantas, dbessa
 
-Who implemented?
+---
 
-R: `aldantas, veras`
+### Minor: Remote authentication with OAuth 2.0
+> Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.).
 
+**Why?** Simplifying sign-in reduces friction for new users and makes returning users' login faster, helping lower drop-off rates.
 
-***
+**How?** We integrated GitHub OAuth 2.0. An OAuth App was created on GitHub with the homepage and callback URLs configured. On the frontend, clicking "Sign in with GitHub" redirects to GitHub's authorization page. After the user grants access, GitHub redirects back with an authorization code. The backend exchanges this code for an access token, fetches the user's GitHub profile, and either creates a new account or links to an existing one.
 
-```
-Major: Standard user management and authentication.
-◦ Users can update their profile information.
-◦ Users can upload an avatar (with a default avatar if none provided).
-◦ Users can add other users as friends and see their online status.
-◦ Users have a profile page displaying their information.
-```
-Why this module?
+**Who?** dbessa
 
-R: `|`
+---
 
-How it was implemented?
+### Minor: Two-Factor Authentication (2FA)
+> Implement a complete 2FA system for the users.
 
-R: `|`
+**Why?** 2FA adds an extra layer of security to user accounts, protecting against unauthorized access even if a password is compromised.
 
-Who implemented?
+**How?** We implemented email-based OTP (One-Time Password). When a user with 2FA enabled logs in, the backend generates a 6-digit code, stores it in Redis with a 5-minute TTL, and publishes it to a Redis channel. The Email Service (Elixir) subscribes to that channel and delivers the code via SMTP using the Swoosh library. The user enters the code on the frontend, which is verified against Redis. On success, a full access token is issued. A short-lived temporary JWT is used between the login and verification steps.
 
-R: `aldantas, dbessa`
+**Who?** aldantas
 
+---
 
-***
+### Major: Web-based multiplayer game
+> The game can be real-time multiplayer. Players must be able to play live matches. The game must have clear rules and win/loss conditions. The game can be 2D or 3D.
 
-```
-Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.).
-```
-Why this module?
+**Why?** Since the original Transcendence project revolved around building a game (Pong), and the new subject gives us the flexibility to choose, we decided to build a Tic Tac Toe variant with a twist — "Infinity Mode."
 
-R: `Make the acess easy has the purpose to make old users do sign in faster and new users to enter the application easily, lowering the drop rates.`
+**How?** The game is a modified Tic Tac Toe on a 3x3 board. The twist: each player can have at most 3 pieces on the board at a time. When a player places a 4th piece, their oldest piece is automatically removed. Win condition remains standard — 3 in a row (horizontal, vertical, or diagonal), but the piece must still be on the board. The backend (Go) manages game state through a state machine (Waiting → Playing → Finished), supports multi-round matches where players alternate who goes first, and tracks scores. The frontend renders the board with animated piece removal and SVG overlays for winning lines.
 
-How it was implemented?
+**Who?** aldantas, dbessa, jveras, lraggio, marcribe
 
-R: `We've implemented via Github OAuth. We created the OAuth app at github, setted the homepage and callback page at github and then implemented in the frontend.`
+---
 
-Who implemented?
+### Major: Remote players
+> Enable two players on separate computers to play the same game in real-time. Handle network latency and disconnections gracefully. Provide a smooth user experience for remote gameplay. Implement reconnection logic.
 
-R: `dbessa`
+**Why?** A multiplayer game is only meaningful if players can compete from different machines — this module makes the game truly online.
 
+**How?** Players connect via WebSocket to the Game Service. Each game session holds two players and synchronizes state through the Hub. When a player disconnects, the server starts a 15-second grace period — if the player reconnects in time, the game resumes; otherwise, the opponent wins by forfeit. On the frontend, a `useGameSocket` hook manages connection state and implements exponential backoff reconnection (1s → 2s → 4s → 8s → 16s, up to 5 attempts). The server maintains keep-alive via WebSocket ping/pong every 54 seconds. The UI shows real-time feedback: "Connection lost. Reconnecting in Xs (attempt N/5)..." and notifies when the opponent disconnects or reconnects.
 
-***
+**Who?** aldantas
 
-```
-Minor: Implement a complete 2FA (Two-Factor Authentication) system for the users.
-```
-Why this module?
+---
 
-R: `|`
+### Major: ELK Stack for log management
+> Elasticsearch to store and index logs. Logstash to collect and transform logs. Kibana for visualization and dashboards. Implement log retention and archiving policies. Secure access to all components.
 
-How it was implemented?
+**Why?** Centralized logging is critical for debugging and monitoring a distributed microservices system — without it, tracking issues across five services would be impractical.
 
-R: `|`
+**How?** Elasticsearch stores and indexes all logs with security enabled (`xpack.security`). Logstash receives logs via Beats (port 5044) and TCP/JSON (port 5000), then routes them to Elasticsearch using dynamic index naming based on service name mappings. Index Lifecycle Management (ILM) policies handle log retention and rollover automatically. Snapshot Lifecycle Management (SLM) policies handle archiving. Kibana is exposed behind Nginx at `/kibana` with authentication. Each backend service uses structured logging (structlog for Python, slog for Go, Logger for Elixir) with shared middleware that injects context like request ID and user ID.
 
-Who implemented?
+**Who?** jveras, lraggio
 
-R: `aldantas`
+---
 
-***
+### Major: Monitoring with Prometheus and Grafana
+> Set up Prometheus to collect metrics. Configure exporters and integrations. Create custom Grafana dashboards. Set up alerting rules. Secure access to Grafana.
 
-```
-Major: Implement a complete web-based game where users can play against each other.
-◦ The game can be real-time multiplayer (e.g., Pong, Chess, Tic-Tac-Toe, Card games, etc.).
-◦ Players must be able to play live matches.
-◦ The game must have clear rules and win/loss conditions.
-◦ The game can be 2D or 3D.
-```
-Why this module?
+**Why?** Monitoring provides visibility into system health and performance — essential for detecting issues before they impact users in a multi-service architecture.
 
-R: `Since the old transcendence was made to build a Pong Game and in the new we have the flexibility to choose, we've decided to keep doing a game and choose the Tic Tac Toe with a few differences`
+**How?** Prometheus scrapes metrics every 15 seconds from four exporters: Node Exporter (CPU, memory, disk), Postgres Exporter (connections, queries), Redis Exporter (memory, commands, keys), and Blackbox Exporter (HTTP probing of service health endpoints). Blackbox probes check availability of the main app, API health, and individual service health endpoints. Prometheus retains 15 days of data. Grafana connects to Prometheus as a datasource and serves dashboards behind Nginx. Anonymous access is disabled — authentication is required via admin credentials.
 
-How it was implemented?
+**Who?** jveras, lraggio
 
-R: `|`
+---
 
-Who implemented?
+### Major: Backend as microservices
+> Design loosely-coupled services with clear interfaces. Use REST APIs or message queues for communication. Each service should have a single responsibility.
 
-R: `aldantas, dbessa, jveras, lraggio, marcribe`
+**Why?** Microservices allowed us to pick the best tool for each domain: Go's concurrency model for real-time game logic, FastAPI's speed for CRUD-heavy services, Elixir's fault tolerance for email delivery, and Quarkus for a lightweight Java service. Loose coupling also enabled parallel development across the team.
 
-***
+**How?** Each service lives in its own directory under `backend/` with its own language, dependencies, and Dockerfile. Services communicate via REST APIs through Nginx, which handles routing, auth validation, and rate limiting. The Email Service uses Redis pub/sub to decouple OTP generation (Python) from email delivery (Elixir). Each service has a single responsibility: usermanagement-service (auth, profiles, presence), tournament-service (matchmaking, tournaments, stats), game-service (game logic, WebSocket), friends-service (social graph), and emails-service (email delivery).
 
-```
-Major: Remote players — Enable two players on separate computers to play the
-same game in real-time.
-◦ Handle network latency and disconnections gracefully.
-◦ Provide a smooth user experience for remote gameplay.
-◦ Implement reconnection logic.
-```
-Why this module?
+**Who?** aldantas, marcribe
 
-R: `|`
+---
 
-How it was implemented?
+### Minor: Support for additional browsers
+> Full compatibility with at least 2 additional browsers. Test and fix all features in each browser. Document any browser-specific limitations. Consistent UI/UX across all supported browsers.
 
-R: `|`
+**Why?** An easy win — since we developed using Google Chrome, we only needed to verify compatibility with other Chromium-based browsers.
 
-Who implemented?
+**How?** The application was developed and primarily tested on Google Chrome. We verified full compatibility with Microsoft Edge and Brave, both of which are Chromium-based and rendered the application identically without any adjustments needed.
 
-R: `aldantas`
+**Who?** aldantas, dbessa, jveras, lraggio, marcribe
 
-***
+---
 
-```
-Major: Infrastructure for log management using ELK (Elasticsearch, Logstash,
-Kibana).
-◦ Elasticsearch to store and index logs.
-◦ Logstash to collect and transform logs.
-◦ Kibana for visualization and dashboards.
-◦ Implement log retention and archiving policies.
-◦ Secure access to all components.
-```
-Why this module?
+### Minor: Custom design system with reusable components
+> Custom-made design system with reusable components, including a proper color palette, typography, and icons (minimum: 10 reusable components).
 
-R: `|`
+**Why?** Building reusable components speeds up frontend development, ensures visual consistency, and follows industry best practices for scalable UI architecture.
 
-How it was implemented?
+**How?** We built a design system using Tailwind CSS with custom utility classes defined in `index.css`. The color palette centers on cyan/blue gradients for primary actions and slate tones for backgrounds, with full dark/light mode support. Typography uses Space Grotesk and DM Sans font families. Reusable components include: Button (with primary/secondary/hero variants), Card, StatCard, StatGrid, PageNavbar, HamburgerMenu, game board cells, profile shells, and page layout containers. All components are responsive with mobile-first breakpoints (`sm:`, `md:`).
 
-R: `|`
+**Who?** dbessa, jveras
 
-Who implemented?
-
-R: `jveras, lraggio`
-
-***
-
-```
-Major: Monitoring system with Prometheus and Grafana.
-◦ Set up Prometheus to collect metrics.
-◦ Configure exporters and integrations.
-◦ Create custom Grafana dashboards.
-◦ Set up alerting rules.
-◦ Secure access to Grafana.
-```
-Why this module?
-
-R: `|`
-
-How it was implemented?
-
-R: `|`
-
-Who implemented?
-
-R: `jveras, lraggio`
-
-***
-
-```
-Major: Backend as microservices.
-◦ Design loosely-coupled services with clear interfaces.
-◦ Use REST APIs or message queues for communication.
-◦ Each service should have a single responsibility.
-```
-Why this module?
-
-R: `This is the right approach for our context. Using microservices allow us to pick the right tool for each service. Usermanagement and Tournament services we have chosen FastAPI for better team development, since is a common known framework. For the game we've chosen Go since it has a high-speed networking and work with thread efficiently. The loosely-coupled services helped us to deliver a good final product.`
-
-How it was implemented?
-
-R: `We've separated each service inside the backend folder and picked the right language for each service we wanted.`
-
-Who implemented?
-
-R: `aldantas, marcribe`
-
-***
-
-```
-Minor: Support for additional browsers.
-◦ Full compatibility with at least 2 additional browsers (Firefox, Safari, Edge, etc.).
-◦ Test and fix all features in each browser.
-◦ Document any browser-specific limitations.
-◦ Consistent UI/UX across all supported browsers.
-```
-Why this module?
-
-R: `It was another easy win. We focused our development in Google Chrome. And then we saw that all chromium based browsers are compatible with our application`
-
-How it was implemented?
-
-R: `Implemented with our normal development flow.`
-
-Who implemented?
-
-R: `aldantas, dbessa, jveras, lraggio, marcribe`
-
-***
-
-```
-Minor: Custom-made design system with reusable components, including a proper
-color palette, typography, and icons (minimum: 10 reusable components).
-```
-Why this module?
-
-R: `Making reusable components in front end is a very productive development decision, because we can use the same element in different contexts in order to save development hours. And it is a market good practice.`
-
-How it was implemented?
-
-R: ``
-
-Who implemented?
-
-R: `dbessa, jveras`
-
-***
+---
 
 ```
 Points calculation
