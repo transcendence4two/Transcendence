@@ -151,58 +151,69 @@ AI tools were used during the development of this project as a productivity aid.
 All AI-generated code was reviewed, tested, and validated by team members before being merged. The team maintained full ownership and understanding of the codebase — AI was used as an accelerator, not a replacement for engineering decisions.
 
 # Team Information
-### aldantas
-```
-Roles
-- Tech Lead
-- Developer
 
-Responsabilities
-- Resp1
-- Resp2
-```
+### aldantas
+**Roles:** Tech Lead, Backend Developer
+
+**Responsibilities:**
+- Architected the overall backend structure and microservices communication
+- Built the Game Service in Go (WebSocket hub, game logic, reconnection, session management)
+- Developed the User Management Service (registration, login, 2FA, JWT auth, user CRUD)
+- Created the Friends Service in Java Quarkus (friend requests, friendship management)
+- Integrated MinIO for avatar storage and Email Service for OTP delivery
+- Set up Nginx reverse proxy, rate limiting, SSL, and auth validation layer
+- Led Docker and deployment configuration (Dockerfiles, docker-compose, production setup)
+- Integrated structured logging across backend services for the ELK stack
 
 ### dbessa
-```
-Roles
-- Project Manager
-- Developer
+**Roles:** Project Manager, Frontend Developer
 
-Responsabilities
-- Resp1
-- Resp2
-```
+**Responsibilities:**
+- Managed project planning, task tracking, and team coordination via GitHub Projects
+- Built the frontend foundation (React + Vite + TypeScript setup, routing, Tailwind configuration)
+- Implemented core pages: registration, login, 2FA verification, dashboard, profile, and settings
+- Developed the GitHub OAuth 2.0 integration (frontend + backend)
+- Built the user presence system (Redis heartbeat endpoints + frontend integration)
+- Implemented match history loading, opponent resolution, and player stats display
+- Created the terms of service and privacy policy flows
+- Handled responsive layout fixes and cross-page UI consistency
+- Added frontend and backend tests (registration, user deletion, profile updates)
 
 ### jveras
-```
-Role
-- Developer
+**Roles:** Frontend Developer, Observability Engineer
 
-Responsabilities
-- Resp1
-- Resp2
-```
+**Responsibilities:**
+- Designed and implemented the UI/UX: profile page, dashboard, friends page, settings page
+- Built the custom design system (reusable components: Button, Card, StatCard, StatGrid, PageNavbar, HamburgerMenu)
+- Created the dashboard animations and tic-tac-toe background visual effects
+- Set up the complete ELK stack (Elasticsearch, Logstash, Kibana Dockerfiles and configuration)
+- Built the shared logging middleware for Python services (structlog, ECS-compliant format, request context)
+- Configured the Logstash pipeline (TCP/Beats inputs, service-based index routing)
+- Set up the Prometheus + Grafana monitoring stack (exporters, scrape config, alert rules, dashboards)
+- Improved Nginx configuration (reverse proxy routes, middleware ordering)
 
 ### lraggio
-```
-Roles
-- Product Owner
-- Developer
+**Roles:** Product Owner, Infrastructure Engineer
 
-Responsabilities
-- Resp1
-- Resp2
-```
+**Responsibilities:**
+- Defined product requirements and prioritized features from the user perspective
+- Configured Prometheus with all exporters (Node, Postgres, Redis, Blackbox) and scrape targets
+- Set up Grafana with Prometheus datasource provisioning and Nginx proxy integration
+- Implemented Elasticsearch security, ILM (Index Lifecycle Management) policies for log retention
+- Built SLM (Snapshot Lifecycle Management) for automated log archiving
+- Created the Elasticsearch bootstrap container for automated policy setup
+- Configured internal Docker networks to isolate ELK and monitoring components
+- Managed Makefile rules for infrastructure operations (certs, SLM, monitoring)
 
 ### marcribe
-```
-Role
-- Developer
+**Roles:** Backend Developer
 
-Responsabilities
-- Resp1
-- Resp2
-```
+**Responsibilities:**
+- Contributed to the Tournament Service (matchmaking flow, match persistence, bracket progression, player stats)
+- Implemented the matchmaking join/leave endpoints and match record saving with secure webhook integration
+- Built tournament lifecycle features (creation, participant registration, match scheduling, result reporting)
+- Helped establish the microservices architecture and service separation
+- Documented review guides and concurrency testing instructions
 
 # Project Management
 We used GitHub Projects with a Kanban board to manage our workflow, incorporating key Scrum ceremonies such as sprint planning and review sessions.
@@ -268,7 +279,7 @@ Brief description of each feature’s functionality.
 
 **How?** On the frontend we used React with TypeScript and Vite. On the backend, each microservice uses its own framework: Python FastAPI for usermanagement-service and tournament-service, Elixir with Plug/Cowboy for emails-service, and Java Quarkus for friends-service.
 
-**Who?** Frontend: dbessa, jveras | Backend: aldantas, lraggio, marcribe | Integrations: whole team
+**Who?** Frontend: dbessa, jveras | Backend: aldantas, marcribe | Integrations: whole team
 
 ---
 
@@ -290,7 +301,7 @@ Brief description of each feature’s functionality.
 
 **How?** Each service exposes RESTful endpoints: User Management (`/api/users/` — register, login, profile CRUD, avatar upload, presence), Tournament (`/api/tournaments/` — create, join, matchmaking, stats, match history), Friends (`/api/friends/` — requests, accept/reject, list, remove), and Game (`/api/sessions/` — create session, get active session). Authentication is handled via JWT tokens validated at the Nginx layer through an `auth_request` subrequest. Rate limiting is configured in Nginx: 10 req/s for general API, 50 req/s for health checks, and 10 concurrent connections per IP. API documentation is auto-generated via Swagger/OpenAPI at `/api/{service}/docs`.
 
-**Who?** aldantas, dbessa
+**Who?** aldantas, dbessa, marcribe, jveras
 
 ---
 
@@ -301,7 +312,7 @@ Brief description of each feature’s functionality.
 
 **How?** Python services use SQLAlchemy with async sessions (AsyncEngine + AsyncSession) to define models like User, Tournament, MatchRecord, and PlayerStats. The Java Friends Service uses Hibernate ORM Panache with JPA annotations for FriendshipEntity and FriendRequestEntity, including domain mappers and pagination support.
 
-**Who?** aldantas, jveras
+**Who?** aldantas, marcribe
 
 ---
 
@@ -312,7 +323,7 @@ Brief description of each feature’s functionality.
 
 **How?** The usermanagement-service (FastAPI) handles registration, login (with bcrypt password hashing), and profile updates. Avatars are uploaded as multipart files and stored in MinIO (S3-compatible object storage), with a default avatar assigned on registration. Online status is tracked via Redis: the frontend sends periodic heartbeat requests (`POST /presence/heartbeat`) that update a TTL-based key, so presence is automatically cleared when a player goes offline. The friends-service (Java Quarkus) manages friend requests and friendships through a RESTful API. The frontend displays profile pages with user info, stats, match history, and friend lists.
 
-**Who?** aldantas, dbessa
+**Who?** aldantas, dbessa, jveras
 
 ---
 
@@ -334,7 +345,7 @@ Brief description of each feature’s functionality.
 
 **How?** We implemented email-based OTP (One-Time Password). When a user with 2FA enabled logs in, the backend generates a 6-digit code, stores it in Redis with a 5-minute TTL, and publishes it to a Redis channel. The Email Service (Elixir) subscribes to that channel and delivers the code via SMTP using the Swoosh library. The user enters the code on the frontend, which is verified against Redis. On success, a full access token is issued. A short-lived temporary JWT is used between the login and verification steps.
 
-**Who?** aldantas
+**Who?** aldantas, dbessa
 
 ---
 
@@ -367,7 +378,7 @@ Brief description of each feature’s functionality.
 
 **How?** Elasticsearch stores and indexes all logs with security enabled (`xpack.security`). Logstash receives logs via Beats (port 5044) and TCP/JSON (port 5000), then routes them to Elasticsearch using dynamic index naming based on service name mappings. Index Lifecycle Management (ILM) policies handle log retention and rollover automatically. Snapshot Lifecycle Management (SLM) policies handle archiving. Kibana is exposed behind Nginx at `/kibana` with authentication. Each backend service uses structured logging (structlog for Python, slog for Go, Logger for Elixir) with shared middleware that injects context like request ID and user ID.
 
-**Who?** jveras, lraggio
+**Who?** jveras, lraggio, aldantas
 
 ---
 
