@@ -191,12 +191,11 @@ Responsabilities
 ```
 
 # Project Management
-The team have used the Github Projects for project management, using the Kanban System. We've followed some cerimonies of scrum, like planning and review.
+We used GitHub Projects with a Kanban board to manage our workflow, incorporating key Scrum ceremonies such as sprint planning and review sessions.
 
-At the begining of the project we've created the majority of tasks and then we've incremented as we've needed. Task distribution was on demand.
-If a team member have disponibility to take a task, it was taken without deeper or meaningful distribution.
+At the start of the project, we outlined the majority of the tasks upfront and added new ones as needs arose. Task assignment was handled on demand — whenever a team member was available, they would pick up the next task without any rigid distribution process.
 
-We'd made weekly meetings for next steps alingment for the project using discord, but we had daily communications about the project in our WhatsApp group.
+We held weekly meetings on Discord to align on next steps and priorities, while day-to-day communication happened through our WhatsApp group.
 
 # Technical Stack
 Frontend technologies and frameworks used.
@@ -210,12 +209,9 @@ Backend technologies and frameworks used.
 - Elixir for Email Service
 - Java Quarkus for Friends Service
 
-Database system and why it was chosen.
-Any other significant technologies or libraries.
-Justification for major technical choices.
 
 # Database Schema
-![DataSchema](./docs/data_schema.png)
+![DataSchema](./docs/database_schema.png)
 
 # Feature list
 Complete list of implemented features.
