@@ -198,17 +198,42 @@ At the start of the project, we outlined the majority of the tasks upfront and a
 We held weekly meetings on Discord to align on next steps and priorities, while day-to-day communication happened through our WhatsApp group.
 
 # Technical Stack
-Frontend technologies and frameworks used.
-- Bun for fast bundler
-- Vite for fast build
-- React with TypeScript for frontend development
 
-Backend technologies and frameworks used.
-- Python FastAPI for User Management and Tournament services.
-- Golang for Game Service
-- Elixir for Email Service
-- Java Quarkus for Friends Service
+## Frontend
+- **React 19** with **TypeScript** — component-based UI with type safety
+- **Tailwind CSS** — utility-first CSS framework for rapid, consistent styling
+- **React Router DOM** — client-side routing and navigation
+- **Vite** — fast development server and optimized production builds
+- **Bun** — high-performance JavaScript runtime and package manager
 
+## Backend
+- **Python FastAPI** — User Management and Tournament services. Chosen for its async support, automatic API documentation, and team familiarity
+- **Go** — Game Service. Chosen for its efficient concurrency model and low-latency WebSocket handling via Gorilla WebSocket
+- **Elixir (Plug/Cowboy)** — Email Service. Chosen for its fault-tolerant, concurrent architecture ideal for message processing
+- **Java Quarkus** — Friends Service. Chosen for its fast startup, low memory footprint, and mature ORM ecosystem (Hibernate Panache)
+
+## Database
+- **PostgreSQL 16** — primary relational database shared across services. Chosen for its reliability, strong SQL compliance, and excellent support for concurrent access across multiple microservices
+- **Redis 7** — in-memory data store used for caching and session management. Chosen for its speed and simplicity in handling ephemeral data
+- **Elasticsearch 9** — used for centralized log storage and indexing as part of the ELK stack
+- **MinIO** — S3-compatible object storage for user-uploaded assets (avatars). Chosen as a self-hosted alternative to cloud storage
+
+## Other Significant Libraries
+- **SQLAlchemy** (Python) and **Hibernate ORM Panache** (Java) — ORM layers for database access
+- **Gorilla WebSocket** (Go) — real-time game communication
+- **Swoosh** (Elixir) — email delivery abstraction
+- **PyJWT** + **Passlib/bcrypt** — JWT authentication and password hashing
+- **Flyway** (Java) — database migration management
+- **Pydantic** (Python) — request/response validation
+
+## Infrastructure & Observability
+- **Docker & Docker Compose** — containerization and orchestration of all services
+- **Nginx** — reverse proxy, SSL termination, and static file serving
+- **Prometheus** + **Grafana** — metrics collection and dashboard visualization
+- **ELK Stack** (Elasticsearch, Logstash, Kibana) — centralized logging and log analysis
+
+## Justification for Major Technical Choices
+The microservices architecture allowed each service to be built with the language best suited for its domain: Go for real-time game performance, FastAPI for rapid API development, Elixir for resilient message handling, and Quarkus for a lightweight Java service. PostgreSQL was chosen as the single database engine to simplify infrastructure while still supporting all services reliably. Docker was essential to unify the multi-language stack into a consistent, reproducible deployment.
 
 # Database Schema
 ![DataSchema](./docs/database_schema.png)
