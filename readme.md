@@ -1,5 +1,20 @@
 _This project has been created as part of the 42 curriculum by [aldantas](https://profile-v3.intra.42.fr/users/aldantas), [dbessa](https://profile-v3.intra.42.fr/users/dbessa), [jveras](https://profile-v3.intra.42.fr/users/jveras), [lraggio](https://profile-v3.intra.42.fr/users/lraggio) e [marcribe](https://profile-v3.intra.42.fr/users/marcribe)_
 
+# Table of Contents
+
+- [Description](#description)
+- [Instructions](#instructions)
+- [Resources](#resources)
+- [AI Usage](#ai-usage)
+- [Team Information](#team-information)
+- [Project Management](#project-management)
+- [Technical Stack](#technical-stack)
+- [Database Schema](#database-schema)
+- [Feature List](#feature-list)
+- [Modules](#modules)
+- [Points Summary](#points-summary)
+- [Individual Contributions](#individual-contributions)
+
 # Description
 ## Tic Tac Infinity
 
