@@ -251,7 +251,7 @@ services:
       - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/alertmanager
     volumes:
-      - ../alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ../alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
     expose:
       - "9093"
