@@ -133,7 +133,6 @@ AI tools were used during the development of this project as a productivity aid.
 | **Frontend styling** | Claude Code | Assisted with CSS/Tailwind responsive layout fixes and component styling adjustments |
 | **Documentation** | Claude Code | Helped draft and structure sections of this README |
 | **Configuration** | Claude Code | Assisted with Docker Compose and Nginx configuration files |
-| **Code review** | Claude Code | Used to review pull requests and identify potential issues |
 
 All AI-generated code was reviewed, tested, and validated by team members before being merged. The team maintained full ownership and understanding of the codebase — AI was used as an accelerator, not a replacement for engineering decisions.
 
