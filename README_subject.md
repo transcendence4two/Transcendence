@@ -5,8 +5,86 @@ _This project has been created as part of the 42 curriculum by [aldantas](https:
 This section have to clearly presents the project, its goal and brief overview.
 
 # Instructions
-- Any relevant information about compilation, installation and/or execution
-- Prerequisites needed (software tools, versions, configuration like .env setup, etc.) and step-by-step instructions to run the project
+
+## Prerequisites
+
+The following tools must be installed before running the project:
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| **Docker & Docker Compose** | Container runtime for all services | [docs.docker.com](https://docs.docker.com/get-docker/) |
+| **Make** | Build automation | `brew install make` / `apt install make` |
+| **MkCert** | Local SSL certificate generation | `brew install mkcert` / `apt install mkcert` |
+
+After installing MkCert, install the local CA:
+```bash
+mkcert -install
+```
+
+## Environment Configuration
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in the required values in `.env`:
+
+   | Variable | Description |
+   |----------|-------------|
+   | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | PostgreSQL credentials |
+   | `REDIS_URL` | Redis connection URL |
+   | `JWT_SECRET` | Secret key for JWT signing |
+   | `JWT_ALGORITHM` | JWT algorithm (e.g. `HS256`) |
+   | `JWT_EXPIRES_MINUTES` | Token TTL in minutes |
+   | `JWT_ISSUER` | JWT issuer identifier |
+   | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_FROM_EMAIL` | Email (SMTP) credentials |
+   | `ELASTIC_PASSWORD` | Elasticsearch password |
+   | `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | MinIO object storage credentials |
+   | `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` | Grafana dashboard credentials |
+
+3. Generate SSL certificates:
+   ```bash
+   make certs
+   ```
+
+## Running the Project
+
+### Development (local)
+```bash
+make all
+```
+
+### Production (Docker)
+```bash
+make deploy
+```
+
+### Stopping & Cleanup
+```bash
+make down    # Stop all services
+make clean   # Stop and remove all volumes (full reset)
+```
+
+### Other Useful Commands
+```bash
+make logs    # Stream container logs
+make tests   # Run test suite (requires UV installed locally)
+make lint    # Lint Python services
+make format  # Format Python services
+```
+
+## Accessing the Application
+
+Once running, services are available at:
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | https://localhost |
+| **Grafana** | https://localhost/grafana |
+| **Kibana** | https://localhost/kibana |
+| **Prometheus** | https://localhost/prometheus |
+| **MinIO Console** | http://localhost:9001 |
 
 # Resources
 
