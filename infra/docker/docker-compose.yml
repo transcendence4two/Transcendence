@@ -148,7 +148,6 @@ services:
       - --storage.tsdb.retention.time=15d
       - --web.enable-lifecycle
       - --web.external-url=https://localhost/prometheus
-      - --web.route-prefix=/prometheus
     restart: unless-stopped
     networks:
       - transcendence-network
