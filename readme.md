@@ -452,10 +452,25 @@ The microservices architecture allowed each service to be built with the languag
 
 ---
 
-```
-Points calculation
-2 + 2 + 2 + 1 + 2 + 1 + 1 + 2 + 2 + 2 + 2 + 2 + 1 + 1 = 23
-```
+## Points Summary
+
+| # | Module | Type | Points |
+|---|--------|------|:------:|
+| 1 | Frontend & Backend Frameworks | Major | 2 |
+| 2 | Real-time WebSockets | Major | 2 |
+| 3 | Public API (rate limiting, docs, 5+ endpoints) | Major | 2 |
+| 4 | ORM for database | Minor | 1 |
+| 5 | User Management & Authentication | Major | 2 |
+| 6 | OAuth 2.0 (GitHub) | Minor | 1 |
+| 7 | Two-Factor Authentication (2FA) | Minor | 1 |
+| 8 | Web-based Multiplayer Game | Major | 2 |
+| 9 | Remote Players | Major | 2 |
+| 10 | ELK Stack (Elasticsearch, Logstash, Kibana) | Major | 2 |
+| 11 | Prometheus & Grafana Monitoring | Major | 2 |
+| 12 | Backend as Microservices | Major | 2 |
+| 13 | Additional Browser Support | Minor | 1 |
+| 14 | Custom Design System | Minor | 1 |
+| | | **Total** | **23** |
 
 # Individual Contributions
 
