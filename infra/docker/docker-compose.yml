@@ -141,7 +141,7 @@ services:
     image: prom/prometheus:v2.52.0
     volumes:
       - prometheus_data:/prometheus
-      - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/config:/etc/prometheus:ro
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -155,7 +155,6 @@ services:
       - grafana-monitoring-network
     expose:
      - "9090"
-
 
   node-exporter:
     container_name: node-exporter
@@ -241,6 +240,21 @@ services:
       - "3000"
     depends_on:
       - prometheus
+    networks:
+      - grafana-monitoring-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ../alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    expose:
+      - "9093"
+    restart: unless-stopped
     networks:
       - grafana-monitoring-network
 
@@ -444,6 +458,7 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+  alertmanager_data:
 
 networks:
   transcendence-network:
