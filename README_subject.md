@@ -88,6 +88,55 @@ Once running, services are available at:
 
 # Resources
 
+## Documentation & References
+
+### Frontend
+- [React Documentation](https://react.dev/)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Vite Documentation](https://vitejs.dev/guide/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Bun Documentation](https://bun.sh/docs)
+
+### Backend
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
+- [Go Documentation](https://go.dev/doc/)
+- [Gorilla WebSocket](https://pkg.go.dev/github.com/gorilla/websocket)
+- [Elixir Documentation](https://elixir-lang.org/docs.html)
+- [Quarkus Documentation](https://quarkus.io/guides/)
+
+### Infrastructure & DevOps
+- [Docker Documentation](https://docs.docker.com/)
+- [Nginx Documentation](https://nginx.org/en/docs/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/16/)
+- [Redis Documentation](https://redis.io/docs/)
+
+### Monitoring & Observability
+- [Elasticsearch Documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
+- [Logstash Documentation](https://www.elastic.co/guide/en/logstash/current/index.html)
+- [Kibana Documentation](https://www.elastic.co/guide/en/kibana/current/index.html)
+- [Prometheus Documentation](https://prometheus.io/docs/)
+- [Grafana Documentation](https://grafana.com/docs/grafana/latest/)
+
+### Security
+- [MkCert - Local HTTPS](https://github.com/FiloSottile/mkcert)
+- [OAuth 2.0 with GitHub](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)
+- [JSON Web Tokens (JWT)](https://jwt.io/introduction)
+
+## AI Usage
+
+AI tools were used during the development of this project as a productivity aid. Below is a summary of how and where they were applied:
+
+| Task | AI Tool | Description |
+|------|---------|-------------|
+| **Code assistance** | Claude (Anthropic) | Used for debugging, code suggestions, and understanding framework-specific patterns across multiple languages (Python, Go, Elixir, Java, TypeScript) |
+| **Frontend styling** | Claude Code | Assisted with CSS/Tailwind responsive layout fixes and component styling adjustments |
+| **Documentation** | Claude Code | Helped draft and structure sections of this README |
+| **Configuration** | Claude Code | Assisted with Docker Compose and Nginx configuration files |
+| **Code review** | Claude Code | Used to review pull requests and identify potential issues |
+
+All AI-generated code was reviewed, tested, and validated by team members before being merged. The team maintained full ownership and understanding of the codebase — AI was used as an accelerator, not a replacement for engineering decisions.
+
 # Team Information
 ### aldantas
 ```
