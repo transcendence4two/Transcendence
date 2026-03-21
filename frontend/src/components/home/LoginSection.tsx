@@ -68,7 +68,6 @@ const LoginSection = () => {
             }
 
         } catch (error) {
-            console.error('Login error:', error)
             setErrors({ general: 'Erro de conexão. Tente novamente.' })
         } finally {
             setIsLoading(false)
