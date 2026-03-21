@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { normalizeAvatarUrl } from "../utils";
 
-import { GearIcon, UserIconUntitledUi } from "../components/icons/Icons";
+import { GearIcon } from "../components/icons/Icons";
 import PageNavbar from "../components/common/PageNavbar";
 import Button from "../components/common/Button";
 
@@ -111,7 +111,7 @@ const ProfileSettingsPage = () => {
 
       const url = URL.createObjectURL(file);
 
-      if (tempPreviewUrl && tempPreviewUrl.startsWith('blob:')) {
+      if (tempPreviewUrl && tempPreviewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(tempPreviewUrl);
       }
 
@@ -217,7 +217,7 @@ const ProfileSettingsPage = () => {
       }
 
       setTempImageFile(null);
-      if (tempPreviewUrl && tempPreviewUrl.startsWith('blob:')) {
+      if (tempPreviewUrl && tempPreviewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(tempPreviewUrl);
       }
       setTempPreviewUrl("");
@@ -262,7 +262,10 @@ const ProfileSettingsPage = () => {
   };
 
   const handleDeleteBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (deleteModalRef.current && !deleteModalRef.current.contains(e.target as Node)) {
+    if (
+      deleteModalRef.current &&
+      !deleteModalRef.current.contains(e.target as Node)
+    ) {
       setShowDeleteModal(false);
     }
   };
@@ -274,7 +277,10 @@ const ProfileSettingsPage = () => {
         className="fixed inset-0 z-50 flex items-center justify-center p-6"
         onClick={handleDeleteBackdropClick}
       >
-        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          aria-hidden="true"
+        />
         <div
           ref={deleteModalRef}
           role="dialog"
@@ -294,11 +300,18 @@ const ProfileSettingsPage = () => {
 
           <div className="px-6 sm:px-8 py-6 space-y-4 text-slate-300 in-[.light]:text-gray-700">
             <p>
-              This action is <strong className="text-white in-[.light]:text-gray-900">permanent</strong> and cannot be undone. All your
-              data will be deleted.
+              This action is{" "}
+              <strong className="text-white in-[.light]:text-gray-900">
+                permanent
+              </strong>{" "}
+              and cannot be undone. All your data will be deleted.
             </p>
             <p>
-              Type <strong className="text-white in-[.light]:text-gray-900">{DELETE_PHRASE}</strong> to confirm:
+              Type{" "}
+              <strong className="text-white in-[.light]:text-gray-900">
+                {DELETE_PHRASE}
+              </strong>{" "}
+              to confirm:
             </p>
             <input
               type="text"
@@ -342,11 +355,6 @@ const ProfileSettingsPage = () => {
         <div className="settings-page-content">
           <div className="settings-page-layout">
             <div className="settings-page-card">
-              <header className="settings-card-header">
-                <UserIconUntitledUi className="profile-nav-icon icon-svg icon-cyan" />
-                <h2 className="settings-card-title">Profile</h2>
-              </header>
-
               <form onSubmit={handleSave} className="settings-form">
                 <div className="flex flex-col items-center gap-4 mb-6">
                   <div className="settings-avatar-container">
@@ -389,9 +397,7 @@ const ProfileSettingsPage = () => {
                       style={{ display: "none" }}
                     />
                   </div>
-                  <span className="settings-hint">
-                    JPG or PNG. Max 5MB.
-                  </span>
+                  <span className="settings-hint">JPG or PNG. Max 5MB.</span>
                 </div>
 
                 <div className="settings-field-group">
@@ -453,21 +459,25 @@ const ProfileSettingsPage = () => {
                 )}
 
                 <div className="settings-field-group">
-                  <label className="settings-label">Two-Factor Authentication</label>
+                  <label className="settings-label">
+                    Two-Factor Authentication
+                  </label>
                   <div className="flex items-center gap-3 mt-1">
                     <button
                       type="button"
                       role="switch"
                       aria-checked={enable2FA}
                       onClick={() => setEnable2FA((v) => !v)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enable2FA ? "bg-cyan-500" : "bg-(--border-color)"}`}
+                      className={`settings-2fa-toggle ${enable2FA ? "settings-2fa-toggle-on" : "settings-2fa-toggle-off"}`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enable2FA ? "translate-x-6" : "translate-x-1"}`}
+                        className={`settings-2fa-toggle-thumb ${enable2FA ? "settings-2fa-toggle-thumb-on" : ""}`}
                       />
                     </button>
                     <span className="settings-hint">
-                      {enable2FA ? "Enabled — OTP required at login" : "Disabled"}
+                      {enable2FA
+                        ? "Enabled — OTP required at login"
+                        : "Disabled"}
                     </span>
                   </div>
                 </div>
