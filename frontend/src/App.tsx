@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import RegisterPage from "./pages/RegisterPage";
@@ -71,12 +72,12 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<TFAPage />} />
-        <Route path="/home" element={<DashboardPage />} />
-        <Route path="/matchmaking" element={<MatchmakingPage />} />
-        <Route path="/game/:sessionId" element={<GamePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/friends" element={<FriendsPage />} />
-        <Route path="/settings" element={<ProfileSettingsPage />} />
+        <Route path="/home" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/matchmaking" element={<ProtectedRoute><MatchmakingPage /></ProtectedRoute>} />
+        <Route path="/game/:sessionId" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/friends" element={<ProtectedRoute><FriendsPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><ProfileSettingsPage /></ProtectedRoute>} />
         <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
