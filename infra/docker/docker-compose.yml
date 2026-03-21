@@ -141,21 +141,19 @@ services:
     image: prom/prometheus:v2.52.0
     volumes:
       - prometheus_data:/prometheus
-      - ../prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../prometheus/config:/etc/prometheus:ro
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d
       - --web.enable-lifecycle
       - --web.external-url=https://localhost/prometheus
-      - --web.route-prefix=/prometheus
     restart: unless-stopped
     networks:
       - transcendence-network
       - grafana-monitoring-network
     expose:
      - "9090"
-
 
   node-exporter:
     container_name: node-exporter
@@ -234,13 +232,30 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_METRICS_ENABLED=true
     volumes:
-      - ../grafana/provisioning/datasources/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+      - ../grafana/provisioning/:/etc/grafana/provisioning/:ro
+      - ../grafana/dashboards/:/etc/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
     expose:
       - "3000"
     depends_on:
       - prometheus
+    networks:
+      - transcendence-network
+      - grafana-monitoring-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ../alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    expose:
+      - "9093"
+    restart: unless-stopped
     networks:
       - grafana-monitoring-network
 
@@ -444,6 +459,7 @@ volumes:
   minio_data:
   prometheus_data:
   grafana_data:
+  alertmanager_data:
 
 networks:
   transcendence-network:
@@ -456,4 +472,3 @@ networks:
     internal: true
   grafana-monitoring-network:
     driver: bridge
-    internal: true
