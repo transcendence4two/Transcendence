@@ -2,6 +2,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeftShortIcon,
+  GitHubIcon,
   MoonIcon,
   SunIcon,
   type IconProps,
@@ -72,14 +73,25 @@ const PageNavbar = ({
           <span className="inline-flex" aria-hidden="true" />
         )}
 
-        <button
-          type="button"
-          onClick={() => setIsDarkMode((prev) => !prev)}
-          className="profile-theme-btn"
-          aria-label="Toggle theme"
-        >
-          {isDarkMode ? <SunIcon /> : <MoonIcon />}
-        </button>
+        <div className="flex items-center gap-1">
+          <a
+            href="https://github.com/transcendence4two/Transcendence"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="profile-theme-btn"
+            aria-label="GitHub repository"
+          >
+            <GitHubIcon />
+          </a>
+          <button
+            type="button"
+            onClick={() => setIsDarkMode((prev) => !prev)}
+            className="profile-theme-btn"
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? <SunIcon /> : <MoonIcon />}
+          </button>
+        </div>
       </nav>
     </div>
   );
