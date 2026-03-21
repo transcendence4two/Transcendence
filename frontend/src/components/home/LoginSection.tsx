@@ -44,10 +44,10 @@ const LoginSection = () => {
             const data = await response.json()
 
             if (!response.ok) {
-                if (data.detail) {
-                    setErrors({ general: data.detail })
-                } else if (data.error_type === 'INVALID_CREDENTIALS') {
+                if (data.error_type === 'INVALID_CREDENTIALS') {
                     setErrors({ general: 'Email ou senha incorretos' })
+                } else if (typeof data.detail === 'string' && data.detail) {
+                    setErrors({ general: data.detail })
                 } else {
                     setErrors({ general: 'Erro ao fazer login. Tente novamente.' })
                 }
@@ -136,6 +136,7 @@ const LoginSection = () => {
                         className={inputClassName}
                         placeholder='Enter your password'
                         required
+                        minLength={6}
                         disabled={isLoading}
                     />
                 </div>
